@@ -9,8 +9,8 @@ import (
   // "github.com/aws/aws-sdk-go/aws/awsutil"
   // "github.com/bobappleyard/readline"
   "gopkg.in/alecthomas/kingpin.v2"
+  "github.com/op/go-logging"
   // "io"
-  // "log"
   "os"
   // "path/filepath"
   // "strings"
@@ -19,6 +19,7 @@ import (
 
 var (
   app                               *kingpin.Application
+  log = logging.MustGetLogger("ecs-pilot")
   verbose                           bool
   region                            string
 
@@ -44,25 +45,29 @@ func init() {
 
 
   kingpin.CommandLine.Help = `A command-line AWS ECS tool.`
+
+  logging.SetLevel(logging.ERROR, "")
 }
 
 func main() {
 
+
   // Parse the command line to fool with flags and get the command we'll execeute.
   command := kingpin.MustParse(app.Parse(os.Args[1:]))
+  if verbose {
+    logging.SetLevel(logging.DEBUG,"")
+  }
 
   // The AWS library doesn't read configuariton information
   // out of .aws/config, just the credentials from .aws/credentials.
   config := defaults.Get().Config
-  fmt.Printf("Default region: \"%s\"\n", *config.Region)
+
+  log.Debugf("Default region: \"%s\"\n", *config.Region)
   if *config.Region == "" {
     config.Region = aws.String(region)
   }
+  log.Debugf("Using Region: %s", *config.Region)
 
-  if verbose {
-    fmt.Printf("Region: ")
-    fmt.Println(*config.Region)
-  }
 
   // List of commands as parsed matched against functions to execute the commands.
   commandMap := map[string]func(*ecs.ECS) {
@@ -82,7 +87,7 @@ func main() {
 func doListCluster(svc *ecs.ECS) {
   clusters,  err := GetClusters(svc)
   if err != nil {
-    fmt.Printf("Can't get clusters: %s\n", err)
+    log.Errorf("Can't get clusters: %s\n", err)
     return
   }
 
