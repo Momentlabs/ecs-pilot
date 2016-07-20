@@ -53,6 +53,16 @@ func GetContainerInstances(clusterName string, svc *ecs.ECS)([]*string, error) {
   return resp.ContainerInstanceArns, nil
 }
 
+func GetContainerInstanceDescription(clusterName string, containerArn string, ecs_svc *ecs.ECS) (*ecs.DescribeContainerInstancesOutput, error) {
+
+  params := &ecs.DescribeContainerInstancesInput{
+    ContainerInstances: []*string{aws.String(containerArn)},
+    Cluster: aws.String(clusterName),
+  }
+  resp, err := ecs_svc.DescribeContainerInstances(params)
+  return resp, err
+}
+
 func GetClusterDescription(clusterName string, svc *ecs.ECS) ([]*ecs.Cluster, error) {
   
   params := &ecs.DescribeClustersInput {
@@ -199,6 +209,8 @@ func LaunchContainerInstance(clusterName string, config *aws.Config) (*ec2.Reser
 
 func TerminateContainerInstance(clusterName string, containerArn string, ecs_svc *ecs.ECS, config *aws.Config) (*ec2.TerminateInstancesOutput, error) {
 
+
+  // Need to get the container instance description in order to get the ec2-instanceID.
   dci_params := &ecs.DescribeContainerInstancesInput{
     ContainerInstances: []*string{aws.String(containerArn)},
     Cluster: aws.String(clusterName),

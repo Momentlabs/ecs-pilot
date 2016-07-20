@@ -30,6 +30,7 @@ var (
   // Containers
   interContainer *kingpin.CmdClause
   interListContainerInstances *kingpin.CmdClause
+  interDescribeContainerInstance *kingpin.CmdClause
   interNewContainerInstance *kingpin.CmdClause
   interTerminateContainerInstance *kingpin.CmdClause
   clusterName string
@@ -65,11 +66,14 @@ func init() {
   interContainer = interApp.Command("container", "the context for container instances commands.")
   interListContainerInstances = interContainer.Command("list", "list containers attached to a cluster.")
   interListContainerInstances.Arg("cluster-name", "Short name of cluster to look for instances in").Required().StringVar(&clusterName)
+  interDescribeContainerInstance = interContainer.Command("describe", "deatils assocaited with a container instance")
+  interDescribeContainerInstance.Arg("cluster-name", "Short name of cluster for the instance").Required().StringVar(&clusterName)
+  interDescribeContainerInstance.Arg("instance-arn", "ARN of the container instance").Required().StringVar(&containerArn)
   interNewContainerInstance = interContainer.Command("new", "start up a new instance for a cluster")
   interNewContainerInstance.Arg("cluster-name", "Short name of cluster to for new instance.").Required().StringVar(&clusterName)
   interTerminateContainerInstance = interContainer.Command("stop", "stop a container instnace.")
   interTerminateContainerInstance.Arg("cluster-name", "Short name of cluster for instance to stop").Required().StringVar(&clusterName)
-  interTerminateContainerInstance.Arg("instance-arn", "ARN of the instance to terminate.").Required().StringVar(&containerArn)
+  interTerminateContainerInstance.Arg("instance-arn", "ARN of the container instance to terminate.").Required().StringVar(&containerArn)
 
   interTask = interApp.Command("task", "the context for task commands.")
   interListTasks = interTask.Command("list", "the context for listing tasks")
@@ -115,6 +119,7 @@ func doICommand(line string, svc *ecs.ECS, awsConfig *aws.Config) (err error) {
       case interDescribeCluster.FullCommand(): err = doDescribeCluster(svc)
       case interListClusterTasks.FullCommand(): err = doListClusterTasks(svc)
       case interListContainerInstances.FullCommand(): err = doListContainerInstances(svc)
+      case interDescribeContainerInstance.FullCommand(): err = doDescribeContainerInstance(svc)
       case interNewContainerInstance.FullCommand(): err = doNewContainerInstance(svc, awsConfig)
       case interTerminateContainerInstance.FullCommand(): err = doTerminateContainerInstance(svc, awsConfig)
       case interListTaskDefinitions.FullCommand(): err = doListTaskDefinitions(svc)
@@ -174,13 +179,91 @@ func doListContainerInstances(svc *ecs.ECS) (error) {
   return nil
 }
 
+func doDescribeContainerInstance(svc *ecs.ECS) (error) {
+  descriptions, err := GetContainerInstanceDescription(clusterName, containerArn, svc)
+  if err == nil {
+    fmt.Printf("There were (%d) failures in getting desriptions.\n", len(descriptions.Failures))
+    for i, failure := range descriptions.Failures {
+      fmt.Printf("%d: %+v\n", i+1, failure)
+    }    
+    fmt.Printf("Description of (%d) containers.\n", len(descriptions.ContainerInstances))
+    for i, description := range descriptions.ContainerInstances {
+      // fmt.Printf("%d: %+v\n", i+1, description)
+      fmt.Printf("%d: *****\n", i+1)
+      printContainerInstanceDescription(description)
+    }
+  }
+  return err
+}
+
+func printContainerInstanceDescription(container *ecs.ContainerInstance) {
+  fmt.Printf("arn: %s\n", *container.ContainerInstanceArn)
+  fmt.Printf("EC2-ID: %s\n", *container.Ec2InstanceId)
+  fmt.Printf("Status:  %s\n", *container.Status)
+  fmt.Printf("Running Task Count: %d.\n", *container.RunningTasksCount)
+  fmt.Printf("Pending Task Count: %d\n", *container.PendingTasksCount)
+  fmt.Printf("There are (%d) registered resources.\n", len(container.RegisteredResources))
+  for i, resource := range container.RegisteredResources {
+    fmt.Printf("\t %d. %s: %+v\n", i+1, *resource.Name, resourceValue(resource))
+  }
+  fmt.Printf("There are (%d) remaining resources.\n", len(container.RemainingResources))
+  for i, resource := range container.RemainingResources {
+    fmt.Printf("\t %d. %s: %+v\n", i+1, *resource.Name, resourceValue(resource))
+  }
+  fmt.Printf("Agent connected: %+v\n", *container.AgentConnected)
+  status := ""
+  if container.AgentUpdateStatus != nil {
+    status = *container.AgentUpdateStatus
+  } else {
+    status = "never requested."
+  }
+  fmt.Printf("Agent updated status: %s\n", status)
+  fmt.Printf("There are (%d) attributes.", len(container.Attributes))
+  for i, attr := range container.Attributes {
+    fmt.Printf("\t%d.  %s\n", i, attributeString(attr))
+  }
+}
+
+func resourceValue(r *ecs.Resource) (interface{}) {
+
+  switch *r.Type {
+    case "INTEGER": return *r.IntegerValue
+    case "DOUBLE": return *r.DoubleValue
+    case "LONG": return *r.LongValue
+    case "STRINGSET": return stringArrayToString(r.StringSetValue)
+  }
+  return nil
+}
+
+func stringArrayToString(sA []*string) (string) {
+  final := ""
+  for i, s := range sA {
+    if i == 0 {
+      final = fmt.Sprintf("%s", *s)
+    } else {
+      final = fmt.Sprintf("%s, %s", final, *s)
+    }
+  }
+  return final
+}
+
+func attributeString(attr *ecs.Attribute) (string) {
+  value := ""
+  if attr.Value == nil {
+    value = "nil"
+  } else {
+    value = *attr.Value
+  }
+  return fmt.Sprintf("%s: %s", *attr.Name, value)
+}
+
 func doNewContainerInstance(svc *ecs.ECS, awsConfig *aws.Config) (error) {
   resp, err := LaunchContainerInstance(clusterName, awsConfig)
   if err != nil {
     return err
   }
 
-  fmt.Printf("%+v", resp)
+  fmt.Printf("%+v\n", resp)
   return nil
 }
 
@@ -188,7 +271,7 @@ func doTerminateContainerInstance(svc *ecs.ECS, awsConfig *aws.Config) (error) {
   resp, err := TerminateContainerInstance(clusterName, containerArn, svc, awsConfig)
   if err == nil {
     fmt.Printf("Terminated container instance %s.\n", containerArn)
-    fmt.Printf("%+v", resp)
+    fmt.Printf("%+v\n", resp)
   }
   return err
 }
@@ -201,7 +284,6 @@ func doListClusterTasks(svc *ecs.ECS) (error) {
       fmt.Printf("%d: %s\n", i+1, *arn)
     }
   }
-
   return err
 }
 
