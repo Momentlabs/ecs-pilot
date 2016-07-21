@@ -4,6 +4,7 @@ import (
   // "strings"
   "fmt"
   "errors"
+  // "time"  
   // "io"
   "encoding/base64"
   "github.com/aws/aws-sdk-go/aws"
@@ -18,16 +19,25 @@ type Cluster struct {
   Arn *string
 }
 
+type ContainerInstance struct {
+  Instance  *ecs.ContainerInstance
+  Failure *ecs.Failure
+}
+type ContainerInstanceMap map[string]*ContainerInstance
+
+type ContainerTask struct {
+  Task *ecs.Task
+  Failure *ecs.Failure
+}
+type ContainerTaskMap map[string]*ContainerTask
+
 func GetClusters(svc *ecs.ECS) ([]Cluster, error) {
 
   params := &ecs.ListClustersInput {
     MaxResults: aws.Int64(100),
   } // TODO: this only will get the first 100 ....
   output, err := svc.ListClusters(params)
-
-  if err != nil{
-    return []Cluster{}, err
-  }
+  if err != nil{ return []Cluster{}, err }
 
   clusters := make([]Cluster, len(output.ClusterArns))
   for i, arn := range output.ClusterArns {
@@ -35,7 +45,6 @@ func GetClusters(svc *ecs.ECS) ([]Cluster, error) {
   }
 
   return clusters, nil
-
 }
 
 func GetContainerInstances(clusterName string, svc *ecs.ECS)([]*string, error) {
@@ -43,24 +52,59 @@ func GetContainerInstances(clusterName string, svc *ecs.ECS)([]*string, error) {
     Cluster: aws.String(clusterName),
     MaxResults: aws.Int64(100),
   }
-
   resp, err := svc.ListContainerInstances(params)
-
-  if err != nil {
-    return []*string{}, err
-  }
+  if err != nil { return []*string{}, err }
 
   return resp.ContainerInstanceArns, nil
 }
 
-func GetContainerInstanceDescription(clusterName string, containerArn string, ecs_svc *ecs.ECS) (*ecs.DescribeContainerInstancesOutput, error) {
+
+func GetAllContainerInstanceDescriptions(clusterName string, ecs_svc *ecs.ECS) (ContainerInstanceMap, error) {
+
+  instanceArns, err := GetContainerInstances(clusterName, ecs_svc)
+  if err != nil { return make(ContainerInstanceMap), err }
+
+  if len(instanceArns) <= 0 {
+    return make(ContainerInstanceMap), nil
+  }
+
+  params := &ecs.DescribeContainerInstancesInput {
+    ContainerInstances: instanceArns,
+    Cluster: aws.String(clusterName),
+  }
+  resp, err := ecs_svc.DescribeContainerInstances(params)
+  return makeCIMapFromDescribeContainerInstancesOutput(resp), err
+}
+
+func GetContainerInstanceDescription(clusterName string, containerArn string, ecs_svc *ecs.ECS) (ContainerInstanceMap, error) {
 
   params := &ecs.DescribeContainerInstancesInput{
     ContainerInstances: []*string{aws.String(containerArn)},
     Cluster: aws.String(clusterName),
   }
   resp, err := ecs_svc.DescribeContainerInstances(params)
-  return resp, err
+  return makeCIMapFromDescribeContainerInstancesOutput(resp), err
+}
+
+func makeCIMapFromDescribeContainerInstancesOutput(dcio *ecs.DescribeContainerInstancesOutput) (ContainerInstanceMap) {
+
+  ciMap := make(ContainerInstanceMap)
+  for _, instance := range dcio.ContainerInstances {
+    ci := new(ContainerInstance)
+    ci.Instance = instance
+    ciMap[*instance.ContainerInstanceArn] =  ci
+  }
+  for _, failure := range dcio.Failures {
+    ci := ciMap[*failure.Arn]
+    if ci == nil {
+      ci := new(ContainerInstance)
+      ci.Failure = failure
+      ciMap[*failure.Arn] = ci
+    } else {
+      ci.Failure = failure
+    }
+  }
+  return ciMap
 }
 
 func GetClusterDescription(clusterName string, svc *ecs.ECS) ([]*ecs.Cluster, error) {
@@ -251,6 +295,45 @@ func ListTasksForCluster(clusterName string, ecs_svc *ecs.ECS) ([]*string, error
   return resp.TaskArns, err
 }
 
+func GetAllTaskDescriptions(clusterName string, ecs_svc *ecs.ECS) (ContainerTaskMap, error) {
+ 
+ taskArns, err := ListTasksForCluster(clusterName, ecs_svc)
+ if err != nil { return make(ContainerTaskMap), err}
+
+ // Describe task will fail with no arns.
+ if len(taskArns) <= 0 {
+  return make(ContainerTaskMap), nil
+ }
+
+  params := &ecs.DescribeTasksInput {
+    Cluster: aws.String(clusterName),
+    Tasks: taskArns,
+  }
+
+  resp, err := ecs_svc.DescribeTasks(params)
+  return makeCTMapFromDescribeTasksOutput(resp), err
+}
+
+func makeCTMapFromDescribeTasksOutput(dto *ecs.DescribeTasksOutput) (ContainerTaskMap) {
+  ctMap := make(ContainerTaskMap)
+  for _, task := range dto.Tasks {
+    ct := new(ContainerTask)
+    ct.Task = task
+    ctMap[*task.TaskArn] =  ct
+  }
+  for _, failure := range dto.Failures {
+    ct := ctMap[*failure.Arn]
+    if ct == nil {
+      ct := new(ContainerTask)
+      ct.Failure = failure
+      ctMap[*failure.Arn] = ct
+    } else {
+      ct.Failure = failure
+    }
+  }
+  return ctMap
+}
+
 func RunTask(clusterName string, taskDef string, ecs_svc *ecs.ECS) (*ecs.RunTaskOutput, error) {
 
   params := &ecs.RunTaskInput{
@@ -278,4 +361,23 @@ func ListTaskDefinitions(ecs_svc *ecs.ECS) ([]*string, error) {
   resp, err := ecs_svc.ListTaskDefinitions(params)
   return resp.TaskDefinitionArns, err
 }
+
+
+// func WaitForContainerInstanceStateChange(delaySeconds, periodSeconds int, currentState string, 
+//   clusterName string, conatinerIntstanceArn string, ecs_svc *ecs.ECS, cb func(string, error)) {
+//   go func() {
+//     time.Sleep(time.Second * time.Duration(delaySeconds))
+//     var e error
+//     var status string
+//     for ci, e := s.GetContainerInstanceDescription(); e == nil;  {
+//       if *sd.StreamStatus != currentState {
+//         status = *sd.StreamStatus
+//         break;
+//       }
+//       time.Sleep(time.Second * time.Duration(periodSeconds))
+//       sd, e = s.GetAWSDescription()
+//     }
+//     cb(status, e)
+//   }()
+// }
 

@@ -31,6 +31,7 @@ var (
   interContainer *kingpin.CmdClause
   interListContainerInstances *kingpin.CmdClause
   interDescribeContainerInstance *kingpin.CmdClause
+  interDescribeAllContainerInstances *kingpin.CmdClause
   interNewContainerInstance *kingpin.CmdClause
   interTerminateContainerInstance *kingpin.CmdClause
   clusterName string
@@ -39,7 +40,7 @@ var (
   // Tasks
   interTask *kingpin.CmdClause
   interListTasks *kingpin.CmdClause
-  interListClusterTasks *kingpin.CmdClause
+  interDescribeAllTasks *kingpin.CmdClause
   interRunTask *kingpin.CmdClause
   taskDefinition string
   interStopTask *kingpin.CmdClause
@@ -69,6 +70,8 @@ func init() {
   interDescribeContainerInstance = interContainer.Command("describe", "deatils assocaited with a container instance")
   interDescribeContainerInstance.Arg("cluster-name", "Short name of cluster for the instance").Required().StringVar(&clusterName)
   interDescribeContainerInstance.Arg("instance-arn", "ARN of the container instance").Required().StringVar(&containerArn)
+  interDescribeAllContainerInstances = interContainer.Command("describe-all", "details for all conatiners instances in a cluster.")
+  interDescribeAllContainerInstances.Arg("cluster-name", "Short name of cluster for instances").Required().StringVar(&clusterName)
   interNewContainerInstance = interContainer.Command("new", "start up a new instance for a cluster")
   interNewContainerInstance.Arg("cluster-name", "Short name of cluster to for new instance.").Required().StringVar(&clusterName)
   interTerminateContainerInstance = interContainer.Command("stop", "stop a container instnace.")
@@ -77,8 +80,9 @@ func init() {
 
   interTask = interApp.Command("task", "the context for task commands.")
   interListTasks = interTask.Command("list", "the context for listing tasks")
-  interListClusterTasks = interListTasks.Command("cluster", "listing tasks for a particular cluster")
-  interListClusterTasks.Arg("cluster-name", "Short name of cluster with tasks to list.").Required().StringVar(&clusterName)
+  interListTasks.Arg("cluster-name", "Short name of cluster with tasks to list.").Required().StringVar(&clusterName)
+  interDescribeAllTasks = interTask.Command("describe-all", "describe all the tasks associatd with a cluster.")
+  interDescribeAllTasks.Arg("cluster-name", "Short name of the cluster with tasks to describe").Required().StringVar(&clusterName)
   interRunTask = interTask.Command("run", "Run a new task.")
   interRunTask.Arg("cluster-name", "short name of the cluster to run the task on.").Required().StringVar(&clusterName)
   interRunTask.Arg("task-definition", "The definition of the task to run.").Required().StringVar(&taskDefinition)
@@ -117,9 +121,11 @@ func doICommand(line string, svc *ecs.ECS, awsConfig *aws.Config) (err error) {
       case interQuit.FullCommand(): err = doQuit()
       case interListClusters.FullCommand(): err = doListClusters(svc)
       case interDescribeCluster.FullCommand(): err = doDescribeCluster(svc)
-      case interListClusterTasks.FullCommand(): err = doListClusterTasks(svc)
+      case interListTasks.FullCommand(): err = doListTasks(svc)
+      case interDescribeAllTasks.FullCommand(): err = doDescribeAllTasks(svc)
       case interListContainerInstances.FullCommand(): err = doListContainerInstances(svc)
       case interDescribeContainerInstance.FullCommand(): err = doDescribeContainerInstance(svc)
+      case interDescribeAllContainerInstances.FullCommand(): err = doDescribeAllContainerInstances(svc)
       case interNewContainerInstance.FullCommand(): err = doNewContainerInstance(svc, awsConfig)
       case interTerminateContainerInstance.FullCommand(): err = doTerminateContainerInstance(svc, awsConfig)
       case interListTaskDefinitions.FullCommand(): err = doListTaskDefinitions(svc)
@@ -180,48 +186,74 @@ func doListContainerInstances(svc *ecs.ECS) (error) {
 }
 
 func doDescribeContainerInstance(svc *ecs.ECS) (error) {
-  descriptions, err := GetContainerInstanceDescription(clusterName, containerArn, svc)
+  ciMap, err := GetContainerInstanceDescription(clusterName, containerArn, svc)
   if err == nil {
-    fmt.Printf("There were (%d) failures in getting desriptions.\n", len(descriptions.Failures))
-    for i, failure := range descriptions.Failures {
-      fmt.Printf("%d: %+v\n", i+1, failure)
-    }    
-    fmt.Printf("Description of (%d) containers.\n", len(descriptions.ContainerInstances))
-    for i, description := range descriptions.ContainerInstances {
-      // fmt.Printf("%d: %+v\n", i+1, description)
-      fmt.Printf("%d: *****\n", i+1)
-      printContainerInstanceDescription(description)
+    // fmt.Printf("%s\n", ContainerInstanceMapToString(ciMap))
+    fmt.Printf("%s\n", ciMap.toString())
+  }
+  return err
+}
+
+func doDescribeAllContainerInstances(svc *ecs.ECS) (error) {
+  ciMap, err := GetAllContainerInstanceDescriptions(clusterName, svc)
+  if err == nil {
+    if len(ciMap) <= 0 {
+      fmt.Printf("There are no containers for: %s.\n", clusterName)
+    } else {
+     fmt.Printf("%s\n", ciMap.toString())
     }
   }
   return err
 }
 
-func printContainerInstanceDescription(container *ecs.ContainerInstance) {
-  fmt.Printf("arn: %s\n", *container.ContainerInstanceArn)
-  fmt.Printf("EC2-ID: %s\n", *container.Ec2InstanceId)
-  fmt.Printf("Status:  %s\n", *container.Status)
-  fmt.Printf("Running Task Count: %d.\n", *container.RunningTasksCount)
-  fmt.Printf("Pending Task Count: %d\n", *container.PendingTasksCount)
-  fmt.Printf("There are (%d) registered resources.\n", len(container.RegisteredResources))
+
+func (ciMap ContainerInstanceMap) toString() (string) {
+  s := ""
+  for _, ci := range ciMap {
+    iString := ""
+    if ci.Instance != nil {
+      iString = fmt.Sprintf("%s", ContainerInstanceDescriptionToString(ci.Instance))
+    } else {
+      iString = "No instance description"
+    }
+    fString := ""
+    if ci.Failure != nil {
+      fString = fmt.Sprintf("+v", *ci.Failure)
+    }
+    s += fmt.Sprintf("%s\n%s\n", iString, fString) 
+  } 
+  return s
+}
+
+func ContainerInstanceDescriptionToString(container *ecs.ContainerInstance) (string){
+  s := ""
+  s += fmt.Sprintf("Container ARN: %s\n", *container.ContainerInstanceArn)
+  s += fmt.Sprintf("EC2-ID: %s\n", *container.Ec2InstanceId)
+  s += fmt.Sprintf("Status:  %s\n", *container.Status)
+  s += fmt.Sprintf("Running Task Count: %d.\n", *container.RunningTasksCount)
+  s += fmt.Sprintf("Pending Task Count: %d\n", *container.PendingTasksCount)
+  s += fmt.Sprintf("There are (%d) registered resources.\n", len(container.RegisteredResources))
   for i, resource := range container.RegisteredResources {
-    fmt.Printf("\t %d. %s: %+v\n", i+1, *resource.Name, resourceValue(resource))
+    s += fmt.Sprintf("\t %d. %s: %+v\n", i+1, *resource.Name, resourceValue(resource))
   }
-  fmt.Printf("There are (%d) remaining resources.\n", len(container.RemainingResources))
+  s += fmt.Sprintf("There are (%d) remaining resources.\n", len(container.RemainingResources))
   for i, resource := range container.RemainingResources {
-    fmt.Printf("\t %d. %s: %+v\n", i+1, *resource.Name, resourceValue(resource))
+    s += fmt.Sprintf("\t %d. %s: %+v\n", i+1, *resource.Name, resourceValue(resource))
   }
-  fmt.Printf("Agent connected: %+v\n", *container.AgentConnected)
+  s += fmt.Sprintf("Agent connected: %+v\n", *container.AgentConnected)
   status := ""
   if container.AgentUpdateStatus != nil {
     status = *container.AgentUpdateStatus
   } else {
     status = "never requested."
   }
-  fmt.Printf("Agent updated status: %s\n", status)
-  fmt.Printf("There are (%d) attributes.", len(container.Attributes))
+  s += fmt.Sprintf("Agent updated status: %s\n", status)
+  s += fmt.Sprintf("There are (%d) attributes.\n", len(container.Attributes))
   for i, attr := range container.Attributes {
-    fmt.Printf("\t%d.  %s\n", i, attributeString(attr))
+    s+= fmt.Sprintf("\t%d.  %s\n", i+1, attributeString(attr))
   }
+
+  return s
 }
 
 func resourceValue(r *ecs.Resource) (interface{}) {
@@ -276,7 +308,7 @@ func doTerminateContainerInstance(svc *ecs.ECS, awsConfig *aws.Config) (error) {
   return err
 }
 
-func doListClusterTasks(svc *ecs.ECS) (error) {
+func doListTasks(svc *ecs.ECS) (error) {
   arns, err := ListTasksForCluster(clusterName, svc)
   if err == nil {
    fmt.Printf("There are (%d) tasks for cluster: %s\n", len(arns), clusterName)
@@ -285,6 +317,64 @@ func doListClusterTasks(svc *ecs.ECS) (error) {
     }
   }
   return err
+}
+
+func doDescribeAllTasks(svc *ecs.ECS) (error) {
+  resp, err := GetAllTaskDescriptions(clusterName, svc)
+
+  if err == nil {
+    if len(resp) <= 0 {
+      fmt.Printf("No tasks for %s.\n", clusterName)
+    } else {
+      fmt.Printf("%s", resp.toString())
+    }
+  }
+  return err
+}
+
+func (ctMap ContainerTaskMap) toString() (string) {
+  s := ""
+  for _, ct := range ctMap {
+    tString := ""
+    if ct.Task != nil {
+      tString = fmt.Sprintf("%s", ContainerTaskDescriptionToString(ct.Task))
+    } else {
+      tString = "No task description"
+    }
+    fString := ""
+    if ct.Failure != nil {
+      fString = fmt.Sprintf("+v", *ct.Failure)
+    }
+    s += fmt.Sprintf("%s\n%s", tString, fString) 
+  } 
+  return s
+}
+
+func ContainerTaskDescriptionToString(task *ecs.Task) (string) {
+  s := ""
+  s += fmt.Sprintf("Task ARN: %s\n", *task.TaskArn)
+  s += fmt.Sprintf("Cluster ARN: %s\n", *task.ClusterArn)
+  s += fmt.Sprintf("Container ARN: %s\n", *task.ContainerInstanceArn)
+
+  s += fmt.Sprintf("There are (%d) associated containers.\n", len(task.Containers))
+  if len(task.Containers) > 0 {
+    for i, container := range task.Containers {
+      s += fmt.Sprintf("%d. Name: %s\n", i+1, *container.Name)
+      s += fmt.Sprintf("\tContainer Arn: %s\n", *container.ContainerArn)
+      s += fmt.Sprintf("\tTask Arn: %s\n", *container.TaskArn)
+      // s += fmt.Sprintf("\tReason: %s\n", *container.Reason)
+      s += fmt.Sprintf("\tLast Status: %s\n", *container.LastStatus)
+      // s += fmt.Sprintf("\tExit Code: %d\n", *container.ExitCode)
+      s += fmt.Sprintf("\tContainer Network Bindings:\n")
+      for j, network := range container.NetworkBindings {
+        s +=  fmt.Sprintf("\t\t%d. IP: %s", j+1, *network.BindIP)
+        s += fmt.Sprintf(" Conatiner Port: %d -> Host Port: %d", *network.ContainerPort, *network.HostPort)
+        s += fmt.Sprintf("  (%s)\n", *network.Protocol)
+      }
+    }
+  }
+
+  return s
 }
 
 func doListTaskDefinitions(svc *ecs.ECS) (error) {
@@ -318,7 +408,7 @@ func doStopTask(svc *ecs.ECS) (error) {
   resp, err := StopTask(clusterName, taskArn, svc)
   if err == nil {
     fmt.Println("This task was stopped:")
-    fmt.Printf("%s", resp.Task)
+    fmt.Printf("%s\n", ContainerTaskDescriptionToString(resp.Task))
   }
   return err
 }
@@ -383,7 +473,4 @@ func DoInteractive(svc *ecs.ECS, config *aws.Config) {
   err := promptLoop(prompt, xICommand)
   if err != nil {fmt.Printf("Error - %s.\n", err)}
 }
-
-
-
 
