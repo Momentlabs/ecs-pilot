@@ -99,16 +99,15 @@ func main() {
 
 func doListCluster(svc *ecs.ECS) {
   clusters,  err := ecslib.GetClusters(svc)
-  if err != nil {
+  if err == nil {
+    fmt.Println("Clusters")
+    for i, cluster := range clusters {
+      fmt.Printf("%d: %s\n", i+1, *cluster.Arn)
+    }
+  } else {
     log.Errorf("Can't get clusters: %s\n", err)
     return
   }
-
-  fmt.Println("Clusters")
-  for i, cluster := range clusters {
-    fmt.Printf("%d: %s\n", i+1, *cluster.Arn)
-  }
-
 }
 
 func doListTaskDefinitions(svc *ecs.ECS) {
@@ -118,6 +117,8 @@ func doListTaskDefinitions(svc *ecs.ECS) {
     for i, arn := range arns {
       fmt.Printf("%d: %s.\n", i+1, *arn)
     }
+  } else {
+    log.Errorf("Can't get task defintion arns: %s.\n", err)
   }
 }
 
