@@ -1,4 +1,4 @@
-package main 
+package ecslib 
 
 import (
   // "strings"
@@ -11,6 +11,7 @@ import (
   "github.com/aws/aws-sdk-go/aws/session"
   "github.com/aws/aws-sdk-go/service/ecs"
   "github.com/aws/aws-sdk-go/service/ec2"
+  // "github.com/spf13/viper"
   // "github.com/op/go-logging"
 )
 
@@ -192,7 +193,6 @@ func LaunchContainerInstance(clusterName string, config *aws.Config) (*ec2.Reser
 
   // TOD: Need to add a name-tag.
 
-  log.Debugf("LaunchContainer in region: %s\n", *config.Region)
   ec2_svc := ec2.New(session.New(config))
 
   params := &ec2.RunInstancesInput {
@@ -345,13 +345,35 @@ func RunTask(clusterName string, taskDef string, ecs_svc *ecs.ECS) (*ecs.RunTask
   return resp, err
 }
 
-func StopTask(clusterNamae string, taskArn string, ecs_svc *ecs.ECS) (*ecs.StopTaskOutput, error)  {
+func OnTaskRunning(clusterName, taskDefArn string, ecs_svc *ecs.ECS, do func(error)) {
+    go func() {
+      params := &ecs.DescribeTasksInput{
+        Cluster: aws.String(clusterName),
+        Tasks: []*string{aws.String(taskDefArn)},
+      }
+      err := ecs_svc.WaitUntilTasksRunning(params)
+      do(err)
+    }()
+}
+
+func StopTask(clusterName string, taskArn string, ecs_svc *ecs.ECS) (*ecs.StopTaskOutput, error)  {
  params := &ecs.StopTaskInput{
     Task: aws.String(taskArn),
     Cluster: aws.String(clusterName),
   }
   resp, err := ecs_svc.StopTask(params)
   return resp, err
+}
+
+func OnTaskStopped(clusterName, taskArn string, ecs_svc *ecs.ECS, do func(error)) {
+  go func() {
+    params := &ecs.DescribeTasksInput{
+      Cluster: aws.String(clusterName),
+      Tasks: []*string{aws.String(taskArn)},
+    }
+    err := ecs_svc.WaitUntilTasksStopped(params)
+    do(err)
+  }()
 }
 
 func ListTaskDefinitions(ecs_svc *ecs.ECS) ([]*string, error) {
@@ -361,6 +383,20 @@ func ListTaskDefinitions(ecs_svc *ecs.ECS) ([]*string, error) {
   resp, err := ecs_svc.ListTaskDefinitions(params)
   return resp.TaskDefinitionArns, err
 }
+
+func GetTaskDefinition(taskDefinitionArn string, ecs_svc *ecs.ECS) (*ecs.TaskDefinition, error) {
+  params := &ecs.DescribeTaskDefinitionInput {
+    TaskDefinition: aws.String(taskDefinitionArn),
+  }
+  resp, err := ecs_svc.DescribeTaskDefinition(params)
+  return resp.TaskDefinition, err
+}
+
+// func RegisterTaskDefinition(configFileName string, ecs_svc *ecs.ECS) (*ecs.RegisterTaskDefintionOutput, error) {
+//   config := viper.New()
+//   config.SetConfigName(configFileName)
+//   err := config.ReadConfig()
+// }
 
 
 // func WaitForContainerInstanceStateChange(delaySeconds, periodSeconds int, currentState string, 

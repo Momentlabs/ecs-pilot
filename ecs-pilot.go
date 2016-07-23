@@ -12,6 +12,8 @@ import (
   "github.com/op/go-logging"
   // "io"
   "os"
+  "ecs-pilot/interactive"
+  "ecs-pilot/ecslib"
   // "path/filepath"
   // "strings"
   // "time"
@@ -24,12 +26,17 @@ var (
   region                            string
 
   // Prompt for Commands
-  interactive *kingpin.CmdClause
+  interactiveCmd *kingpin.CmdClause
 
   // List clusters
   cluster *kingpin.CmdClause
   listClusters *kingpin.CmdClause
-  // Create an instance and attach it to a cluster.
+
+  // Task Definitions
+  taskDefinition *kingpin.CmdClause
+  listTaskDefinitions *kingpin.CmdClause
+  describeTaskDefinition *kingpin.CmdClause
+  taskDefinitionArn string
 )
 
 func init() {
@@ -38,14 +45,18 @@ func init() {
 
   app.Flag("region", "Manage continers in this AWS region.").Default("us-east-1").StringVar(&region)
 
-  interactive = app.Command("interactive", "Prompt for commands.")
+  interactiveCmd = app.Command("interactive", "Prompt for commands.")
 
   cluster = app.Command("cluster", "Operate on clusters.")
   listClusters = cluster.Command("list", "List the avaialble clusters.")
 
+  taskDefinition = app.Command("task-definition", "Operate on task definitions.")
+  listTaskDefinitions = taskDefinition.Command("list", "list the registered task-definitions.")
+  describeTaskDefinition = taskDefinition.Command("describe", "Print the details for a task-definition.")
+  describeTaskDefinition.Arg("task-definition-arn", "The ARN for the task-definition to describe.").Required().StringVar(&taskDefinitionArn)
+
 
   kingpin.CommandLine.Help = `A command-line AWS ECS tool.`
-
   logging.SetLevel(logging.ERROR, "")
 }
 
@@ -72,20 +83,22 @@ func main() {
   // List of commands as parsed matched against functions to execute the commands.
   commandMap := map[string]func(*ecs.ECS) {
     listClusters.FullCommand(): doListCluster,
+    listTaskDefinitions.FullCommand(): doListTaskDefinitions,
+    describeTaskDefinition.FullCommand(): doDescribeTaskDefinition,
   }
 
   ecs_svc := ecs.New(session.New(config))
 
   // Execute the command.
-  if interactive.FullCommand() == command {
-    DoInteractive(ecs_svc, config)
+  if interactiveCmd.FullCommand() == command {
+    interactive.DoInteractive(ecs_svc, config)
   } else {
     commandMap[command](ecs_svc)
   }
 }
 
 func doListCluster(svc *ecs.ECS) {
-  clusters,  err := GetClusters(svc)
+  clusters,  err := ecslib.GetClusters(svc)
   if err != nil {
     log.Errorf("Can't get clusters: %s\n", err)
     return
@@ -98,6 +111,22 @@ func doListCluster(svc *ecs.ECS) {
 
 }
 
-// func doInteractive(svc *ecs.ECS) {
-//   fmt.Println("Interactive not implemented yet.")
-// }
+func doListTaskDefinitions(svc *ecs.ECS) {
+  arns, err := ecslib.ListTaskDefinitions(svc)
+  if err == nil {
+    fmt.Printf("There are (%d) task definitions.\n", len(arns))
+    for i, arn := range arns {
+      fmt.Printf("%d: %s.\n", i+1, *arn)
+    }
+  }
+}
+
+func doDescribeTaskDefinition(svc *ecs.ECS) {
+  taskDefinition, err := ecslib.GetTaskDefinition(taskDefinitionArn, svc)
+  if err == nil {
+    fmt.Printf("%s\n", taskDefinition)
+  } else {
+    log.Errorf("Can't get TaskDefinition for: \"%S\".\nError: %s", taskDefinitionArn, err)
+  }
+}
+
