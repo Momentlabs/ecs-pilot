@@ -51,6 +51,8 @@ var (
   interTaskDefinition *kingpin.CmdClause
   interListTaskDefinitions *kingpin.CmdClause
   interDescribeTaskDefinition *kingpin.CmdClause
+  registerTaskDefinition *kingpin.CmdClause
+  taskConfigFileName string
   // interTaskDefinitionArn string
 )
 
@@ -97,6 +99,8 @@ func init() {
   interListTaskDefinitions = interTaskDefinition.Command("list", "list the existing task definntions.")
   interDescribeTaskDefinition = interTaskDefinition.Command("describe", "Describe all the registered task definitions.")
   interDescribeTaskDefinition.Arg("task-definition-arn", "arn of task definition to describe.").Required().StringVar(&interTaskDefinitionArn)
+  registerTaskDefinition = interTaskDefinition.Command("register", "Register a task definition.") 
+  registerTaskDefinition.Arg("config", "Configuration desecription for task definition.").Required().StringVar(&taskConfigFileName)
 
 }
 
@@ -135,6 +139,7 @@ func doICommand(line string, svc *ecs.ECS, awsConfig *aws.Config) (err error) {
       case interTerminateContainerInstance.FullCommand(): err = doTerminateContainerInstance(svc, awsConfig)
       case interListTaskDefinitions.FullCommand(): err = doListTaskDefinitions(svc)
       case interDescribeTaskDefinition.FullCommand(): err = doDescribeTaskDefinition(svc)
+      case registerTaskDefinition.FullCommand(): err = doRegisterTaskDefinition(svc)
       case interRunTask.FullCommand(): err = doRunTask(svc)
       case interStopTask.FullCommand(): err = doStopTask(svc)
     }
@@ -422,6 +427,17 @@ func doDescribeTaskDefinition(svc *ecs.ECS) (error) {
   return err
 }
 
+func doRegisterTaskDefinition(svc *ecs.ECS) (error) {
+  resp, err := ecslib.RegisterTaskDefinition(taskConfigFileName, svc)
+  if err == nil {
+    fmt.Printf("Got the following response: %+v\n", resp)
+  } else {
+    fmt.Printf("Couldn't register the task definition: %s.\n", err)
+  }
+
+  return err
+}
+
 func doRunTask(svc *ecs.ECS) (error) {
   runTaskOut, err := ecslib.RunTask(interClusterName, interTaskDefinitionArn, svc)
   if err == nil {
@@ -462,10 +478,10 @@ func doStopTask(svc *ecs.ECS) (error) {
   return err
 }
 
+
 //
 // Interpreter upport functions.
 //
-
 
 func doTest() (error) {
   fmt.Println("Test command executed.")

@@ -11,7 +11,7 @@ import (
   "github.com/aws/aws-sdk-go/aws/session"
   "github.com/aws/aws-sdk-go/service/ecs"
   "github.com/aws/aws-sdk-go/service/ec2"
-  // "github.com/spf13/viper"
+  "github.com/spf13/viper"
   // "github.com/op/go-logging"
 )
 
@@ -392,11 +392,27 @@ func GetTaskDefinition(taskDefinitionArn string, ecs_svc *ecs.ECS) (*ecs.TaskDef
   return resp.TaskDefinition, err
 }
 
-// func RegisterTaskDefinition(configFileName string, ecs_svc *ecs.ECS) (*ecs.RegisterTaskDefintionOutput, error) {
-//   config := viper.New()
-//   config.SetConfigName(configFileName)
-//   err := config.ReadConfig()
-// }
+func RegisterTaskDefinition(configFileName string, ecs_svc *ecs.ECS) (*ecs.RegisterTaskDefinitionOutput, error) {
+  config := viper.New()
+  config.SetConfigName(configFileName)
+  config.AddConfigPath(".")
+  err := config.ReadInConfig()
+  if err != nil {
+    fmt.Printf("Couldn't read the config file.\n")
+    return nil, err
+  }
+
+  var td ecs.TaskDefinition
+  err = config.Unmarshal(&td)
+  if err != nil {
+    fmt.Printf("Couldn't unmarshall the config file.\n")
+    return nil, err
+  }
+
+  fmt.Printf("Config got me a TaskDefinition: %+v\n", td)
+
+  return nil, err
+}
 
 
 // func WaitForContainerInstanceStateChange(delaySeconds, periodSeconds int, currentState string, 
