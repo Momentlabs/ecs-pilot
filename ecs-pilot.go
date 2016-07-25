@@ -39,6 +39,7 @@ var (
   listTaskDefinitions *kingpin.CmdClause
   describeTaskDefinition *kingpin.CmdClause
   emptyTaskDefinition *kingpin.CmdClause
+  defaultTaskDefinition *kingpin.CmdClause
   taskDefinitionArn string
 )
 
@@ -57,7 +58,8 @@ func init() {
   listTaskDefinitions = taskDefinition.Command("list", "list the registered task-definitions.")
   describeTaskDefinition = taskDefinition.Command("describe", "Print the details for a task-definition.")
   describeTaskDefinition.Arg("task-definition-arn", "The ARN for the task-definition to describe.").Required().StringVar(&taskDefinitionArn)
-  emptyTaskDefinition = taskDefinition.Command("empty", "Print out an empty task defintion in JSON format.")
+  emptyTaskDefinition = taskDefinition.Command("empty", "Print out an full but empty task defintion in JSON format.")
+  defaultTaskDefinition = taskDefinition.Command("default", "Print a default task definition in JSON format.")
 
 
   kingpin.CommandLine.Help = `A command-line AWS ECS tool.`
@@ -90,6 +92,7 @@ func main() {
     listTaskDefinitions.FullCommand(): doListTaskDefinitions,
     describeTaskDefinition.FullCommand(): doDescribeTaskDefinition,
     emptyTaskDefinition.FullCommand(): doEmptyTaskDefinition,
+    defaultTaskDefinition.FullCommand(): doDefaultTaskDefinition,
   }
 
   ecs_svc := ecs.New(session.New(config))
@@ -145,20 +148,29 @@ func doDescribeTaskDefinition(svc *ecs.ECS) {
   }
 }
 
+
 func doEmptyTaskDefinition(svc *ecs.ECS) {
-  var tdi = ecs.RegisterTaskDefinitionInput {
-    ContainerDefinitions: []*ecs.ContainerDefinition{
-      &ecs.ContainerDefinition{
-        Command: []*string{
-          aws.String("COMMAND"),
-        },
-        Cpu: aws.Int64(1024),
-      },
-    },
-    Family: aws.String(""),
-    Volumes: []*ecs.Volume{
-      &ecs.Volume{},
-    },
-  }
-  fmt.Printf("%+v\n.", tdi)
+  tdi := ecslib.CompleteEmptyTaskDefinition()
+  printAsJsonObject(tdi)
 }
+
+func doDefaultTaskDefinition(svc *ecs.ECS) {
+  tdi := ecslib.DefaultTaskDefinition()
+  printAsJsonObject(tdi)
+}
+
+func printAsJsonObject(o interface{}) {
+  v, err := json.Marshal(o)
+  if err == nil {
+    var out bytes.Buffer
+    json.Indent(&out, v, "", "  ")
+    out.WriteTo(os.Stdout)
+    fmt.Println("")
+  } else {
+    fmt.Printf("Couldn't marshall object to into JSON: %s.\n", err)
+    fmt.Printf("Object: %+v", o)
+  }
+}
+
+
+

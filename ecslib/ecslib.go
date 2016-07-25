@@ -32,6 +32,31 @@ type ContainerTask struct {
 }
 type ContainerTaskMap map[string]*ContainerTask
 
+func CreateCluster(clusterName string, svc *ecs.ECS) (*ecs.Cluster, error) {
+  params := &ecs.CreateClusterInput{
+    ClusterName: aws.String(clusterName),
+  }
+  resp, err := svc.CreateCluster(params)
+  var cluster *ecs.Cluster
+  if err == nil {
+    cluster = resp.Cluster
+  }
+  return cluster, err
+}
+
+func DeleteCluster(clusterName string, svc *ecs.ECS) (*ecs.Cluster, error) {
+  params := &ecs.DeleteClusterInput{
+    Cluster: aws.String(clusterName),
+  }
+  resp, err := svc.DeleteCluster(params)
+  var cluster *ecs.Cluster
+  if err == nil {
+    cluster = resp.Cluster
+  }
+  return cluster, err
+}
+
+
 func GetClusters(svc *ecs.ECS) ([]Cluster, error) {
 
   params := &ecs.ListClustersInput {
@@ -402,19 +427,241 @@ func RegisterTaskDefinition(configFileName string, ecs_svc *ecs.ECS) (*ecs.Regis
     return nil, err
   }
 
-  var td ecs.TaskDefinition
-  err = config.Unmarshal(&td)
+  var tdi ecs.RegisterTaskDefinitionInput
+  err = config.Unmarshal(&tdi)
   if err != nil {
     fmt.Printf("Couldn't unmarshall the config file.\n")
     return nil, err
   }
-
-  fmt.Printf("Config got me a TaskDefinition: %+v\n", td)
-
+  fmt.Printf("Registering Task definition: %+v\n", tdi)
+  resp, err := ecs_svc.RegisterTaskDefinition(&tdi)
+  if err == nil {
+    fmt.Printf("Task Definnition registered: %+v\n", resp)
+  } 
   return nil, err
 }
 
+func DefaultTaskDefinition() (ecs.RegisterTaskDefinitionInput) {
+    var tdi = ecs.RegisterTaskDefinitionInput{
+    Family: aws.String("Family"),
+    // TaskRoleArn: This appears not to be in the golang definition.
+    ContainerDefinitions: []*ecs.ContainerDefinition{
+      &ecs.ContainerDefinition{
 
+        // REQUIRED Basic paramaters
+        //
+        Name: aws.String("Task Definition Name"),
+
+        Image: aws.String("IMAGE REFERENCE"),
+        // Maximum memory in MB (recomended 300-500 if unsure.)
+        // Conatiner is killed if you try to exceed this amount of memory.
+        Memory: aws.Int64(500),        // DOCKER CMD
+
+        // Other Basic Components
+        //
+        Command: []*string{aws.String("CMD"),},
+        // DOCKER Entrypoint.
+        EntryPoint: []*string{
+          aws.String("ENTRYPOINT"),
+        },
+        DockerLabels: nil,
+
+        // Environment
+        //
+        // The number of CPUY units to reserve for this container, there are 1024 for each EC2 core.
+        Cpu: aws.Int64(0),
+        // If marked true, then the failure of this coantiner will stop the task.
+        Essential: aws.Bool(true),
+        // Working directory to run binaries from.
+        WorkingDirectory: nil,
+        // Environment Variables
+        Environment: nil,
+
+        // Networking
+        //
+        // When true, this means networking is disabled within the container.  (defaulat: false).
+        DisableNetworking: aws.Bool(false),
+        PortMappings: []*ecs.PortMapping{
+          {
+            ContainerPort: aws.Int64(25565),
+            HostPort: aws.Int64(25565),
+            Protocol: aws.String("tcp"),
+          },
+        },
+        // Hostname to use for your container.
+        Hostname: nil,
+        // DNS Servers presented to the container.
+        DnsServers: nil,
+        // DNS Search domains presented to the container.
+        DnsSearchDomains: nil,
+        // Enties to append to /etc/hosts.
+        ExtraHosts: nil,
+
+        // Storage
+        //
+        // If true then the container is given only readonly access to the root filesystem.
+        ReadonlyRootFilesystem: aws.Bool(false),
+        // this is like the --volumes option in the docker run command.
+        MountPoints: nil,
+        VolumesFrom: nil,
+
+        // Logs
+        LogConfiguration: nil,
+
+        // Security
+        //
+        // Elevated privileges when container is run - like root.
+        Privileged: aws.Bool(false),
+        // run commands as this user.
+        User: nil,
+        // Labels for SELinux and AppArmour 
+        DockerSecurityOptions: nil,
+
+        // Resource Limits
+        //
+        // A list of ulimits to set in the container.
+        // (eg. CORE, CPU, FSIZE, LOCKS, MLOCK, MSGQUEUE, NICE, NFILE, NPROC, RSS, RTPRIO, RTTIME, SIGPENDING, STACK)
+        Ulimits: nil,
+      },
+    },
+    Volumes: []*ecs.Volume{},
+  }
+  return tdi
+}
+
+func CompleteEmptyTaskDefinition() (ecs.RegisterTaskDefinitionInput) {
+    var tdi = ecs.RegisterTaskDefinitionInput{
+    Family: aws.String(""),
+    // TaskRoleArn: This appears not to be in the golang definition.
+    ContainerDefinitions: []*ecs.ContainerDefinition{
+      &ecs.ContainerDefinition{
+
+        // REQUIRED Basic paramaters
+        //
+        Name: aws.String(""),
+
+        Image: aws.String(""),
+        // Maximum memory in MB (recomended 300-500 if unsure.)
+        // Conatiner is killed if you try to exceed this amount of memory.
+        Memory: aws.Int64(0),        // DOCKER CMD
+
+        // Other Basic Components
+        //
+        Command: []*string{aws.String(""),},
+        // DOCKER Entrypoint.
+        EntryPoint: []*string{
+          aws.String(""),
+        },
+        DockerLabels: map[string]*string {
+          "Key": aws.String("Value"),
+        },
+
+        // Environment
+        //
+        // The number of CPUY units to reserve for this container, there are 1024 for each EC2 core.
+        Cpu: aws.Int64(0),
+        // If marked true, then the failure of this coantiner will stop the task.
+        Essential: aws.Bool(true),
+        // Working directory to run binaries from.
+        WorkingDirectory: aws.String(""),
+        // Environment Variables
+        Environment: []*ecs.KeyValuePair{
+          {
+            Name: aws.String(""),
+            Value: aws.String(""),
+          },
+        },
+
+        // Networking
+        //
+        // When true, this means networking is disabled within the container.  (defaulat: false).
+        DisableNetworking: aws.Bool(false),
+        PortMappings: []*ecs.PortMapping{
+          {
+            ContainerPort: aws.Int64(1),
+            HostPort: aws.Int64(1),
+            Protocol: aws.String("tcp"),
+          },
+        },
+        // Hostname to use for your container.
+        Hostname: aws.String(""),
+        // DNS Servers presented to the container.
+        DnsServers: []*string{
+          aws.String(""),
+        },
+        // DNS Search domains presented to the container.
+        DnsSearchDomains: []*string{
+          aws.String(""),
+        },
+        // Enties to append to /etc/hosts.
+        ExtraHosts: []*ecs.HostEntry{
+          {
+            Hostname: aws.String(""),
+            IpAddress: aws.String(""),
+          },
+        },
+
+        // Storage
+        //
+        // If true then the container is given only readonly access to the root filesystem.
+        ReadonlyRootFilesystem: aws.Bool(false),
+        // this is like the --volumes option in the docker run command.
+        MountPoints: []*ecs.MountPoint{
+          {
+            ContainerPath: aws.String(""),
+            ReadOnly: aws.Bool(false),
+            SourceVolume: aws.String(""),
+          },
+        },
+        VolumesFrom: []*ecs.VolumeFrom{
+          {
+            ReadOnly: aws.Bool(false),
+            SourceContainer: aws.String(""),
+          },
+        },
+
+        // Logs
+        LogConfiguration: &ecs.LogConfiguration{
+          LogDriver: aws.String("LogDriver"),
+          Options: map[string]*string{
+            "Key": aws.String(""),
+          },
+        },
+
+        // Security
+        //
+        // Elevated privileges when container is run - like root.
+        Privileged: aws.Bool(false),
+        // run commands as this user.
+        User: aws.String(""),
+        // Labels for SELinux and AppArmour 
+        DockerSecurityOptions: []*string{
+          aws.String(""),
+        },
+        // Resource Limits
+        //
+        // A list of ulimits to set in the container.
+        // (eg. CORE, CPU, FSIZE, LOCKS, MLOCK, MSGQUEUE, NICE, NFILE, NPROC, RSS, RTPRIO, RTTIME, SIGPENDING, STACK)
+        Ulimits: []*ecs.Ulimit{
+          {
+            Name: aws.String(""),
+            HardLimit: aws.Int64(1),
+            SoftLimit: aws.Int64(1),
+          },
+        },
+      },
+    },
+    Volumes: []*ecs.Volume{
+      {
+        Host: &ecs.HostVolumeProperties{
+          SourcePath: aws.String(""),
+        },
+        Name: aws.String(""),
+      },
+    },
+  }
+  return tdi
+}
 // func WaitForContainerInstanceStateChange(delaySeconds, periodSeconds int, currentState string, 
 //   clusterName string, conatinerIntstanceArn string, ecs_svc *ecs.ECS, cb func(string, error)) {
 //   go func() {

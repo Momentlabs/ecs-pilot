@@ -25,11 +25,13 @@ var (
 
   // Clusters
   interCluster *kingpin.CmdClause
+  createCluster *kingpin.CmdClause
+  deleteCluster *kingpin.CmdClause
   interListClusters *kingpin.CmdClause
   interDescribeCluster *kingpin.CmdClause
 
   // Containers
-  interContainer *kingpin.CmdClause
+  instance *kingpin.CmdClause
   interListContainerInstances *kingpin.CmdClause
   interDescribeContainerInstance *kingpin.CmdClause
   interDescribeAllContainerInstances *kingpin.CmdClause
@@ -65,21 +67,25 @@ func init() {
   interQuit = interApp.Command("quit", "exit the program.")
 
   interCluster = interApp.Command("cluster", "the context for cluster commands")
+  createCluster = interCluster.Command("create", "create a new cluster.")
+  createCluster.Arg("cluster-name", "the name of the cluster to create.").Required().StringVar(&interClusterName)
+  deleteCluster = interCluster.Command("delete", "delete a cluster.")
+  deleteCluster.Arg("cluster=name", "the name of the cluster to delete.").Required().StringVar(&interClusterName)
   interListClusters = interCluster.Command("list", "list the clusters")
   interDescribeCluster = interCluster.Command("describe", "Show the details of a particular cluster.")
   interDescribeCluster.Arg("cluster-name", "Short name of cluster to desecribe.").Required().StringVar(&interClusterName)
 
-  interContainer = interApp.Command("container", "the context for container instances commands.")
-  interListContainerInstances = interContainer.Command("list", "list containers attached to a cluster.")
+  instance = interApp.Command("instance", "the context for container instances commands.")
+  interListContainerInstances = instance.Command("list", "list containers attached to a cluster.")
   interListContainerInstances.Arg("cluster-name", "Short name of cluster to look for instances in").Required().StringVar(&interClusterName)
-  interDescribeContainerInstance = interContainer.Command("describe", "deatils assocaited with a container instance")
+  interDescribeContainerInstance = instance.Command("describe", "deatils assocaited with a container instance")
   interDescribeContainerInstance.Arg("cluster-name", "Short name of cluster for the instance").Required().StringVar(&interClusterName)
   interDescribeContainerInstance.Arg("instance-arn", "ARN of the container instance").Required().StringVar(&interContainerArn)
-  interDescribeAllContainerInstances = interContainer.Command("describe-all", "details for all conatiners instances in a cluster.")
+  interDescribeAllContainerInstances = instance.Command("describe-all", "details for all conatiners instances in a cluster.")
   interDescribeAllContainerInstances.Arg("cluster-name", "Short name of cluster for instances").Required().StringVar(&interClusterName)
-  interNewContainerInstance = interContainer.Command("new", "start up a new instance for a cluster")
+  interNewContainerInstance = instance.Command("new", "start up a new instance for a cluster")
   interNewContainerInstance.Arg("cluster-name", "Short name of cluster to for new instance.").Required().StringVar(&interClusterName)
-  interTerminateContainerInstance = interContainer.Command("stop", "stop a container instnace.")
+  interTerminateContainerInstance = instance.Command("stop", "stop a container instnace.")
   interTerminateContainerInstance.Arg("cluster-name", "Short name of cluster for instance to stop").Required().StringVar(&interClusterName)
   interTerminateContainerInstance.Arg("instance-arn", "ARN of the container instance to terminate.").Required().StringVar(&interContainerArn)
 
@@ -128,6 +134,8 @@ func doICommand(line string, svc *ecs.ECS, awsConfig *aws.Config) (err error) {
       case interVerbose.FullCommand(): err = doVerbose()
       case interExit.FullCommand(): err = doQuit()
       case interQuit.FullCommand(): err = doQuit()
+      case createCluster.FullCommand(): err = doCreateCluster(svc)
+      case deleteCluster.FullCommand(): err = doDeleteCluster(svc)
       case interListClusters.FullCommand(): err = doListClusters(svc)
       case interDescribeCluster.FullCommand(): err = doDescribeCluster(svc)
       case interListTasks.FullCommand(): err = doListTasks(svc)
@@ -148,6 +156,22 @@ func doICommand(line string, svc *ecs.ECS, awsConfig *aws.Config) (err error) {
 }
 
 // Commands
+
+func doCreateCluster(svc *ecs.ECS) (error) {
+  cluster, err := ecslib.CreateCluster(interClusterName, svc)
+  if err == nil {
+    printCluster(cluster)
+  }
+  return err
+}
+
+func doDeleteCluster(svc *ecs.ECS) (error) {
+  cluster, err := ecslib.DeleteCluster(interClusterName, svc)
+  if err == nil {
+    printCluster(cluster)
+  }
+  return err
+}
 
 func doListClusters(svc *ecs.ECS) (error) {
   clusters,  err := ecslib.GetClusters(svc)
