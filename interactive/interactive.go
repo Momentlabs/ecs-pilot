@@ -8,7 +8,7 @@ import (
   "io"
   "github.com/aws/aws-sdk-go/aws"
   "github.com/aws/aws-sdk-go/service/ecs"
-  // "github.com/aws/aws-sdk-go/service/ec2"
+  "github.com/aws/aws-sdk-go/service/ec2"
   "github.com/op/go-logging"
   "ecs-pilot/ecslib"
 )
@@ -35,7 +35,7 @@ var (
   interListContainerInstances *kingpin.CmdClause
   interDescribeContainerInstance *kingpin.CmdClause
   interDescribeAllContainerInstances *kingpin.CmdClause
-  interNewContainerInstance *kingpin.CmdClause
+  interCreateContainerInstance *kingpin.CmdClause
   interTerminateContainerInstance *kingpin.CmdClause
   interClusterName string
   interContainerArn string
@@ -83,9 +83,9 @@ func init() {
   interDescribeContainerInstance.Arg("instance-arn", "ARN of the container instance").Required().StringVar(&interContainerArn)
   interDescribeAllContainerInstances = instance.Command("describe-all", "details for all conatiners instances in a cluster.")
   interDescribeAllContainerInstances.Arg("cluster-name", "Short name of cluster for instances").Required().StringVar(&interClusterName)
-  interNewContainerInstance = instance.Command("new", "start up a new instance for a cluster")
-  interNewContainerInstance.Arg("cluster-name", "Short name of cluster to for new instance.").Required().StringVar(&interClusterName)
-  interTerminateContainerInstance = instance.Command("stop", "stop a container instnace.")
+  interCreateContainerInstance = instance.Command("create", "start up a new instance for a cluster")
+  interCreateContainerInstance.Arg("cluster-name", "Short name of cluster to for new instance.").Required().StringVar(&interClusterName)
+  interTerminateContainerInstance = instance.Command("terminate", "stop a container instnace.")
   interTerminateContainerInstance.Arg("cluster-name", "Short name of cluster for instance to stop").Required().StringVar(&interClusterName)
   interTerminateContainerInstance.Arg("instance-arn", "ARN of the container instance to terminate.").Required().StringVar(&interContainerArn)
 
@@ -141,9 +141,9 @@ func doICommand(line string, svc *ecs.ECS, awsConfig *aws.Config) (err error) {
       case interListTasks.FullCommand(): err = doListTasks(svc)
       case interDescribeAllTasks.FullCommand(): err = doDescribeAllTasks(svc)
       case interListContainerInstances.FullCommand(): err = doListContainerInstances(svc)
-      case interDescribeContainerInstance.FullCommand(): err = doDescribeContainerInstance(svc)
-      case interDescribeAllContainerInstances.FullCommand(): err = doDescribeAllContainerInstances(svc)
-      case interNewContainerInstance.FullCommand(): err = doNewContainerInstance(svc, awsConfig)
+      case interDescribeContainerInstance.FullCommand(): err = doDescribeContainerInstance(svc, awsConfig)
+      case interDescribeAllContainerInstances.FullCommand(): err = doDescribeAllContainerInstances(svc, awsConfig)
+      case interCreateContainerInstance.FullCommand(): err = doCreateContainerInstance(svc, awsConfig)
       case interTerminateContainerInstance.FullCommand(): err = doTerminateContainerInstance(svc, awsConfig)
       case interListTaskDefinitions.FullCommand(): err = doListTaskDefinitions(svc)
       case interDescribeTaskDefinition.FullCommand(): err = doDescribeTaskDefinition(svc)
@@ -220,34 +220,44 @@ func doListContainerInstances(svc *ecs.ECS) (error) {
   return nil
 }
 
-func doDescribeContainerInstance(svc *ecs.ECS) (error) {
+func doDescribeContainerInstance(svc *ecs.ECS, config *aws.Config) (error) {
   ciMap, err := ecslib.GetContainerInstanceDescription(interClusterName, interContainerArn, svc)
   if err == nil {
-    // fmt.Printf("%s\n", ContainerInstanceMapToString(ciMap))
-    fmt.Printf("%s\n", ContainerInstanceMapToString(ciMap))
+    ec2InstanceMap, err := ecslib.DescribeEC2Instances(ciMap, config)
+    if err != nil {
+      fmt.Printf("%s\n", ContainerInstanceMapToString(ciMap, map[string]*ec2.Instance{}))
+      return err
+    }
+    fmt.Printf("%s\n", ContainerInstanceMapToString(ciMap, ec2InstanceMap))
   }
   return err
 }
 
-func doDescribeAllContainerInstances(svc *ecs.ECS) (error) {
+func doDescribeAllContainerInstances(svc *ecs.ECS, config *aws.Config) (error) {
   ciMap, err := ecslib.GetAllContainerInstanceDescriptions(interClusterName, svc)
   if err == nil {
     if len(ciMap) <= 0 {
       fmt.Printf("There are no containers for: %s.\n", interClusterName)
     } else {
-     fmt.Printf("%s\n", ContainerInstanceMapToString(ciMap))
+      ec2InstanceMap, err := ecslib.DescribeEC2Instances(ciMap, config)
+      if err != nil {
+        fmt.Printf("%s\n", ContainerInstanceMapToString(ciMap, map[string]*ec2.Instance{}))
+        return err
+      } else {
+        fmt.Printf("%s\n", ContainerInstanceMapToString(ciMap, ec2InstanceMap))
+      }
     }
   }
   return err
 }
 
-
-func ContainerInstanceMapToString(ciMap ecslib.ContainerInstanceMap) (string) {
+func ContainerInstanceMapToString(ciMap ecslib.ContainerInstanceMap, instances map[string]*ec2.Instance) (string) {
   s := ""
   for _, ci := range ciMap {
     iString := ""
     if ci.Instance != nil {
-      iString = fmt.Sprintf("%s", ContainerInstanceDescriptionToString(ci.Instance))
+      ec2Id := *ci.Instance.Ec2InstanceId
+      iString = fmt.Sprintf("%s", ContainerInstanceDescriptionToString(ci.Instance, instances[ec2Id]))
     } else {
       iString = "No instance description"
     }
@@ -260,7 +270,7 @@ func ContainerInstanceMapToString(ciMap ecslib.ContainerInstanceMap) (string) {
   return s
 }
 
-func ContainerInstanceDescriptionToString(container *ecs.ContainerInstance) (string){
+func ContainerInstanceDescriptionToString(container *ecs.ContainerInstance, instance *ec2.Instance) (string){
   s := ""
   s += fmt.Sprintf("Container ARN: %s\n", *container.ContainerInstanceArn)
   s += fmt.Sprintf("EC2-ID: %s\n", *container.Ec2InstanceId)
@@ -285,9 +295,27 @@ func ContainerInstanceDescriptionToString(container *ecs.ContainerInstance) (str
   s += fmt.Sprintf("Agent updated status: %s\n", status)
   s += fmt.Sprintf("There are (%d) attributes.\n", len(container.Attributes))
   for i, attr := range container.Attributes {
-    s+= fmt.Sprintf("\t%d.  %s\n", i+1, attributeString(attr))
+    s += fmt.Sprintf("\t%d.  %s\n", i+1, attributeString(attr))
   }
+  s += fmt.Sprintf("Associated EC2 Instance:\n")
+  if instance != nil {
+    s += EC2InstanceToString(*instance, "\t")
+    } else {
+      s += fmt.Sprintf("No instance informaiton.")
+    }
 
+  return s
+}
+
+func EC2InstanceToString(instance ec2.Instance, indent string) (string) {
+  s := ""
+  s += fmt.Sprintf("%sPublic IP: %s\n", indent, *instance.PublicIpAddress)
+  s += fmt.Sprintf("%sSecurity Groups: there are (%d) Security Groups for this instance:\n", indent, len(instance.SecurityGroups))
+  for i, groupid := range instance.SecurityGroups {
+    s += fmt.Sprintf("%s%s%d. %s\n", indent, indent, i+1, *groupid.GroupName)
+  }
+  s += fmt.Sprintf("%sIMA Instance Profile - arn: %s, id: %s\n", 
+    indent, *instance.IamInstanceProfile.Arn, instance.IamInstanceProfile.Id)
   return s
 }
 
@@ -324,7 +352,7 @@ func attributeString(attr *ecs.Attribute) (string) {
   return fmt.Sprintf("%s: %s", *attr.Name, value)
 }
 
-func doNewContainerInstance(svc *ecs.ECS, awsConfig *aws.Config) (error) {
+func doCreateContainerInstance(svc *ecs.ECS, awsConfig *aws.Config) (error) {
   resp, err := ecslib.LaunchContainerInstance(interClusterName, awsConfig)
   if err != nil {
     return err
@@ -477,7 +505,7 @@ func doRunTask(svc *ecs.ECS) (error) {
       if err == nil {
         fmt.Printf("Task: %s is now running on cluster %s.\n", interTaskDefinitionArn, interClusterName)
       } else {
-        fmt.Printf("Problem waiting for task: %s on cluster %d to start.", interTaskDefinitionArn, interClusterName)
+        fmt.Printf("Problem waiting for task: %s on cluster %s to start.\n", interTaskDefinitionArn, interClusterName)
         fmt.Printf("Error: %s.\n", err)
       }
     })

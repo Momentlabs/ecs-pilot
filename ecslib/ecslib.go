@@ -56,7 +56,6 @@ func DeleteCluster(clusterName string, svc *ecs.ECS) (*ecs.Cluster, error) {
   return cluster, err
 }
 
-
 func GetClusters(svc *ecs.ECS) ([]Cluster, error) {
 
   params := &ecs.ListClustersInput {
@@ -83,7 +82,6 @@ func GetContainerInstances(clusterName string, svc *ecs.ECS)([]*string, error) {
 
   return resp.ContainerInstanceArns, nil
 }
-
 
 func GetAllContainerInstanceDescriptions(clusterName string, ecs_svc *ecs.ECS) (ContainerInstanceMap, error) {
 
@@ -115,11 +113,13 @@ func GetContainerInstanceDescription(clusterName string, containerArn string, ec
 func makeCIMapFromDescribeContainerInstancesOutput(dcio *ecs.DescribeContainerInstancesOutput) (ContainerInstanceMap) {
 
   ciMap := make(ContainerInstanceMap)
+  // Seperate out the conatiners instances ...
   for _, instance := range dcio.ContainerInstances {
     ci := new(ContainerInstance)
     ci.Instance = instance
     ciMap[*instance.ContainerInstanceArn] =  ci
   }
+  // ... and failures.
   for _, failure := range dcio.Failures {
     ci := ciMap[*failure.Arn]
     if ci == nil {
@@ -131,6 +131,53 @@ func makeCIMapFromDescribeContainerInstancesOutput(dcio *ecs.DescribeContainerIn
     }
   }
   return ciMap
+}
+
+// func (ciMap ContainerInstanceMap) getContainerInstances() ([]*ecs.ContainerInstance) {
+//   cis := []*ecs.ContainerInstance{}
+//   return cis
+// }
+
+func (ciMap ContainerInstanceMap) getEc2InstanceIds() ([]*string) {
+  ids := []*string{}
+  for _, ci := range ciMap {
+    if ci.Instance != nil {
+      ids = append(ids, ci.Instance.Ec2InstanceId)
+    }
+  }
+  return ids
+}
+
+func DescribeEC2Instances(ciMap ContainerInstanceMap, config *aws.Config) (map[string]*ec2.Instance, error) {
+  ec2_svc := ec2.New(session.New(config))
+  params := &ec2.DescribeInstancesInput {
+    DryRun: aws.Bool(false),
+    InstanceIds: ciMap.getEc2InstanceIds(),
+  }
+  instances := make(map[string]*ec2.Instance)
+  resp, err := ec2_svc.DescribeInstances(params)
+  if err == nil {
+    for _, reservation := range resp.Reservations {
+      for _, instance := range reservation.Instances {
+       instances[*instance.InstanceId] = instance
+      }
+    }
+  }
+  return instances, err
+}
+
+func GetSecurityGrouoDescriptions(groupNames []*string, config *aws.Config ) ([]*ec2.SecurityGroup, error) {
+  ec2_svc := ec2.New(session.New(config))
+  params := &ec2.DescribeSecurityGroupsInput{
+    DryRun: aws.Bool(false),
+    GroupNames: groupNames,
+  }
+  resp, err := ec2_svc.DescribeSecurityGroups(params)
+  groups := []*ec2.SecurityGroup{}
+  if err != nil {
+    groups = resp.SecurityGroups
+  }
+  return groups, err
 }
 
 func GetClusterDescription(clusterName string, svc *ecs.ECS) ([]*ecs.Cluster, error) {

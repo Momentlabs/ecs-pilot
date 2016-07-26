@@ -68,7 +68,6 @@ func init() {
 
 func main() {
 
-
   // Parse the command line to fool with flags and get the command we'll execeute.
   command := kingpin.MustParse(app.Parse(os.Args[1:]))
   if verbose {
@@ -86,6 +85,7 @@ func main() {
   log.Debugf("Using Region: %s", *config.Region)
 
 
+  // Perhaps use the EC2 DescribeAccountAttributes to get at interesting infromation.
   // List of commands as parsed matched against functions to execute the commands.
   commandMap := map[string]func(*ecs.ECS) {
     listClusters.FullCommand(): doListCluster,
