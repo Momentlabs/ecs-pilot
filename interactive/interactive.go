@@ -7,6 +7,7 @@ import (
   "fmt"
   "io"
   "github.com/aws/aws-sdk-go/aws"
+  "github.com/aws/aws-sdk-go/aws/session"
   "github.com/aws/aws-sdk-go/service/ecs"
   "github.com/aws/aws-sdk-go/service/ec2"
   "github.com/op/go-logging"
@@ -187,13 +188,15 @@ func doListClusters(svc *ecs.ECS) (error) {
 }
 
 func doDescribeCluster(svc *ecs.ECS) (error) {
-  clusters, err := ecslib.GetClusterDescription(interClusterName, svc)
-  if err != nil {
-    return err
+  clusters, err := ecslib.DescribeCluster(interClusterName, svc)
+  if err == nil  {
+    if len(clusters) <= 0 {
+      fmt.Printf("Couldn't get any clusters for %s.\n", interClusterName)
+    } else {
+      printCluster(clusters[0])
+    }
   }
-  cluster := clusters[0]
-  printCluster(cluster)
-  return nil
+  return err
 }
 
 func printCluster(cluster *ecs.Cluster) {
@@ -353,21 +356,55 @@ func attributeString(attr *ecs.Attribute) (string) {
 }
 
 func doCreateContainerInstance(svc *ecs.ECS, awsConfig *aws.Config) (error) {
-  resp, err := ecslib.LaunchContainerInstance(interClusterName, awsConfig)
+  thisClusterName := interClusterName // TODO: This is not the right solution. Need to create a new string and copy.
+  resp, err := ecslib.LaunchContainerInstance(thisClusterName, awsConfig)
+  if err != nil {
+    return err
+  }
+  fmt.Printf("Launced Instance:\n%+v\n", resp)
+  ecslib.OnInstanceRunning(resp, ec2.New(session.New(awsConfig)), func(err error) {
+    if err == nil {
+      fmt.Printf("Started (%d) Instances on cluster %s:\n", len(resp.Instances), thisClusterName)
+      for i, instance := range resp.Instances {
+        fmt.Printf("\t%d. %s.\n", i+1, *instance.InstanceId)
+      }
+    } else {
+      fmt.Printf("Error on waiting for instance to start running.\n")
+      fmt.Printf("error: %s.\n", err)
+    } 
+  })
+
+  return nil
+}
+
+
+func doTerminateContainerInstance(svc *ecs.ECS, awsConfig *aws.Config) (error) {
+  resp, err := ecslib.TerminateContainerInstance(interClusterName, interContainerArn, svc, awsConfig)
   if err != nil {
     return err
   }
 
+  fmt.Printf("Terminated container instance %s.\n", interContainerArn)
   fmt.Printf("%+v\n", resp)
-  return nil
-}
 
-func doTerminateContainerInstance(svc *ecs.ECS, awsConfig *aws.Config) (error) {
-  resp, err := ecslib.TerminateContainerInstance(interClusterName, interContainerArn, svc, awsConfig)
-  if err == nil {
-    fmt.Printf("Terminated container instance %s.\n", interContainerArn)
-    fmt.Printf("%+v\n", resp)
+  if len(resp.TerminatingInstances) > 1 {
+    fmt.Printf("Got (%d) instances terminating, excepting only 1.", len(resp.TerminatingInstances))
   }
+  fmt.Printf("Terminating Instances:")
+  for i, iStateChange := range resp.TerminatingInstances {
+    fmt.Printf("%d. %s, ", i+1, *iStateChange.InstanceId)
+  }
+  fmt.Printf(".\n")
+  instanceToWatch := resp.TerminatingInstances[0].InstanceId
+
+  ecslib.OnInstanceTerminated(instanceToWatch, ec2.New(session.New(awsConfig)), func(err error) {
+    if err == nil {
+      fmt.Printf("Instance Termianted: %s.\n", *instanceToWatch)
+    } else {
+      fmt.Printf("Error on waiting for instance to terminate.\n")
+      fmt.Printf("error: %s.\n", err)
+    }
+  })
   return err
 }
 
@@ -501,14 +538,17 @@ func doRunTask(svc *ecs.ECS) (error) {
     for i, task := range runTaskOut.Tasks {
       fmt.Printf("%d: %s.\n", i+1, task)
     }
-    ecslib.OnTaskRunning(interClusterName, interTaskDefinitionArn, svc, func(err error) {
-      if err == nil {
-        fmt.Printf("Task: %s is now running on cluster %s.\n", interTaskDefinitionArn, interClusterName)
-      } else {
-        fmt.Printf("Problem waiting for task: %s on cluster %s to start.\n", interTaskDefinitionArn, interClusterName)
-        fmt.Printf("Error: %s.\n", err)
-      }
-    })
+    if len(runTaskOut.Tasks) > 0 {
+      taskToWaitOn := *runTaskOut.Tasks[0].TaskArn
+      ecslib.OnTaskRunning(interClusterName, taskToWaitOn, svc, func(err error) {
+        if err == nil {
+          fmt.Printf("Task: %s is now running on cluster %s.\n", taskToWaitOn, interClusterName)
+        } else {
+          fmt.Printf("Problem waiting for task: %s on cluster %s to start.\n", taskToWaitOn, interClusterName)
+          fmt.Printf("Error: %s.\n", err)
+        }
+      })
+    }
   }
   return err
 }
@@ -519,11 +559,12 @@ func doStopTask(svc *ecs.ECS) (error) {
   if err == nil {
     fmt.Println("This task is scheduled to stop.")
     fmt.Printf("%s\n", ContainerTaskDescriptionToString(resp.Task))
-    ecslib.OnTaskStopped(interClusterName, interTaskDefinitionArn, svc, func(err error){
+    ecslib.OnTaskStopped(interClusterName, interTaskArn, svc, func(err error){
       if err == nil {
-        fmt.Printf("Task: %s on cluster %s is now stopped.", interTaskDefinitionArn, interClusterName)
+        fmt.Printf("Task: %s on cluster %s is now stopped.\n", interTaskArn, interClusterName)
       } else {
-        fmt.Printf("There was a problem waiting for task %s on cluster %s to stop.", interTaskDefinition, interClusterName)
+        fmt.Printf("There was a problem waiting for task %s on cluster %s to stop.\n", interTaskArn, interClusterName)
+        fmt.Printf("Error: %s.\n", err)
       }
     })
   }

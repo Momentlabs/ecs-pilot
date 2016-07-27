@@ -72,6 +72,16 @@ func GetClusters(svc *ecs.ECS) ([]Cluster, error) {
   return clusters, nil
 }
 
+func DescribeCluster(clusterName string, svc *ecs.ECS) ([]*ecs.Cluster, error) {
+  
+  params := &ecs.DescribeClustersInput {
+    Clusters: []*string{aws.String(clusterName),},
+  }
+
+  resp, err := svc.DescribeClusters(params)
+  return resp.Clusters, err
+}
+
 func GetContainerInstances(clusterName string, svc *ecs.ECS)([]*string, error) {
   params := &ecs.ListContainerInstancesInput {
     Cluster: aws.String(clusterName),
@@ -180,19 +190,6 @@ func GetSecurityGrouoDescriptions(groupNames []*string, config *aws.Config ) ([]
   return groups, err
 }
 
-func GetClusterDescription(clusterName string, svc *ecs.ECS) ([]*ecs.Cluster, error) {
-  
-  params := &ecs.DescribeClustersInput {
-    Clusters: []*string{aws.String(clusterName),},
-  }
-
-  resp, err := svc.DescribeClusters(params)
-  if err != nil {
-    return []*ecs.Cluster{}, err
-  }
-
-  return resp.Clusters, nil
-}
 
 func getUserData(clusterName string) (string) {
 
@@ -323,6 +320,22 @@ func LaunchContainerInstance(clusterName string, config *aws.Config) (*ec2.Reser
 
 }
 
+func OnInstanceRunning(reservation *ec2.Reservation, ec2_svc *ec2.EC2, do func(error)) {
+  go func() {
+    params := &ec2.DescribeInstancesInput{
+      DryRun: aws.Bool(false),
+      Filters: []*ec2.Filter{ 
+        { 
+          Name: aws.String("reservation-id"),
+          Values: []*string{reservation.ReservationId,},
+        },
+      },
+    }
+    err := ec2_svc.WaitUntilInstanceRunning(params)
+    do(err)
+  }()
+}
+
 func TerminateContainerInstance(clusterName string, containerArn string, ecs_svc *ecs.ECS, config *aws.Config) (*ec2.TerminateInstancesOutput, error) {
 
 
@@ -354,6 +367,17 @@ func TerminateContainerInstance(clusterName string, containerArn string, ecs_svc
   }
   resp, err := ec2_svc.TerminateInstances(params)
   return resp, err
+}
+
+func OnInstanceTerminated(instanceId *string, ec2_svc *ec2.EC2, do func(error)) {
+  go func() {
+    params := &ec2.DescribeInstancesInput{
+      DryRun: aws.Bool(false),
+      InstanceIds: []*string{instanceId,},
+    }
+    err := ec2_svc.WaitUntilInstanceTerminated(params)
+    do(err)
+  }()
 }
 
 // TODO: Add overides.
