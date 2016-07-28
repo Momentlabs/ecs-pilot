@@ -257,7 +257,37 @@ func getBlockDeviceMappings() ([]*ec2.BlockDeviceMapping) {
       },
     }
 }
+func LaunchContainerInstanceWithTags(clusterName string, tags []*ec2.Tag, config *aws.Config) (*ec2.Reservation, error) {
 
+  res, err := LaunchContainerInstance(clusterName, config)
+  if err == nil {
+    params := &ec2.DescribeInstancesInput{
+      DryRun: aws.Bool(false),
+      Filters: []*ec2.Filter{ 
+        { 
+          Name: aws.String("reservation-id"),
+          Values: []*string{res.ReservationId,},
+        },
+      },
+    }
+    ec2_svc := ec2.New(session.New(config))
+    err = ec2_svc.WaitUntilInstanceExists(params)
+    if err == nil {
+      instanceIds := []*string{}
+      for _, instance := range res.Instances {
+        instanceIds = append(instanceIds, instance.InstanceId)
+      }
+      params := &ec2.CreateTagsInput{
+        DryRun: aws.Bool(false),
+        Resources: instanceIds,
+        Tags: tags,
+      }
+      _, _ = ec2_svc.CreateTags(params)
+    }
+  }
+
+  return res, err
+}
 func LaunchContainerInstance(clusterName string, config *aws.Config) (*ec2.Reservation, error) {
 
   // TOD: Need to add a name-tag.

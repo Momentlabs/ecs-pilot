@@ -357,7 +357,14 @@ func attributeString(attr *ecs.Attribute) (string) {
 
 func doCreateContainerInstance(svc *ecs.ECS, awsConfig *aws.Config) (error) {
   thisClusterName := interClusterName // TODO: This is not the right solution. Need to create a new string and copy.
-  resp, err := ecslib.LaunchContainerInstance(thisClusterName, awsConfig)
+  nameTag := fmt.Sprintf("%s - ecs instance", interClusterName)
+  tags := []*ec2.Tag{
+    {
+      Key: aws.String("Name"),
+      Value: aws.String(nameTag),
+    },
+  }
+  resp, err := ecslib.LaunchContainerInstanceWithTags(thisClusterName, tags, awsConfig)
   if err != nil {
     return err
   }
