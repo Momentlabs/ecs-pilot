@@ -15,8 +15,8 @@ import (
   // "github.com/op/go-logging"
 )
 
-func DescribeEC2Instances(ciMap ContainerInstanceMap, config *aws.Config) (map[string]*ec2.Instance, error) {
-  ec2_svc := ec2.New(session.New(config))
+func DescribeEC2Instances(ciMap ContainerInstanceMap, ec2_svc *ec2.EC2) (map[string]*ec2.Instance, error) {
+  // ec2_svc := ec2.New(session.New(config))
   params := &ec2.DescribeInstancesInput {
     DryRun: aws.Bool(false),
     InstanceIds: ciMap.GetEc2InstanceIds(),
@@ -48,9 +48,9 @@ func GetSecurityGrouoDescriptions(groupNames []*string, config *aws.Config ) ([]
 }
 
 
-func LaunchInstanceWithTags(clusterName string, tags []*ec2.Tag, config *aws.Config) (*ec2.Reservation, error) {
+func LaunchInstanceWithTags(clusterName string, tags []*ec2.Tag, ec2Svc *ec2.EC2) (*ec2.Reservation, error) {
 
-  res, err := LaunchInstance(clusterName, config)
+  res, err := LaunchInstance(clusterName, ec2Svc)
   if err == nil {
     params := &ec2.DescribeInstancesInput{
       DryRun: aws.Bool(false),
@@ -61,8 +61,7 @@ func LaunchInstanceWithTags(clusterName string, tags []*ec2.Tag, config *aws.Con
         },
       },
     }
-    ec2_svc := ec2.New(session.New(config))
-    err = ec2_svc.WaitUntilInstanceExists(params)
+    err = ec2Svc.WaitUntilInstanceExists(params)
     if err == nil {
       instanceIds := []*string{}
       for _, instance := range res.Instances {
@@ -73,18 +72,14 @@ func LaunchInstanceWithTags(clusterName string, tags []*ec2.Tag, config *aws.Con
         Resources: instanceIds,
         Tags: tags,
       }
-      _, _ = ec2_svc.CreateTags(params)
+      _, _ = ec2Svc.CreateTags(params)
     }
   }
 
   return res, err
 }
 
-func LaunchInstance(clusterName string, config *aws.Config) (*ec2.Reservation, error) {
-
-  // TOD: Need to add a name-tag.
-
-  ec2_svc := ec2.New(session.New(config))
+func LaunchInstance(clusterName string, ec2Svc *ec2.EC2) (*ec2.Reservation, error) {
 
   params := &ec2.RunInstancesInput {
     // amzn-ami-2016.03.e-amazon-ecs-optimized-4ce33fd9-63ff-4f35-8d3a-939b641f1931-ami-55870742.3
@@ -121,7 +116,7 @@ func LaunchInstance(clusterName string, config *aws.Config) (*ec2.Reservation, e
 
   }
 
-  resp, err := ec2_svc.RunInstances(params)
+  resp, err := ec2Svc.RunInstances(params)
   if err != nil {
     return nil, err
   }
@@ -229,6 +224,26 @@ func OnInstanceRunning(reservation *ec2.Reservation, ec2_svc *ec2.EC2, do func(e
       },
     }
     err := ec2_svc.WaitUntilInstanceRunning(params)
+    do(err)
+  }()
+}
+
+func TerminateInstance(instanceId *string, ec2Svc *ec2.EC2) (*ec2.TerminateInstancesOutput, error) {
+  params := &ec2.TerminateInstancesInput{
+    InstanceIds: []*string{ aws.String(*instanceId) },
+    DryRun: aws.Bool(false),
+  }
+  resp, err := ec2Svc.TerminateInstances(params)
+  return resp, err
+}
+
+func OnInstanceTerminated(instanceId *string, ec2Svc *ec2.EC2, do func(error)) {
+  go func() {
+    params := &ec2.DescribeInstancesInput{
+      DryRun: aws.Bool(false),
+      InstanceIds: []*string{instanceId,},
+    }
+    err := ec2Svc.WaitUntilInstanceTerminated(params)
     do(err)
   }()
 }

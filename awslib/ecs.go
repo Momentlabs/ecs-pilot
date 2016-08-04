@@ -4,7 +4,6 @@ import (
   "fmt"
   "errors"
   "github.com/aws/aws-sdk-go/aws"
-  "github.com/aws/aws-sdk-go/aws/session"
   "github.com/aws/aws-sdk-go/service/ecs"
   "github.com/aws/aws-sdk-go/service/ec2"
   "github.com/spf13/viper"
@@ -151,47 +150,37 @@ func (ciMap ContainerInstanceMap) GetEc2InstanceIds() ([]*string) {
   return ids
 }
 
-func TerminateContainerInstance(clusterName string, containerArn string, ecs_svc *ecs.ECS, config *aws.Config) (*ec2.TerminateInstancesOutput, error) {
+func TerminateContainerInstance(clusterName string, containerArn string, ecs_svc *ecs.ECS, ec2Svc *ec2.EC2) (resp *ec2.TerminateInstancesOutput, err error) {
 
   // Need to get the container instance description in order to get the ec2-instanceID.
-  dci_params := &ecs.DescribeContainerInstancesInput{
+  params := &ecs.DescribeContainerInstancesInput{
     ContainerInstances: []*string{aws.String(containerArn)},
     Cluster: aws.String(clusterName),
   }
-  dci_resp, err := ecs_svc.DescribeContainerInstances(dci_params)
+  dci_resp, err := ecs_svc.DescribeContainerInstances(params)
   if err != nil {
     return nil, err
   }
 
-  var instanceId *string = nil
-  for _, instance := range dci_resp.ContainerInstances {
+  instanceId := getInstanceId(dci_resp.ContainerInstances, containerArn)
+  if instanceId == nil {
+    errMessage := fmt.Sprintf("TerminateContainerInstance: Can't find the Ec2 Instance ID for container arn: %s", containerArn)
+    err = errors.New(errMessage)
+    resp = nil
+  } else {
+   resp, err = TerminateInstance(instanceId, ec2Svc)
+  }
+
+  return resp, err
+}
+
+func getInstanceId(containerInstances []*ecs.ContainerInstance, containerArn string) (instanceId *string) {
+  for _, instance := range containerInstances {
     if *instance.ContainerInstanceArn == containerArn {
       instanceId = instance.Ec2InstanceId
     }
   }
-  if instanceId == nil {
-    errMessage := fmt.Sprintf("TerminateContainerInstance: Can't find the Ec2 Instance ID for container arn: %s", containerArn)
-    return nil, errors.New(errMessage)
-  }
-
-  ec2_svc := ec2.New(session.New(config))
-  params := &ec2.TerminateInstancesInput{
-    InstanceIds: []*string{ aws.String(*instanceId) },
-    DryRun: aws.Bool(false),
-  }
-  resp, err := ec2_svc.TerminateInstances(params)
-  return resp, err
-}
-
-func OnInstanceTerminated(instanceId *string, ec2_svc *ec2.EC2, do func(error)) {
-  go func() {
-    params := &ec2.DescribeInstancesInput{
-      DryRun: aws.Bool(false),
-      InstanceIds: []*string{instanceId,},
-    }
-    err := ec2_svc.WaitUntilInstanceTerminated(params)
-    do(err)
-  }()
+  return instanceId
 }
 
 //

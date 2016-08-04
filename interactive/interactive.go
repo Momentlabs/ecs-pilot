@@ -112,7 +112,7 @@ func init() {
 }
 
 
-func doICommand(line string, svc *ecs.ECS, awsConfig *aws.Config) (err error) {
+func doICommand(line string, ecsSvc *ecs.ECS, ec2Svc *ec2.EC2, awsConfig *aws.Config) (err error) {
 
   // This is due to a 'peculiarity' of kingpin: it collects strings as arguments across parses.
   interTestString = []string{}
@@ -135,22 +135,22 @@ func doICommand(line string, svc *ecs.ECS, awsConfig *aws.Config) (err error) {
       case interVerbose.FullCommand(): err = doVerbose()
       case interExit.FullCommand(): err = doQuit()
       case interQuit.FullCommand(): err = doQuit()
-      case createCluster.FullCommand(): err = doCreateCluster(svc)
-      case deleteCluster.FullCommand(): err = doDeleteCluster(svc)
-      case interListClusters.FullCommand(): err = doListClusters(svc)
-      case interDescribeCluster.FullCommand(): err = doDescribeCluster(svc)
-      case interListTasks.FullCommand(): err = doListTasks(svc)
-      case interDescribeAllTasks.FullCommand(): err = doDescribeAllTasks(svc)
-      case interListContainerInstances.FullCommand(): err = doListContainerInstances(svc)
-      case interDescribeContainerInstance.FullCommand(): err = doDescribeContainerInstance(svc, awsConfig)
-      case interDescribeAllContainerInstances.FullCommand(): err = doDescribeAllContainerInstances(svc, awsConfig)
-      case interCreateContainerInstance.FullCommand(): err = doCreateContainerInstance(svc, awsConfig)
-      case interTerminateContainerInstance.FullCommand(): err = doTerminateContainerInstance(svc, awsConfig)
-      case interListTaskDefinitions.FullCommand(): err = doListTaskDefinitions(svc)
-      case interDescribeTaskDefinition.FullCommand(): err = doDescribeTaskDefinition(svc)
-      case registerTaskDefinition.FullCommand(): err = doRegisterTaskDefinition(svc)
-      case interRunTask.FullCommand(): err = doRunTask(svc)
-      case interStopTask.FullCommand(): err = doStopTask(svc)
+      case createCluster.FullCommand(): err = doCreateCluster(ecsSvc)
+      case deleteCluster.FullCommand(): err = doDeleteCluster(ecsSvc)
+      case interListClusters.FullCommand(): err = doListClusters(ecsSvc)
+      case interDescribeCluster.FullCommand(): err = doDescribeCluster(ecsSvc)
+      case interListTasks.FullCommand(): err = doListTasks(ecsSvc)
+      case interDescribeAllTasks.FullCommand(): err = doDescribeAllTasks(ecsSvc)
+      case interListContainerInstances.FullCommand(): err = doListContainerInstances(ecsSvc)
+      case interDescribeContainerInstance.FullCommand(): err = doDescribeContainerInstance(ecsSvc, ec2Svc)
+      case interDescribeAllContainerInstances.FullCommand(): err = doDescribeAllContainerInstances(ecsSvc, ec2Svc)
+      case interCreateContainerInstance.FullCommand(): err = doCreateContainerInstance(ecsSvc, ec2Svc)
+      case interTerminateContainerInstance.FullCommand(): err = doTerminateContainerInstance(ecsSvc, ec2Svc)
+      case interListTaskDefinitions.FullCommand(): err = doListTaskDefinitions(ecsSvc)
+      case interDescribeTaskDefinition.FullCommand(): err = doDescribeTaskDefinition(ecsSvc)
+      case registerTaskDefinition.FullCommand(): err = doRegisterTaskDefinition(ecsSvc)
+      case interRunTask.FullCommand(): err = doRunTask(ecsSvc)
+      case interStopTask.FullCommand(): err = doStopTask(ecsSvc)
     }
   }
   return err
@@ -223,10 +223,10 @@ func doListContainerInstances(svc *ecs.ECS) (error) {
   return nil
 }
 
-func doDescribeContainerInstance(svc *ecs.ECS, config *aws.Config) (error) {
+func doDescribeContainerInstance(svc *ecs.ECS, ec2_svc *ec2.EC2) (error) {
   ciMap, err := awslib.GetContainerInstanceDescription(interClusterName, interContainerArn, svc)
   if err == nil {
-    ec2InstanceMap, err := awslib.DescribeEC2Instances(ciMap, config)
+    ec2InstanceMap, err := awslib.DescribeEC2Instances(ciMap, ec2_svc)
     if err != nil {
       fmt.Printf("%s\n", ContainerInstanceMapToString(ciMap, map[string]*ec2.Instance{}))
       return err
@@ -236,13 +236,13 @@ func doDescribeContainerInstance(svc *ecs.ECS, config *aws.Config) (error) {
   return err
 }
 
-func doDescribeAllContainerInstances(svc *ecs.ECS, config *aws.Config) (error) {
+func doDescribeAllContainerInstances(svc *ecs.ECS, ec2_svc *ec2.EC2) (error) {
   ciMap, err := awslib.GetAllContainerInstanceDescriptions(interClusterName, svc)
   if err == nil {
     if len(ciMap) <= 0 {
       fmt.Printf("There are no containers for: %s.\n", interClusterName)
     } else {
-      ec2InstanceMap, err := awslib.DescribeEC2Instances(ciMap, config)
+      ec2InstanceMap, err := awslib.DescribeEC2Instances(ciMap, ec2_svc)
       if err != nil {
         fmt.Printf("%s\n", ContainerInstanceMapToString(ciMap, map[string]*ec2.Instance{}))
         return err
@@ -355,7 +355,7 @@ func attributeString(attr *ecs.Attribute) (string) {
   return fmt.Sprintf("%s: %s", *attr.Name, value)
 }
 
-func doCreateContainerInstance(svc *ecs.ECS, awsConfig *aws.Config) (error) {
+func doCreateContainerInstance(svc *ecs.ECS, ec2Svc *ec2.EC2) (error) {
   thisClusterName := interClusterName // TODO: This is not the right solution. Need to create a new string and copy.
   nameTag := fmt.Sprintf("%s - ecs instance", interClusterName)
   tags := []*ec2.Tag{
@@ -364,12 +364,12 @@ func doCreateContainerInstance(svc *ecs.ECS, awsConfig *aws.Config) (error) {
       Value: aws.String(nameTag),
     },
   }
-  resp, err := awslib.LaunchInstanceWithTags(thisClusterName, tags, awsConfig)
+  resp, err := awslib.LaunchInstanceWithTags(thisClusterName, tags, ec2Svc)
   if err != nil {
     return err
   }
   fmt.Printf("Launced Instance:\n%+v\n", resp)
-  awslib.OnInstanceRunning(resp, ec2.New(session.New(awsConfig)), func(err error) {
+  awslib.OnInstanceRunning(resp, ec2Svc, func(err error) {
     if err == nil {
       fmt.Printf("Started (%d) Instances on cluster %s:\n", len(resp.Instances), thisClusterName)
       for i, instance := range resp.Instances {
@@ -385,8 +385,8 @@ func doCreateContainerInstance(svc *ecs.ECS, awsConfig *aws.Config) (error) {
 }
 
 
-func doTerminateContainerInstance(svc *ecs.ECS, awsConfig *aws.Config) (error) {
-  resp, err := awslib.TerminateContainerInstance(interClusterName, interContainerArn, svc, awsConfig)
+func doTerminateContainerInstance(svc *ecs.ECS, ec2Svc *ec2.EC2) (error) {
+  resp, err := awslib.TerminateContainerInstance(interClusterName, interContainerArn, svc, ec2Svc)
   if err != nil {
     return err
   }
@@ -404,7 +404,7 @@ func doTerminateContainerInstance(svc *ecs.ECS, awsConfig *aws.Config) (error) {
   fmt.Printf(".\n")
   instanceToWatch := resp.TerminatingInstances[0].InstanceId
 
-  awslib.OnInstanceTerminated(instanceToWatch, ec2.New(session.New(awsConfig)), func(err error) {
+  awslib.OnInstanceTerminated(instanceToWatch, ec2Svc, func(err error) {
     if err == nil {
       fmt.Printf("Instance Termianted: %s.\n", *instanceToWatch)
     } else {
@@ -632,8 +632,11 @@ func promptLoop(prompt string, process func(string) (error)) (err error) {
 }
 
 // This gets called from the main program, presumably from the 'interactive' command on main's command line.
-func DoInteractive(svc *ecs.ECS, config *aws.Config) {
-  xICommand := func(line string) (err error) {return doICommand(line, svc, config)}
+func DoInteractive(defaultConfig *aws.Config) {
+  awsSession := session.New(defaultConfig)
+  ecs_svc := ecs.New(awsSession)
+  ec2_svc := ec2.New(awsSession)
+  xICommand := func(line string) (err error) {return doICommand(line, ecs_svc, ec2_svc, defaultConfig)}
   prompt := "> "
   err := promptLoop(prompt, xICommand)
   if err != nil {fmt.Printf("Error - %s.\n", err)}

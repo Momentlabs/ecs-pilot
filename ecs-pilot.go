@@ -120,7 +120,7 @@ func main() {
 
   // Execute the command.
   if interactiveCmd.FullCommand() == command {
-    interactive.DoInteractive(ecs_svc, config)
+    interactive.DoInteractive(config)
   } else {
     commandMap[command](ecs_svc)
   }
