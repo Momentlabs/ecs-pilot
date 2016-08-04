@@ -11,7 +11,7 @@ import (
   "github.com/aws/aws-sdk-go/service/ecs"
   "github.com/aws/aws-sdk-go/service/ec2"
   "github.com/op/go-logging"
-  "ecs-pilot/ecslib"
+  "ecs-pilot/awslib"
 )
 
 var (
@@ -159,7 +159,7 @@ func doICommand(line string, svc *ecs.ECS, awsConfig *aws.Config) (err error) {
 // Commands
 
 func doCreateCluster(svc *ecs.ECS) (error) {
-  cluster, err := ecslib.CreateCluster(interClusterName, svc)
+  cluster, err := awslib.CreateCluster(interClusterName, svc)
   if err == nil {
     printCluster(cluster)
   }
@@ -167,7 +167,7 @@ func doCreateCluster(svc *ecs.ECS) (error) {
 }
 
 func doDeleteCluster(svc *ecs.ECS) (error) {
-  cluster, err := ecslib.DeleteCluster(interClusterName, svc)
+  cluster, err := awslib.DeleteCluster(interClusterName, svc)
   if err == nil {
     printCluster(cluster)
   }
@@ -175,7 +175,7 @@ func doDeleteCluster(svc *ecs.ECS) (error) {
 }
 
 func doListClusters(svc *ecs.ECS) (error) {
-  clusters,  err := ecslib.GetClusters(svc)
+  clusters,  err := awslib.GetClusters(svc)
   if err != nil {
     return err
   }
@@ -188,7 +188,7 @@ func doListClusters(svc *ecs.ECS) (error) {
 }
 
 func doDescribeCluster(svc *ecs.ECS) (error) {
-  clusters, err := ecslib.DescribeCluster(interClusterName, svc)
+  clusters, err := awslib.DescribeCluster(interClusterName, svc)
   if err == nil  {
     if len(clusters) <= 0 {
       fmt.Printf("Couldn't get any clusters for %s.\n", interClusterName)
@@ -210,7 +210,7 @@ func printCluster(cluster *ecs.Cluster) {
 }
 
 func doListContainerInstances(svc *ecs.ECS) (error) {
-  instanceArns, err := ecslib.GetContainerInstances(interClusterName, svc)
+  instanceArns, err := awslib.GetContainerInstances(interClusterName, svc)
   if err != nil {
     return err
   }
@@ -224,9 +224,9 @@ func doListContainerInstances(svc *ecs.ECS) (error) {
 }
 
 func doDescribeContainerInstance(svc *ecs.ECS, config *aws.Config) (error) {
-  ciMap, err := ecslib.GetContainerInstanceDescription(interClusterName, interContainerArn, svc)
+  ciMap, err := awslib.GetContainerInstanceDescription(interClusterName, interContainerArn, svc)
   if err == nil {
-    ec2InstanceMap, err := ecslib.DescribeEC2Instances(ciMap, config)
+    ec2InstanceMap, err := awslib.DescribeEC2Instances(ciMap, config)
     if err != nil {
       fmt.Printf("%s\n", ContainerInstanceMapToString(ciMap, map[string]*ec2.Instance{}))
       return err
@@ -237,12 +237,12 @@ func doDescribeContainerInstance(svc *ecs.ECS, config *aws.Config) (error) {
 }
 
 func doDescribeAllContainerInstances(svc *ecs.ECS, config *aws.Config) (error) {
-  ciMap, err := ecslib.GetAllContainerInstanceDescriptions(interClusterName, svc)
+  ciMap, err := awslib.GetAllContainerInstanceDescriptions(interClusterName, svc)
   if err == nil {
     if len(ciMap) <= 0 {
       fmt.Printf("There are no containers for: %s.\n", interClusterName)
     } else {
-      ec2InstanceMap, err := ecslib.DescribeEC2Instances(ciMap, config)
+      ec2InstanceMap, err := awslib.DescribeEC2Instances(ciMap, config)
       if err != nil {
         fmt.Printf("%s\n", ContainerInstanceMapToString(ciMap, map[string]*ec2.Instance{}))
         return err
@@ -254,7 +254,7 @@ func doDescribeAllContainerInstances(svc *ecs.ECS, config *aws.Config) (error) {
   return err
 }
 
-func ContainerInstanceMapToString(ciMap ecslib.ContainerInstanceMap, instances map[string]*ec2.Instance) (string) {
+func ContainerInstanceMapToString(ciMap awslib.ContainerInstanceMap, instances map[string]*ec2.Instance) (string) {
   s := ""
   for _, ci := range ciMap {
     iString := ""
@@ -364,12 +364,12 @@ func doCreateContainerInstance(svc *ecs.ECS, awsConfig *aws.Config) (error) {
       Value: aws.String(nameTag),
     },
   }
-  resp, err := ecslib.LaunchContainerInstanceWithTags(thisClusterName, tags, awsConfig)
+  resp, err := awslib.LaunchInstanceWithTags(thisClusterName, tags, awsConfig)
   if err != nil {
     return err
   }
   fmt.Printf("Launced Instance:\n%+v\n", resp)
-  ecslib.OnInstanceRunning(resp, ec2.New(session.New(awsConfig)), func(err error) {
+  awslib.OnInstanceRunning(resp, ec2.New(session.New(awsConfig)), func(err error) {
     if err == nil {
       fmt.Printf("Started (%d) Instances on cluster %s:\n", len(resp.Instances), thisClusterName)
       for i, instance := range resp.Instances {
@@ -386,7 +386,7 @@ func doCreateContainerInstance(svc *ecs.ECS, awsConfig *aws.Config) (error) {
 
 
 func doTerminateContainerInstance(svc *ecs.ECS, awsConfig *aws.Config) (error) {
-  resp, err := ecslib.TerminateContainerInstance(interClusterName, interContainerArn, svc, awsConfig)
+  resp, err := awslib.TerminateContainerInstance(interClusterName, interContainerArn, svc, awsConfig)
   if err != nil {
     return err
   }
@@ -404,7 +404,7 @@ func doTerminateContainerInstance(svc *ecs.ECS, awsConfig *aws.Config) (error) {
   fmt.Printf(".\n")
   instanceToWatch := resp.TerminatingInstances[0].InstanceId
 
-  ecslib.OnInstanceTerminated(instanceToWatch, ec2.New(session.New(awsConfig)), func(err error) {
+  awslib.OnInstanceTerminated(instanceToWatch, ec2.New(session.New(awsConfig)), func(err error) {
     if err == nil {
       fmt.Printf("Instance Termianted: %s.\n", *instanceToWatch)
     } else {
@@ -416,8 +416,8 @@ func doTerminateContainerInstance(svc *ecs.ECS, awsConfig *aws.Config) (error) {
 }
 
 func doListTasks(svc *ecs.ECS) (error) {
-  arns, err := ecslib.ListTasksForCluster(interClusterName, svc)
-  tasksMap, err := ecslib.GetAllTaskDescriptions(interClusterName, svc)
+  arns, err := awslib.ListTasksForCluster(interClusterName, svc)
+  tasksMap, err := awslib.GetAllTaskDescriptions(interClusterName, svc)
   if err == nil {
    fmt.Printf("There are (%d) tasks for cluster: %s\n", len(arns), interClusterName)
     for i, arn := range arns {
@@ -438,7 +438,7 @@ func collectContainerNames(task *ecs.Task) (string) {
 }
 
 func doDescribeAllTasks(svc *ecs.ECS) (error) {
-  resp, err := ecslib.GetAllTaskDescriptions(interClusterName, svc)
+  resp, err := awslib.GetAllTaskDescriptions(interClusterName, svc)
 
   if err == nil {
     if len(resp) <= 0 {
@@ -450,7 +450,7 @@ func doDescribeAllTasks(svc *ecs.ECS) (error) {
   return err
 }
 
-func ContainerTaskMapToString(ctMap ecslib.ContainerTaskMap) (string) {
+func ContainerTaskMapToString(ctMap awslib.ContainerTaskMap) (string) {
   count := 1
   s := ""
   for _, ct := range ctMap {
@@ -504,7 +504,7 @@ func ContainerTaskDescriptionToString(task *ecs.Task) (string) {
 }
 
 func doListTaskDefinitions(svc *ecs.ECS) (error) {
-  arns, err := ecslib.ListTaskDefinitions(svc)
+  arns, err := awslib.ListTaskDefinitions(svc)
   if err == nil {
     fmt.Printf("There are (%d) task definitions.\n", len(arns))
     for i, arn := range arns {
@@ -516,7 +516,7 @@ func doListTaskDefinitions(svc *ecs.ECS) (error) {
 
 func doDescribeTaskDefinition(svc *ecs.ECS) (error) {
 
-  taskDefinition, err := ecslib.GetTaskDefinition(interTaskDefinitionArn, svc)
+  taskDefinition, err := awslib.GetTaskDefinition(interTaskDefinitionArn, svc)
   if err == nil {
     fmt.Printf("%s\n", taskDefinition)
   }
@@ -524,7 +524,7 @@ func doDescribeTaskDefinition(svc *ecs.ECS) (error) {
 }
 
 func doRegisterTaskDefinition(svc *ecs.ECS) (error) {
-  resp, err := ecslib.RegisterTaskDefinition(taskConfigFileName, svc)
+  resp, err := awslib.RegisterTaskDefinition(taskConfigFileName, svc)
   if err == nil {
     fmt.Printf("Got the following response: %+v\n", resp)
   } else {
@@ -535,7 +535,7 @@ func doRegisterTaskDefinition(svc *ecs.ECS) (error) {
 }
 
 func doRunTask(svc *ecs.ECS) (error) {
-  runTaskOut, err := ecslib.RunTask(interClusterName, interTaskDefinitionArn, svc)
+  runTaskOut, err := awslib.RunTask(interClusterName, interTaskDefinitionArn, svc)
   if err == nil {
     fmt.Printf("There were (%d) failures running the task.\n", len(runTaskOut.Failures))
     for i, failure := range runTaskOut.Failures {
@@ -547,7 +547,7 @@ func doRunTask(svc *ecs.ECS) (error) {
     }
     if len(runTaskOut.Tasks) > 0 {
       taskToWaitOn := *runTaskOut.Tasks[0].TaskArn
-      ecslib.OnTaskRunning(interClusterName, taskToWaitOn, svc, func(err error) {
+      awslib.OnTaskRunning(interClusterName, taskToWaitOn, svc, func(err error) {
         if err == nil {
           fmt.Printf("Task: %s is now running on cluster %s.\n", taskToWaitOn, interClusterName)
         } else {
@@ -562,11 +562,11 @@ func doRunTask(svc *ecs.ECS) (error) {
 
 func doStopTask(svc *ecs.ECS) (error) {
   fmt.Printf("Stopping the task: %s.\n", interTaskArn)
-  resp, err := ecslib.StopTask(interClusterName, interTaskArn, svc)
+  resp, err := awslib.StopTask(interClusterName, interTaskArn, svc)
   if err == nil {
     fmt.Println("This task is scheduled to stop.")
     fmt.Printf("%s\n", ContainerTaskDescriptionToString(resp.Task))
-    ecslib.OnTaskStopped(interClusterName, interTaskArn, svc, func(err error){
+    awslib.OnTaskStopped(interClusterName, interTaskArn, svc, func(err error){
       if err == nil {
         fmt.Printf("Task: %s on cluster %s is now stopped.\n", interTaskArn, interClusterName)
       } else {

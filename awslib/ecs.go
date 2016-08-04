@@ -1,36 +1,23 @@
-package ecslib 
+package awslib 
 
 import (
-  // "strings"
   "fmt"
   "errors"
-  // "time"  
-  // "io"
-  "encoding/base64"
   "github.com/aws/aws-sdk-go/aws"
   "github.com/aws/aws-sdk-go/aws/session"
   "github.com/aws/aws-sdk-go/service/ecs"
   "github.com/aws/aws-sdk-go/service/ec2"
   "github.com/spf13/viper"
-  // "github.com/op/go-logging"
 )
-
 
 type Cluster struct {
   Arn *string
 }
 
-type ContainerInstance struct {
-  Instance  *ecs.ContainerInstance
-  Failure *ecs.Failure
-}
-type ContainerInstanceMap map[string]*ContainerInstance
 
-type ContainerTask struct {
-  Task *ecs.Task
-  Failure *ecs.Failure
-}
-type ContainerTaskMap map[string]*ContainerTask
+//
+// CLUSTERS
+//
 
 func CreateCluster(clusterName string, svc *ecs.ECS) (*ecs.Cluster, error) {
   params := &ecs.CreateClusterInput{
@@ -82,6 +69,10 @@ func DescribeCluster(clusterName string, svc *ecs.ECS) ([]*ecs.Cluster, error) {
   return resp.Clusters, err
 }
 
+//
+// CONTAINER INSTANCES
+//
+
 func GetContainerInstances(clusterName string, svc *ecs.ECS)([]*string, error) {
   params := &ecs.ListContainerInstancesInput {
     Cluster: aws.String(clusterName),
@@ -93,9 +84,16 @@ func GetContainerInstances(clusterName string, svc *ecs.ECS)([]*string, error) {
   return resp.ContainerInstanceArns, nil
 }
 
-func GetAllContainerInstanceDescriptions(clusterName string, ecs_svc *ecs.ECS) (ContainerInstanceMap, error) {
 
-  instanceArns, err := GetContainerInstances(clusterName, ecs_svc)
+type ContainerInstance struct {
+  Instance  *ecs.ContainerInstance
+  Failure *ecs.Failure
+}
+type ContainerInstanceMap map[string]*ContainerInstance
+
+func GetAllContainerInstanceDescriptions(clusterName string, svc *ecs.ECS) (ContainerInstanceMap, error) {
+
+  instanceArns, err := GetContainerInstances(clusterName, svc)
   if err != nil { return make(ContainerInstanceMap), err }
 
   if len(instanceArns) <= 0 {
@@ -106,7 +104,7 @@ func GetAllContainerInstanceDescriptions(clusterName string, ecs_svc *ecs.ECS) (
     ContainerInstances: instanceArns,
     Cluster: aws.String(clusterName),
   }
-  resp, err := ecs_svc.DescribeContainerInstances(params)
+  resp, err := svc.DescribeContainerInstances(params)
   return makeCIMapFromDescribeContainerInstancesOutput(resp), err
 }
 
@@ -143,12 +141,7 @@ func makeCIMapFromDescribeContainerInstancesOutput(dcio *ecs.DescribeContainerIn
   return ciMap
 }
 
-// func (ciMap ContainerInstanceMap) getContainerInstances() ([]*ecs.ContainerInstance) {
-//   cis := []*ecs.ContainerInstance{}
-//   return cis
-// }
-
-func (ciMap ContainerInstanceMap) getEc2InstanceIds() ([]*string) {
+func (ciMap ContainerInstanceMap) GetEc2InstanceIds() ([]*string) {
   ids := []*string{}
   for _, ci := range ciMap {
     if ci.Instance != nil {
@@ -158,216 +151,7 @@ func (ciMap ContainerInstanceMap) getEc2InstanceIds() ([]*string) {
   return ids
 }
 
-func DescribeEC2Instances(ciMap ContainerInstanceMap, config *aws.Config) (map[string]*ec2.Instance, error) {
-  ec2_svc := ec2.New(session.New(config))
-  params := &ec2.DescribeInstancesInput {
-    DryRun: aws.Bool(false),
-    InstanceIds: ciMap.getEc2InstanceIds(),
-  }
-  instances := make(map[string]*ec2.Instance)
-  resp, err := ec2_svc.DescribeInstances(params)
-  if err == nil {
-    for _, reservation := range resp.Reservations {
-      for _, instance := range reservation.Instances {
-       instances[*instance.InstanceId] = instance
-      }
-    }
-  }
-  return instances, err
-}
-
-func GetSecurityGrouoDescriptions(groupNames []*string, config *aws.Config ) ([]*ec2.SecurityGroup, error) {
-  ec2_svc := ec2.New(session.New(config))
-  params := &ec2.DescribeSecurityGroupsInput{
-    DryRun: aws.Bool(false),
-    GroupNames: groupNames,
-  }
-  resp, err := ec2_svc.DescribeSecurityGroups(params)
-  groups := []*ec2.SecurityGroup{}
-  if err != nil {
-    groups = resp.SecurityGroups
-  }
-  return groups, err
-}
-
-
-func getUserData(clusterName string) (string) {
-
-  user_data_template := `#!/bin/bash
-echo ECS_CLUSTER=%s >> /etc/ecs/ecs.config
-`
-  user_data := fmt.Sprintf(user_data_template,clusterName)
-  data := []byte(user_data)
-  user_data_encoded := base64.StdEncoding.EncodeToString(data)
-
-  return user_data_encoded
-}
-
-func getAmi() (string) {
-  return "ami-55870742"
-}
-
-func getInstanceType() (string) {
-  return "t2.medium"
-}
-
-func getKeyPairName() (string) {
-  return "momentlabs-us-east-1"
-}
-
-func getInstanceProfileName() (string) {
-  return "ecsInstanceRole"
-}
-
-func getSecurityGroupName() (string) {
-
-  return "sg-a9f3d9d2"
-}
-
-func getBlockDeviceMappings() ([]*ec2.BlockDeviceMapping) {
-  // This is paeculariar to the AMI.
-  return []*ec2.BlockDeviceMapping{
-      {
-        // root
-        DeviceName: aws.String("/dev/xvda"),
-        Ebs: &ec2.EbsBlockDevice{
-          DeleteOnTermination: aws.Bool(true),
-          // This is not allowed from a volume.
-          // Encrypted: aws.Bool(false),
-          VolumeType: aws.String("gp2"),
-          // GP2 has the IOPS predeterined.
-          // Iops:  aws.Int64(100),
-          // Thi is the snaphot for the AMI.
-          SnapshotId: aws.String("snap-35a24c32"),
-          // Below should be given in the snapshot size.
-          // VolumeSize: aws.Int64(8)
-        },
-      },
-      {
-        // /data
-        DeviceName: aws.String("/dev/xvdcz"),
-        Ebs: &ec2.EbsBlockDevice{
-          DeleteOnTermination: aws.Bool(true),
-          Encrypted: aws.Bool(false),
-          // Snapshot not needed for this it's /data/
-          // SnapshotId: aws.String(""),
-          VolumeSize: aws.Int64(22),
-          VolumeType: aws.String("gp2"),
-        },
-      },
-    }
-}
-func LaunchContainerInstanceWithTags(clusterName string, tags []*ec2.Tag, config *aws.Config) (*ec2.Reservation, error) {
-
-  res, err := LaunchContainerInstance(clusterName, config)
-  if err == nil {
-    params := &ec2.DescribeInstancesInput{
-      DryRun: aws.Bool(false),
-      Filters: []*ec2.Filter{ 
-        { 
-          Name: aws.String("reservation-id"),
-          Values: []*string{res.ReservationId,},
-        },
-      },
-    }
-    ec2_svc := ec2.New(session.New(config))
-    err = ec2_svc.WaitUntilInstanceExists(params)
-    if err == nil {
-      instanceIds := []*string{}
-      for _, instance := range res.Instances {
-        instanceIds = append(instanceIds, instance.InstanceId)
-      }
-      params := &ec2.CreateTagsInput{
-        DryRun: aws.Bool(false),
-        Resources: instanceIds,
-        Tags: tags,
-      }
-      _, _ = ec2_svc.CreateTags(params)
-    }
-  }
-
-  return res, err
-}
-func LaunchContainerInstance(clusterName string, config *aws.Config) (*ec2.Reservation, error) {
-
-  // TOD: Need to add a name-tag.
-
-  ec2_svc := ec2.New(session.New(config))
-
-  params := &ec2.RunInstancesInput {
-    // amzn-ami-2016.03.e-amazon-ecs-optimized-4ce33fd9-63ff-4f35-8d3a-939b641f1931-ami-55870742.3
-    ImageId: aws.String(getAmi()),
-    // ImageId: aws.String("ami-a88a46c5"),
-
-    InstanceType: aws.String(getInstanceType()),
-    KeyName: aws.String(getKeyPairName()),
-    // SubnetId: aws.String("vpc-2eb68c4a"),
-    MaxCount: aws.Int64(1),
-    MinCount: aws.Int64(1),
-    BlockDeviceMappings: getBlockDeviceMappings(),
-
-    IamInstanceProfile: &ec2.IamInstanceProfileSpecification {
-      // Arn: aws.String("arn:aws:iam::033441544097:instance-profile/ecsInstanceRole"),
-      Name: aws.String(getInstanceProfileName()),
-    },
-
-    // The minecraft SG we've already created.
-    SecurityGroupIds: []*string{
-      aws.String(getSecurityGroupName()),
-    },
-    // I think I only need the ID.
-    // Though the name for the above is:  Minecraft_Container_SG_useast1
-    // SecurityGroups: []*string{
-    //   aws.String("")
-    // },
-
-    UserData: aws.String(getUserData(clusterName)),
-
-    Monitoring: &ec2.RunInstancesMonitoringEnabled{
-      Enabled: aws.Bool(true),
-    },
-
-  }
-
-  resp, err := ec2_svc.RunInstances(params)
-  if err != nil {
-    return nil, err
-  }
-  // Need to determine the following paramaters
-  // ImageID
-  // BlockDeviceMappings (this is particuarly important for the Container AMI, 
-  //     which has 2 devices, a root and a data volume each with 'configurable' sizes.
-  // Network Interfaces.
-  // VPN.
-  // Secrutiy Group.
-  // KeyPair.
-  // UserData - this is where we set up a script to set the param for which cluster to join.
-  //
-  // I'm thinking that ultimately these are things that hsould be set up in configuration
-  // files with profiles that can be used.
-
-  return resp, nil
-
-}
-
-func OnInstanceRunning(reservation *ec2.Reservation, ec2_svc *ec2.EC2, do func(error)) {
-  go func() {
-    params := &ec2.DescribeInstancesInput{
-      DryRun: aws.Bool(false),
-      Filters: []*ec2.Filter{ 
-        { 
-          Name: aws.String("reservation-id"),
-          Values: []*string{reservation.ReservationId,},
-        },
-      },
-    }
-    err := ec2_svc.WaitUntilInstanceRunning(params)
-    do(err)
-  }()
-}
-
 func TerminateContainerInstance(clusterName string, containerArn string, ecs_svc *ecs.ECS, config *aws.Config) (*ec2.TerminateInstancesOutput, error) {
-
 
   // Need to get the container instance description in order to get the ec2-instanceID.
   dci_params := &ecs.DescribeContainerInstancesInput{
@@ -410,6 +194,10 @@ func OnInstanceTerminated(instanceId *string, ec2_svc *ec2.EC2, do func(error)) 
   }()
 }
 
+//
+// TASKS
+//
+
 // TODO: Add overides.
 func ListTasksForCluster(clusterName string, ecs_svc *ecs.ECS) ([]*string, error) {
 
@@ -420,6 +208,12 @@ func ListTasksForCluster(clusterName string, ecs_svc *ecs.ECS) ([]*string, error
   resp, err := ecs_svc.ListTasks(params)
   return resp.TaskArns, err
 }
+
+type ContainerTask struct {
+  Task *ecs.Task
+  Failure *ecs.Failure
+}
+type ContainerTaskMap map[string]*ContainerTask
 
 func GetAllTaskDescriptions(clusterName string, ecs_svc *ecs.ECS) (ContainerTaskMap, error) {
  
@@ -509,6 +303,10 @@ func ListTaskDefinitions(ecs_svc *ecs.ECS) ([]*string, error) {
   resp, err := ecs_svc.ListTaskDefinitions(params)
   return resp.TaskDefinitionArns, err
 }
+
+//
+// Task Definitions
+//
 
 func GetTaskDefinition(taskDefinitionArn string, ecs_svc *ecs.ECS) (*ecs.TaskDefinition, error) {
   params := &ecs.DescribeTaskDefinitionInput {

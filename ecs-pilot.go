@@ -15,7 +15,7 @@ import (
   "os"
   "bytes"
   "ecs-pilot/interactive"
-  "ecs-pilot/ecslib"
+  "ecs-pilot/awslib"
   "encoding/json"
   // "path/filepath"
   // "strings"
@@ -127,7 +127,7 @@ func main() {
 }
 
 func doListCluster(svc *ecs.ECS) {
-  clusters,  err := ecslib.GetClusters(svc)
+  clusters,  err := awslib.GetClusters(svc)
   if err == nil {
     fmt.Println("Clusters")
     for i, cluster := range clusters {
@@ -140,7 +140,7 @@ func doListCluster(svc *ecs.ECS) {
 }
 
 func doListTaskDefinitions(svc *ecs.ECS) {
-  arns, err := ecslib.ListTaskDefinitions(svc)
+  arns, err := awslib.ListTaskDefinitions(svc)
   if err == nil {
     fmt.Printf("There are (%d) task definitions.\n", len(arns))
     for i, arn := range arns {
@@ -152,7 +152,7 @@ func doListTaskDefinitions(svc *ecs.ECS) {
 }
 
 func doDescribeTaskDefinition(svc *ecs.ECS) {
-  taskDefinition, err := ecslib.GetTaskDefinition(taskDefinitionArn, svc)
+  taskDefinition, err := awslib.GetTaskDefinition(taskDefinitionArn, svc)
   if err == nil {
     b, err := json.Marshal(taskDefinition)
     if err == nil {
@@ -171,12 +171,12 @@ func doDescribeTaskDefinition(svc *ecs.ECS) {
 
 
 func doEmptyTaskDefinition(svc *ecs.ECS) {
-  tdi := ecslib.CompleteEmptyTaskDefinition()
+  tdi := awslib.CompleteEmptyTaskDefinition()
   printAsJsonObject(tdi)
 }
 
 func doDefaultTaskDefinition(svc *ecs.ECS) {
-  tdi := ecslib.DefaultTaskDefinition()
+  tdi := awslib.DefaultTaskDefinition()
   printAsJsonObject(tdi)
 }
 
