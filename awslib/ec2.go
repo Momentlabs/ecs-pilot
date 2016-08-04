@@ -8,13 +8,15 @@ import (
   // "io"
   "encoding/base64"
   "github.com/aws/aws-sdk-go/aws"
-  "github.com/aws/aws-sdk-go/aws/session"
+  // "github.com/aws/aws-sdk-go/aws/session"
   // "github.com/aws/aws-sdk-go/service/ecs"
   "github.com/aws/aws-sdk-go/service/ec2"
   // "github.com/spf13/viper"
   // "github.com/op/go-logging"
 )
 
+
+// Returns a map of *ec2.Instance keyed on the associated InstanceId.
 func DescribeEC2Instances(ciMap ContainerInstanceMap, ec2_svc *ec2.EC2) (map[string]*ec2.Instance, error) {
   // ec2_svc := ec2.New(session.New(config))
   params := &ec2.DescribeInstancesInput {
@@ -33,19 +35,19 @@ func DescribeEC2Instances(ciMap ContainerInstanceMap, ec2_svc *ec2.EC2) (map[str
   return instances, err
 }
 
-func GetSecurityGrouoDescriptions(groupNames []*string, config *aws.Config ) ([]*ec2.SecurityGroup, error) {
-  ec2_svc := ec2.New(session.New(config))
-  params := &ec2.DescribeSecurityGroupsInput{
-    DryRun: aws.Bool(false),
-    GroupNames: groupNames,
-  }
-  resp, err := ec2_svc.DescribeSecurityGroups(params)
-  groups := []*ec2.SecurityGroup{}
-  if err != nil {
-    groups = resp.SecurityGroups
-  }
-  return groups, err
-}
+// func GetSecurityGrouoDescriptions(groupNames []*string, config *aws.Config ) ([]*ec2.SecurityGroup, error) {
+//   ec2_svc := ec2.New(session.New(config))
+//   params := &ec2.DescribeSecurityGroupsInput{
+//     DryRun: aws.Bool(false),
+//     GroupNames: groupNames,
+//   }
+//   resp, err := ec2_svc.DescribeSecurityGroups(params)
+//   groups := []*ec2.SecurityGroup{}
+//   if err != nil {
+//     groups = resp.SecurityGroups
+//   }
+//   return groups, err
+// }
 
 
 func LaunchInstanceWithTags(clusterName string, tags []*ec2.Tag, ec2Svc *ec2.EC2) (*ec2.Reservation, error) {
@@ -79,6 +81,12 @@ func LaunchInstanceWithTags(clusterName string, tags []*ec2.Tag, ec2Svc *ec2.EC2
   return res, err
 }
 
+// 
+// TODO
+// This needs to be refactored:
+// 1. Remove cluster name
+// 2. Need to find a middle ground in providing configuration inputs between everything in RunInstancesInput and
+//    what we currently have.
 func LaunchInstance(clusterName string, ec2Svc *ec2.EC2) (*ec2.Reservation, error) {
 
   params := &ec2.RunInstancesInput {
