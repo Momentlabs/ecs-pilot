@@ -395,9 +395,9 @@ func doTerminateContainerInstance(svc *ecs.ECS, ec2Svc *ec2.EC2) (error) {
   fmt.Printf("%+v\n", resp)
 
   if len(resp.TerminatingInstances) > 1 {
-    fmt.Printf("Got (%d) instances terminating, excepting only 1.", len(resp.TerminatingInstances))
+    fmt.Printf("Got (%d) instances terminating, expecting only 1.", len(resp.TerminatingInstances))
   }
-  fmt.Printf("Terminating Instances:")
+  fmt.Printf("Terminating EC2 Instances:\n")
   for i, iStateChange := range resp.TerminatingInstances {
     fmt.Printf("%d. %s, ", i+1, *iStateChange.InstanceId)
   }
@@ -406,7 +406,7 @@ func doTerminateContainerInstance(svc *ecs.ECS, ec2Svc *ec2.EC2) (error) {
 
   awslib.OnInstanceTerminated(instanceToWatch, ec2Svc, func(err error) {
     if err == nil {
-      fmt.Printf("Instance Termianted: %s.\n", *instanceToWatch)
+      fmt.Printf("EC2 Instance Termianted: %s.\n", *instanceToWatch)
     } else {
       fmt.Printf("Error on waiting for instance to terminate.\n")
       fmt.Printf("error: %s.\n", err)
@@ -537,19 +537,13 @@ func doRegisterTaskDefinition(svc *ecs.ECS) (error) {
 func doRunTask(svc *ecs.ECS) (error) {
   runTaskOut, err := awslib.RunTask(interClusterName, interTaskDefinitionArn, svc)
   if err == nil {
-    fmt.Printf("There were (%d) failures running the task.\n", len(runTaskOut.Failures))
-    for i, failure := range runTaskOut.Failures {
-      fmt.Printf("%d: %s.\n", i+1, failure)
-    }
-    fmt.Printf("There were (%d) Tasks created.\n", len(runTaskOut.Tasks))
-    for i, task := range runTaskOut.Tasks {
-      fmt.Printf("%d: %s.\n", i+1, task)
-    }
+    printTaskDescription(runTaskOut.Tasks, runTaskOut.Failures)
     if len(runTaskOut.Tasks) > 0 {
       taskToWaitOn := *runTaskOut.Tasks[0].TaskArn
-      awslib.OnTaskRunning(interClusterName, taskToWaitOn, svc, func(err error) {
+      awslib.OnTaskRunning(interClusterName, taskToWaitOn, svc, func(taskDescrip *ecs.DescribeTasksOutput, err error) {
         if err == nil {
-          fmt.Printf("Task: %s is now running on cluster %s.\n", taskToWaitOn, interClusterName)
+          fmt.Printf("Task is now running on cluster %s.\n", interClusterName)
+          printTaskDescription(taskDescrip.Tasks, taskDescrip.Failures)
         } else {
           fmt.Printf("Problem waiting for task: %s on cluster %s to start.\n", taskToWaitOn, interClusterName)
           fmt.Printf("Error: %s.\n", err)
@@ -558,6 +552,56 @@ func doRunTask(svc *ecs.ECS) (error) {
     }
   }
   return err
+}
+
+func printTaskDescription(tasks []*ecs.Task, failures []*ecs.Failure) {
+  fmt.Printf("There are (%d) failures.\n", len(failures))
+  for i, failure := range failures {
+    fmt.Printf("%d: %s.\n", i+1, failure)
+  }
+  fmt.Printf("There are (%d) tasks.\n", len(tasks))
+  for i, task := range tasks {
+    fmt.Printf("%d: %s.\n", i+1, shortTaskString(task))
+  }
+}
+
+func shortTaskString(task *ecs.Task) (s string) {
+  s += fmt.Sprintf("%s - %s.\n", *task.TaskArn, *task.LastStatus)
+  containers := task.Containers
+  switch {
+  case len(containers) == 1:
+    s += shortContainerString(containers[0])
+  case len(containers ) >1:
+    s += fmt.Sprintf("There were (%d) containers for this task.", len(containers))
+    for i, c := range containers {
+      s += fmt.Sprintf("%d. %s\n", i+1, shortContainerString(c))
+    }
+  case len(containers) <= 0:
+    s += "There were NO contianers attached to this task!"
+  }
+  return s
+}
+
+func shortContainerString(container *ecs.Container) (s string) {
+  s += fmt.Sprintf("%s - %s.", *container.Name, *container.LastStatus)
+  bindings := container.NetworkBindings
+  switch {
+  case len(bindings) == 1:
+    s += fmt.Sprintf(" %s", bindingString(bindings[0]))
+  case len(bindings) >1:
+    s += "\n"
+    for i, bind := range bindings {
+      fmt.Sprintf("\t%d. %s", i+1, bindingString(bind))
+    }
+  case len(bindings) <= 0:
+    s += "\n"
+  }
+  return s
+}
+
+func bindingString(bind *ecs.NetworkBinding) (s string) {
+  s += fmt.Sprintf("%s - container: %d -> host: %d (%s)", *bind.BindIP, *bind.ContainerPort, *bind.HostPort, *bind.Protocol)
+  return s
 }
 
 func doStopTask(svc *ecs.ECS) (error) {

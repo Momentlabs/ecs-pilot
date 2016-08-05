@@ -243,25 +243,74 @@ func makeCTMapFromDescribeTasksOutput(dto *ecs.DescribeTasksOutput) (ContainerTa
   return ctMap
 }
 
-func RunTask(clusterName string, taskDef string, ecs_svc *ecs.ECS) (*ecs.RunTaskOutput, error) {
+// A Map of maps. 
+// ContainerName -> [Key]Value
+type ContainerEnvironmentMap map[string]map[string]string
 
+func RunTaskWithEnv(clusterName string, taskDefArn string, envMap ContainerEnvironmentMap, ecsSvc *ecs.ECS) (*ecs.RunTaskOutput, error) {
+  to := envMap.TaskOverride()
   params := &ecs.RunTaskInput{
-    TaskDefinition: aws.String(taskDef),
+    TaskDefinition: aws.String(taskDefArn),
     Cluster: aws.String(clusterName),
     Count: aws.Int64(1),
+    Overrides: &to,
   }
-  resp, err := ecs_svc.RunTask(params)
+  resp, err := ecsSvc.RunTask(params)
+
   return resp, err
 }
 
-func OnTaskRunning(clusterName, taskDefArn string, ecs_svc *ecs.ECS, do func(error)) {
+func (envMap ContainerEnvironmentMap)TaskOverride() (to ecs.TaskOverride) {
+  containerOverrides := []*ecs.ContainerOverride{}
+  for containerName, env := range envMap {
+    containerOverrides = append(containerOverrides, envToContainerOverride(containerName, env))
+  }
+  to.ContainerOverrides = containerOverrides
+  return to
+}
+
+// func envToTaskOverride(containerName string, env map[string]string) (to *ecs.TaskOverride) {
+//   containerOverride := envToContainerOverride(containerName, env)
+//   to = &ecs.TaskOverride{
+//     ContainerOverrides: []*ecs.ContainerOverride{containerOverride},
+//   }
+//   return to
+// }
+
+func envToContainerOverride(containerName string, env map[string]string) (co *ecs.ContainerOverride) {
+  keyValues := envToKeyValues(env)
+  co = &ecs.ContainerOverride{
+    Environment: keyValues,
+    Name: aws.String(containerName),
+  }
+  return co
+}
+
+func envToKeyValues(env map[string]string) (keyValues []*ecs.KeyValuePair) {
+  for key, value := range env {
+    keyValues = append(keyValues, &ecs.KeyValuePair{Name: &key, Value: &value})
+  }
+  return keyValues
+}
+
+func RunTask(clusterName string, taskDef string, ecsSvc *ecs.ECS) (*ecs.RunTaskOutput, error) {
+  env := make(ContainerEnvironmentMap)
+  resp, err := RunTaskWithEnv(clusterName, taskDef, env, ecsSvc)
+  return resp, err
+}
+
+func OnTaskRunning(clusterName, taskDefArn string, ecsSvc *ecs.ECS, do func(*ecs.DescribeTasksOutput, error)) {
     go func() {
-      params := &ecs.DescribeTasksInput{
+      task_params := &ecs.DescribeTasksInput{
         Cluster: aws.String(clusterName),
         Tasks: []*string{aws.String(taskDefArn)},
       }
-      err := ecs_svc.WaitUntilTasksRunning(params)
-      do(err)
+      err := ecsSvc.WaitUntilTasksRunning(task_params)
+      var td  *ecs.DescribeTasksOutput
+      if err == nil {
+        td, err = ecsSvc.DescribeTasks(task_params)
+      }
+      do(td, err)
     }()
 }
 
