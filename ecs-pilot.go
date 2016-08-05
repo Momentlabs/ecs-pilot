@@ -6,7 +6,7 @@ import (
   "github.com/aws/aws-sdk-go/aws/defaults"
   "github.com/aws/aws-sdk-go/aws/session"
   "github.com/aws/aws-sdk-go/service/ecs"
-  "github.com/aws/aws-sdk-go/service/iam"
+  // "github.com/aws/aws-sdk-go/service/iam"
   // "github.com/aws/aws-sdk-go/aws/awsutil"
   // "github.com/bobappleyard/readline"
   "gopkg.in/alecthomas/kingpin.v2"
@@ -84,27 +84,28 @@ func main() {
     config.Region = aws.String(region)
   }
 
-  // Provide a description of the account and region that's being used.
-  if (command == interactiveCmd.FullCommand() || verbose) {
-    iam_svc := iam.New(session.New(config))
-    params := &iam.ListAccountAliasesInput{
-      MaxItems: aws.Int64(100),
-    }
-    resp, err := iam_svc.ListAccountAliases(params)
-    if err == nil {
-      if len(resp.AccountAliases) == 1 {
-        fmt.Printf("Account: %s.\n", *resp.AccountAliases[0])
-      } else {
-        fmt.Printf("Account:\n")
-        for i, alias := range resp.AccountAliases {
-          fmt.Printf("%d. %s.\n", i+1, *alias)
-        }
-      }
-    } else {
-      fmt.Printf("Couldn't get account aliases: %s.\n", err)
-    }
-    fmt.Printf("Region: %s.\n", *config.Region)
-  }
+  fmt.Printf("%s", awslib.AccountDetailsString(config))
+  // // Provide a description of the account and region that's being used.
+  // if (command == interactiveCmd.FullCommand() || verbose) {
+  //   iam_svc := iam.New(session.New(config))
+  //   params := &iam.ListAccountAliasesInput{
+  //     MaxItems: aws.Int64(100),
+  //   }
+  //   resp, err := iam_svc.ListAccountAliases(params)
+  //   if err == nil {
+  //     if len(resp.AccountAliases) == 1 {
+  //       fmt.Printf("Account: %s.\n", *resp.AccountAliases[0])
+  //     } else {
+  //       fmt.Printf("Account:\n")
+  //       for i, alias := range resp.AccountAliases {
+  //         fmt.Printf("%d. %s.\n", i+1, *alias)
+  //       }
+  //     }
+  //   } else {
+  //     fmt.Printf("Couldn't get account aliases: %s.\n", err)
+  //   }
+  //   fmt.Printf("Region: %s.\n", *config.Region)
+  // }
 
   // Perhaps use the EC2 DescribeAccountAttributes to get at interesting infromation.
   // List of commands as parsed matched against functions to execute the commands.
