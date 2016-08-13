@@ -187,7 +187,6 @@ func getInstanceId(containerInstances []*ecs.ContainerInstance, containerArn str
 // TASKS
 //
 
-// TODO: Add overides.
 func ListTasksForCluster(clusterName string, ecs_svc *ecs.ECS) ([]*string, error) {
 
   params := &ecs.ListTasksInput{
@@ -248,7 +247,7 @@ func makeCTMapFromDescribeTasksOutput(dto *ecs.DescribeTasksOutput) (ContainerTa
 type ContainerEnvironmentMap map[string]map[string]string
 
 func RunTaskWithEnv(clusterName string, taskDefArn string, envMap ContainerEnvironmentMap, ecsSvc *ecs.ECS) (*ecs.RunTaskOutput, error) {
-  to := envMap.TaskOverride()
+  to := envMap.ToTaskOverride()
   params := &ecs.RunTaskInput{
     TaskDefinition: aws.String(taskDefArn),
     Cluster: aws.String(clusterName),
@@ -260,7 +259,7 @@ func RunTaskWithEnv(clusterName string, taskDefArn string, envMap ContainerEnvir
   return resp, err
 }
 
-func (envMap ContainerEnvironmentMap)TaskOverride() (to ecs.TaskOverride) {
+func (envMap ContainerEnvironmentMap)ToTaskOverride() (to ecs.TaskOverride) {
   containerOverrides := []*ecs.ContainerOverride{}
   for containerName, env := range envMap {
     containerOverrides = append(containerOverrides, envToContainerOverride(containerName, env))
@@ -268,14 +267,6 @@ func (envMap ContainerEnvironmentMap)TaskOverride() (to ecs.TaskOverride) {
   to.ContainerOverrides = containerOverrides
   return to
 }
-
-// func envToTaskOverride(containerName string, env map[string]string) (to *ecs.TaskOverride) {
-//   containerOverride := envToContainerOverride(containerName, env)
-//   to = &ecs.TaskOverride{
-//     ContainerOverrides: []*ecs.ContainerOverride{containerOverride},
-//   }
-//   return to
-// }
 
 func envToContainerOverride(containerName string, env map[string]string) (co *ecs.ContainerOverride) {
   keyValues := envToKeyValues(env)
@@ -288,7 +279,7 @@ func envToContainerOverride(containerName string, env map[string]string) (co *ec
 
 func envToKeyValues(env map[string]string) (keyValues []*ecs.KeyValuePair) {
   for key, value := range env {
-    keyValues = append(keyValues, &ecs.KeyValuePair{Name: &key, Value: &value})
+    keyValues = append(keyValues, &ecs.KeyValuePair{Name: aws.String(key), Value: aws.String(value)})
   }
   return keyValues
 }

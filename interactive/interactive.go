@@ -49,6 +49,7 @@ var (
   interTaskDefinitionArn string
   interStopTask *kingpin.CmdClause
   interTaskArn string
+  taskEnv map[string]string
 
   // Task Defintions
   interTaskDefinition *kingpin.CmdClause
@@ -60,6 +61,9 @@ var (
 )
 
 func init() {
+
+  taskEnv = make(map[string]string)
+
   interApp = kingpin.New("", "Interactive mode.").Terminate(doTerminate)
 
   // state
@@ -98,6 +102,7 @@ func init() {
   interRunTask = interTask.Command("run", "Run a new task.")
   interRunTask.Arg("cluster-name", "short name of the cluster to run the task on.").Required().StringVar(&interClusterName)
   interRunTask.Arg("task-definition", "The definition of the task to run.").Required().StringVar(&interTaskDefinitionArn)
+  interRunTask.Arg("environment", "Key values for the container environment.").StringMapVar(&taskEnv)
   interStopTask = interTask.Command("stop", "Stop a task.")
   interStopTask.Arg("clusnter-name", "short name of the cluster the task is running on.").Required().StringVar(&interClusterName)
   interStopTask.Arg("task-arn", "ARN of the task to stop (from task list)").Required().StringVar(&interTaskArn)
@@ -535,7 +540,23 @@ func doRegisterTaskDefinition(svc *ecs.ECS) (error) {
 }
 
 func doRunTask(svc *ecs.ECS) (error) {
-  runTaskOut, err := awslib.RunTask(interClusterName, interTaskDefinitionArn, svc)
+  containerEnvMap := make(awslib.ContainerEnvironmentMap)
+  if len(taskEnv) > 0 {
+    taskDef, err  := awslib.GetTaskDefinition(interTaskDefinitionArn, svc)
+    if err != nil {
+      return err
+    }
+    containerDefs := taskDef.ContainerDefinitions
+    containerNames := make([]string, len(containerDefs))
+    for _, containerDef := range containerDefs {
+      containerNames = append(containerNames, *containerDef.Name)
+      containerEnvMap[*containerDef.Name] = taskEnv
+    }
+    if len(containerDefs) > 1 {
+      fmt.Printf("There were (%d) containers in this task. Environment setting on a per container basis not currently supported. Environment sent to all containers.")
+    }
+  }
+  runTaskOut, err := awslib.RunTaskWithEnv(interClusterName, interTaskDefinitionArn, containerEnvMap, svc)
   if err == nil {
     printTaskDescription(runTaskOut.Tasks, runTaskOut.Failures)
     if len(runTaskOut.Tasks) > 0 {
@@ -544,6 +565,7 @@ func doRunTask(svc *ecs.ECS) (error) {
         if err == nil {
           fmt.Printf("Task is now running on cluster %s.\n", interClusterName)
           printTaskDescription(taskDescrip.Tasks, taskDescrip.Failures)
+          fmt.Printf("%s.\n", containerEnvironmentsString(&containerEnvMap))
         } else {
           fmt.Printf("Problem waiting for task: %s on cluster %s to start.\n", taskToWaitOn, interClusterName)
           fmt.Printf("Error: %s.\n", err)
@@ -596,6 +618,7 @@ func shortContainerString(container *ecs.Container) (s string) {
   case len(bindings) <= 0:
     s += "\n"
   }
+
   return s
 }
 
@@ -622,7 +645,18 @@ func doStopTask(svc *ecs.ECS) (error) {
   return err
 }
 
-
+func containerEnvironmentsString(cenvs *awslib.ContainerEnvironmentMap) (s string) {
+  if cenvs == nil { return s }
+  for cName, cEnv := range *cenvs {
+    if len(cEnv) > 0 {
+      s += fmt.Sprintf("Container %s environment: ", cName)
+      for key, value := range cEnv {
+        s += fmt.Sprintf(" %s=%s", key, value)
+      }
+    }
+  }
+  return s
+}
 //
 // Interpreter upport functions.
 //
