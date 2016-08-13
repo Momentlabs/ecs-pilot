@@ -311,7 +311,6 @@ func ContainerInstanceDescriptionToString(container *ecs.ContainerInstance, inst
     } else {
       s += fmt.Sprintf("No instance informaiton.")
     }
-
   return s
 }
 
@@ -347,7 +346,12 @@ func EC2InstanceToString(instance ec2.Instance, indent string) (s string) {
   if instance.StateTransitionReason != nil {
     s += fmt.Sprintf("%sState Transition Reason: %s\n", indent, *instance.StateTransitionReason)
   }
-
+  if len(instance.Tags) > 0 {
+    s += fmt.Sprintf("%sTags:\n", indent)
+    for i, tag := range instance.Tags {
+      s += fmt.Sprintf("%s%s%d. \"%s\" = \"%s\"\n", indent, indent, i+1, *tag.Key, *tag.Value)
+    }
+  }
   return s
 }
 
