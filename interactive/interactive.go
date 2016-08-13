@@ -6,6 +6,7 @@ import (
   "strings"
   "fmt"
   "io"
+  "time"
   "github.com/aws/aws-sdk-go/aws"
   "github.com/aws/aws-sdk-go/aws/session"
   "github.com/aws/aws-sdk-go/service/ecs"
@@ -249,10 +250,10 @@ func doDescribeAllContainerInstances(svc *ecs.ECS, ec2_svc *ec2.EC2) (error) {
     } else {
       ec2InstanceMap, err := awslib.DescribeEC2Instances(ciMap, ec2_svc)
       if err != nil {
-        fmt.Printf("%s\n", ContainerInstanceMapToString(ciMap, map[string]*ec2.Instance{}))
+        fmt.Printf("%s", ContainerInstanceMapToString(ciMap, map[string]*ec2.Instance{}))
         return err
       } else {
-        fmt.Printf("%s\n", ContainerInstanceMapToString(ciMap, ec2InstanceMap))
+        fmt.Printf("%s", ContainerInstanceMapToString(ciMap, ec2InstanceMap))
       }
     }
   }
@@ -269,18 +270,17 @@ func ContainerInstanceMapToString(ciMap awslib.ContainerInstanceMap, instances m
     } else {
       iString = "No instance description"
     }
-    fString := ""
+    s += fmt.Sprintf("%s", iString)
     if ci.Failure != nil {
-      fString = fmt.Sprintf("+v", *ci.Failure)
+      s += fmt.Sprintf("\n+v", *ci.Failure)
     }
-    s += fmt.Sprintf("%s\n%s\n", iString, fString) 
   } 
   return s
 }
 
 func ContainerInstanceDescriptionToString(container *ecs.ContainerInstance, instance *ec2.Instance) (string){
   s := ""
-  s += fmt.Sprintf("Container ARN: %s\n", *container.ContainerInstanceArn)
+  s += fmt.Sprintf("Container Instance ARN: %s\n", *container.ContainerInstanceArn)
   s += fmt.Sprintf("EC2-ID: %s\n", *container.Ec2InstanceId)
   s += fmt.Sprintf("Status:  %s\n", *container.Status)
   s += fmt.Sprintf("Running Task Count: %d.\n", *container.RunningTasksCount)
@@ -301,10 +301,10 @@ func ContainerInstanceDescriptionToString(container *ecs.ContainerInstance, inst
     status = "never requested."
   }
   s += fmt.Sprintf("Agent updated status: %s\n", status)
-  s += fmt.Sprintf("There are (%d) attributes.\n", len(container.Attributes))
-  for i, attr := range container.Attributes {
-    s += fmt.Sprintf("\t%d.  %s\n", i+1, attributeString(attr))
-  }
+  // s += fmt.Sprintf("There are (%d) attributes.\n", len(container.Attributes))
+  // for i, attr := range container.Attributes {
+  //   s += fmt.Sprintf("\t%d.  %s\n", i+1, attributeString(attr))
+  // }
   s += fmt.Sprintf("Associated EC2 Instance:\n")
   if instance != nil {
     s += EC2InstanceToString(*instance, "\t")
@@ -315,15 +315,39 @@ func ContainerInstanceDescriptionToString(container *ecs.ContainerInstance, inst
   return s
 }
 
-func EC2InstanceToString(instance ec2.Instance, indent string) (string) {
-  s := ""
+func EC2InstanceToString(instance ec2.Instance, indent string) (s string) {
+  s += fmt.Sprintf("%sLocation: %s\n", indent, *instance.Placement.AvailabilityZone)
   s += fmt.Sprintf("%sPublic IP: %s\n", indent, *instance.PublicIpAddress)
-  s += fmt.Sprintf("%sSecurity Groups: there are (%d) Security Groups for this instance:\n", indent, len(instance.SecurityGroups))
+  s += fmt.Sprintf("%sPublic DNS: %s\n", indent, *instance.PublicDnsName)
+  s += fmt.Sprintf("%sPrivate IP: %s\n", indent, *instance.PrivateIpAddress)
+  s += fmt.Sprintf("%sPrivate DNS: %s\n", indent, *instance.PrivateDnsName)
+  s += fmt.Sprintf("%sInstance Type: %s\n", indent, *instance.InstanceType)
+  s += fmt.Sprintf("%sMonitoring: %s\n", indent, *instance.Monitoring.State)
+  s += fmt.Sprintf("%sArchitecture: %s\n", indent, *instance.Architecture)
+  if instance.InstanceLifecycle != nil {
+    s += fmt.Sprintf("%sLifecyle: %s\n", indent, *instance.InstanceLifecycle)
+  }
+  s += fmt.Sprintf("%sLaunch Time: %s\n", indent, instance.LaunchTime.Local())
+  uptime := time.Since(*instance.LaunchTime)
+  s +=  fmt.Sprintf("%sUptime: %d days, %d hours, %d minutes\n", indent, 
+    int(uptime.Hours())/24, int(uptime.Hours()) % 24, int(uptime.Minutes())%60)
+  s += fmt.Sprintf("%sKey pair name: %s\n", indent, *instance.KeyName)
+  s += fmt.Sprintf("%sSecurity Groups: there are (%d) Security Groups for this instance:\n", 
+    indent, len(instance.SecurityGroups))
   for i, groupid := range instance.SecurityGroups {
     s += fmt.Sprintf("%s%s%d. %s\n", indent, indent, i+1, *groupid.GroupName)
   }
-  s += fmt.Sprintf("%sIMA Instance Profile - arn: %s, id: %s\n", 
-    indent, *instance.IamInstanceProfile.Arn, instance.IamInstanceProfile.Id)
+  s += fmt.Sprintf("%sIMA Instance Profile - arn: %s", indent, *instance.IamInstanceProfile.Arn)
+  s += fmt.Sprintf("%sVPC ID: %s\n", indent, *instance.VpcId)
+  s += fmt.Sprintf("%sSubnetId %s\n", indent, *instance.SubnetId)
+  s += fmt.Sprintf("%sState: %s\n", indent, *instance.State.Name)
+  if instance.StateReason != nil {
+    s += fmt.Sprintf("%sState Transition Code: %s  Reason: %s", indent, *instance.StateReason.Code, *instance.StateReason.Message)
+  }
+  if instance.StateTransitionReason != nil {
+    s += fmt.Sprintf("%sState Transition Reason: %s\n", indent, *instance.StateTransitionReason)
+  }
+
   return s
 }
 
@@ -455,14 +479,12 @@ func doDescribeAllTasks(svc *ecs.ECS) (error) {
   return err
 }
 
-func ContainerTaskMapToString(ctMap awslib.ContainerTaskMap) (string) {
-  count := 1
-  s := ""
+func ContainerTaskMapToString(ctMap awslib.ContainerTaskMap) (s string) {
   for _, ct := range ctMap {
     tString := ""
+    s += "===============================\n"
     if ct.Task != nil {
-      tString = fmt.Sprintf("%d: %s", count, ContainerTaskDescriptionToString(ct.Task))
-      count += 1
+      tString = fmt.Sprintf("%s", ContainerTaskDescriptionToString(ct.Task))
     } else {
       tString = "No task description"
     }
@@ -479,29 +501,28 @@ func ContainerTaskDescriptionToString(task *ecs.Task) (string) {
   s := ""
   s += fmt.Sprintf("Task ARN: %s\n", *task.TaskArn)
   s += fmt.Sprintf("Cluster ARN: %s\n", *task.ClusterArn)
-  s += fmt.Sprintf("Container ARN: %s\n", *task.ContainerInstanceArn)
+  s += fmt.Sprintf("Container Instance ARN: %s\n", *task.ContainerInstanceArn)
 
-  s += fmt.Sprintf("There are (%d) associated containers.\n", len(task.Containers))
-  if len(task.Containers) > 0 {
-    for i, container := range task.Containers {
-      s += fmt.Sprintf("\t%d. Name: %s\n", i+1, *container.Name)
-      s += fmt.Sprintf("\tContainer Arn: %s\n", *container.ContainerArn)
-      s += fmt.Sprintf("\tTask Arn: %s\n", *container.TaskArn)
-      containerReason := "<empty>"
-      if container.Reason != nil {containerReason = *container.Reason}
-      s += fmt.Sprintf("\tReason: %s\n", containerReason)
-      s += fmt.Sprintf("\tLast Status: %s\n", *container.LastStatus)
-      if container.ExitCode != nil {
-        s += fmt.Sprintf("\tExit Code: %d\n", *container.ExitCode)
-      } else {
-        s += fmt.Sprintf("\tExit Code: %s\n", "<empty>")
-        }
-      s += fmt.Sprintf("\tContainer Network Bindings:\n")
-      for j, network := range container.NetworkBindings {
-        s +=  fmt.Sprintf("\t\t%d. IP: %s", j+1, *network.BindIP)
-        s += fmt.Sprintf(" Conatiner Port: %d -> Host Port: %d", *network.ContainerPort, *network.HostPort)
-        s += fmt.Sprintf("  (%s)\n", *network.Protocol)
+  if len(task.Containers) > 1 {
+    s += fmt.Sprintf("There are (%d) associated containers.\n", len(task.Containers))
+  }
+  for _, container := range task.Containers {
+    s += fmt.Sprintf("* Container Name: %s\n", *container.Name)
+    s += fmt.Sprintf("Container Arn: %s\n", *container.ContainerArn)
+    containerReason := "<empty>"
+    if container.Reason != nil {containerReason = *container.Reason}
+    s += fmt.Sprintf("Reason: %s\n", containerReason)
+    s += fmt.Sprintf("Last Status: %s\n", *container.LastStatus)
+    if container.ExitCode != nil {
+      s += fmt.Sprintf("Exit Code: %d\n", *container.ExitCode)
+    } else {
+      s += fmt.Sprintf("Exit Code: %s\n", "<empty>")
       }
+    s += fmt.Sprintf("Container Network Bindings:\n")
+    for j, network := range container.NetworkBindings {
+      s +=  fmt.Sprintf("\t%d. IP: %s", j+1, *network.BindIP)
+      s += fmt.Sprintf(" Conatiner Port: %d -> Host Port: %d", *network.ContainerPort, *network.HostPort)
+      s += fmt.Sprintf("  (%s)\n", *network.Protocol)
     }
   }
 
@@ -556,6 +577,7 @@ func doRunTask(svc *ecs.ECS) (error) {
       fmt.Printf("There were (%d) containers in this task. Environment setting on a per container basis not currently supported. Environment sent to all containers.")
     }
   }
+
   runTaskOut, err := awslib.RunTaskWithEnv(interClusterName, interTaskDefinitionArn, containerEnvMap, svc)
   if err == nil {
     printTaskDescription(runTaskOut.Tasks, runTaskOut.Failures)
