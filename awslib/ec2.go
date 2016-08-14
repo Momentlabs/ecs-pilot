@@ -35,6 +35,35 @@ func DescribeEC2Instances(ciMap ContainerInstanceMap, ec2_svc *ec2.EC2) (map[str
   return instances, err
 }
 
+func GetInstancesForIds(ids []*string, ec2Svc *ec2.EC2) (instances []*ec2.Instance, err error) {
+  instances = make([]*ec2.Instance,0, 1) // we usually only get 1 of these.
+  params := &ec2.DescribeInstancesInput {
+    DryRun: aws.Bool(false),
+    InstanceIds: ids,
+  }
+  resp, err := ec2Svc.DescribeInstances(params)
+  if err == nil {
+    for _, reservation := range resp.Reservations {
+      for _, instance := range reservation.Instances {
+        instances = append(instances, instance)
+      }
+    }
+  }
+  return instances, err
+}
+
+func GetInstanceForId(instanceId string, ec2Svc *ec2.EC2)(inst *ec2.Instance, err error) {
+  instances, err := GetInstancesForIds([]*string{&instanceId}, ec2Svc)
+  if err == nil {
+    for _, inst = range instances {
+      if *inst.InstanceId == instanceId {break}
+    }
+  } else {
+    return nil, fmt.Errorf("GetInstancesForId - couldn't get instances: Error: %s", err)
+  }
+  return inst, err
+}
+
 // func GetSecurityGrouoDescriptions(groupNames []*string, config *aws.Config ) ([]*ec2.SecurityGroup, error) {
 //   ec2_svc := ec2.New(session.New(config))
 //   params := &ec2.DescribeSecurityGroupsInput{
@@ -232,6 +261,27 @@ func OnInstanceRunning(reservation *ec2.Reservation, ec2_svc *ec2.EC2, do func(e
       },
     }
     err := ec2_svc.WaitUntilInstanceRunning(params)
+    do(err)
+  }()
+}
+
+func OnInstanceOk(reservation *ec2.Reservation, ec2_svc *ec2.EC2, do func(error)) {
+  iIds := make([]*string, len(reservation.Instances))
+  for _, inst := range reservation.Instances {
+    iIds = append(iIds, inst.InstanceId)
+  }
+  go func() {
+    params := &ec2.DescribeInstanceStatusInput{
+      DryRun: aws.Bool(false),
+      InstanceIds: iIds,
+      // Filters: []*ec2.Filter{ 
+      //   { 
+      //     Name: aws.String("reservation-id"),
+      //     Values: []*string{reservation.ReservationId,},
+      //   },
+      // },
+    }
+    err := ec2_svc.WaitUntilInstanceStatusOk(params)
     do(err)
   }()
 }

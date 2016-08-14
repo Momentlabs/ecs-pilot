@@ -22,7 +22,7 @@ var (
   interExit *kingpin.CmdClause
   interQuit *kingpin.CmdClause
   interVerbose *kingpin.CmdClause
-  iVerbose bool
+  verbose bool
   interTestString []string
 
   // Clusters
@@ -389,7 +389,7 @@ func attributeString(attr *ecs.Attribute) (string) {
 }
 
 func doCreateContainerInstance(svc *ecs.ECS, ec2Svc *ec2.EC2) (error) {
-  thisClusterName := interClusterName // TODO: This is not the right solution. Need to create a new string and copy.
+  thisClusterName := interClusterName // TODO: Check if this is a copying the string over for the OnWait routines below.
   nameTag := fmt.Sprintf("%s - ecs instance", interClusterName)
   tags := []*ec2.Tag{
     {
@@ -401,42 +401,121 @@ func doCreateContainerInstance(svc *ecs.ECS, ec2Svc *ec2.EC2) (error) {
   if err != nil {
     return err
   }
-  fmt.Printf("Launced Instance:\n%+v\n", resp)
-  awslib.OnInstanceRunning(resp, ec2Svc, func(err error) {
+
+  if len(resp.Instances) == 1 {
+    inst := resp.Instances[0]
+    fmt.Printf("On cluster %s launched instance: ", thisClusterName)
+    if verbose {
+      fmt.Printf("%#v\n", inst)
+    } else {
+      fmt.Printf("%s\n", shortInstanceString(inst))
+    }
+  } else {
+    fmt.Printf("Launched (%d) EC2Instances:\n", len(resp.Instances))
+    if verbose {
+      fmt.Printf("%#v\n",resp) 
+    } else {
+      for i, inst := range resp.Instances {
+        fmt.Printf("\t%d.%s\n", i+1, shortInstanceString(inst))
+      }
+    }
+  }
+
+  // This is for the onwait call back.
+  iIds := make([]*string, 0)
+  for _, inst := range resp.Instances {
+    iIds = append(iIds, inst.InstanceId)
+  }
+  startTime := time.Now()
+  awslib.OnInstanceRunning(resp, ec2Svc, func(err error) { 
     if err == nil {
-      fmt.Printf("Started (%d) Instances on cluster %s:\n", len(resp.Instances), thisClusterName)
-      for i, instance := range resp.Instances {
-        fmt.Printf("\t%d. %s.\n", i+1, *instance.InstanceId)
+      instances, err := awslib.GetInstancesForIds(iIds, ec2Svc)
+      if err == nil {
+        if len(instances) == 1 {
+          fmt.Printf("\nEC2 Instance running (%s): %s\n", time.Since(startTime), shortInstanceString(instances[0]))
+        } else {
+          fmt.Printf("\nThere are (%d) EC2 Instances running. (%s)\n", len(instances), time.Since(startTime))
+          for i, inst := range instances {
+            fmt.Printf("\t%d. %s\n", i+1, shortInstanceString(inst))
+          }
+        }
+      } else {
+        fmt.Printf("\nError when trying to get Instance Descriptions: %s\n", err)
+        fmt.Printf("But (%d) instances should be running for cluster %s - (will notify on Status OK):\n", len(iIds), thisClusterName)
+        for i, instId := range iIds {
+          fmt.Printf("\t%d. %s\n", i+1, instId)
+        }
       }
     } else {
-      fmt.Printf("Error on waiting for instance to start running.\n")
+      fmt.Printf("\nError on waiting for instance to start running.\n")
       fmt.Printf("error: %s.\n", err)
     } 
   })
 
+  // TODO: For now we'll just look for 1 instnace. This is the use case here anyway.
+  // Maybe launch this from within the OnInstanceRunning callback?
+  if iIds[0] != nil {
+    waitForId := *iIds[0]
+    fmt.Printf("Will notify when ContainerInstance for EC2 Instance %s is Active.\n", waitForId)
+    awslib.OnContainerInstanceActive(thisClusterName, waitForId, svc, func(cis *ecs.ContainerInstance, err error) {
+      if err == nil {
+        inst, err := awslib.GetInstanceForId(waitForId, ec2Svc)
+        if err == nil {
+          fmt.Printf("On cluster %s ContainerInstance %s is now active (%s)\n", thisClusterName, *cis.ContainerInstanceArn, time.Since(startTime))
+          fmt.Printf("EC2Instance: %s\n", shortInstanceString(inst))
+        } else {
+          fmt.Printf("Error getting instance details: %s\n", err)
+          fmt.Printf("On cluster %s ContainerInstance %s on EC2 instance %s is now active (%s)\n", thisClusterName, *cis.ContainerInstanceArn, waitForId, time.Since(startTime))
+        }
+      } else {
+        fmt.Printf("Failed on waiting for instance active.\n")
+      }
+    })
+  } 
+
+  // Don't think we need this anymore.
+  // awslib.OnInstanceOk(resp, ec2Svc, func(err error) {
+  //   if err == nil {
+  //     fmt.Printf("Instance Status OK on cluster %s:\n", thisClusterName)
+  //     for i, instance := range resp.Instances {
+  //       fmt.Printf("\t%d. %s\n", i+1, *instance.InstanceId)
+  //     } 
+  //   } else {
+  //     fmt.Errorf("Failed on waiting for instance to get to OK status - %s", err)
+  //   }
+  // })
+
   return nil
 }
 
+func shortInstanceString(inst *ec2.Instance) (s string) {
+  if inst != nil {
+    s += fmt.Sprintf("%s %s in %s", *inst.InstanceId, *inst.InstanceType, *inst.Placement.AvailabilityZone)
+    if inst.PublicIpAddress != nil {
+      s += fmt.Sprintf(" - %s", *inst.PublicIpAddress)
+    }
+    } else {
+      s += "<nil>"
+    }
+  return s
+}
 
 func doTerminateContainerInstance(svc *ecs.ECS, ec2Svc *ec2.EC2) (error) {
   resp, err := awslib.TerminateContainerInstance(interClusterName, interContainerArn, svc, ec2Svc)
   if err != nil {
     return err
   }
-
-  fmt.Printf("Terminated container instance %s.\n", interContainerArn)
-  fmt.Printf("%+v\n", resp)
-
-  if len(resp.TerminatingInstances) > 1 {
+  termInstances := resp.TerminatingInstances
+  if len(termInstances) > 1 {
     fmt.Printf("Got (%d) instances terminating, expecting only 1.", len(resp.TerminatingInstances))
   }
-  fmt.Printf("Terminating EC2 Instances:\n")
-  for i, iStateChange := range resp.TerminatingInstances {
-    fmt.Printf("%d. %s, ", i+1, *iStateChange.InstanceId)
+  fmt.Printf("Terminated container instance \n\t%s\n", interContainerArn)
+  fmt.Printf("Terminating (%d) EC2 Instances:\n", len(termInstances))
+  for i, ti := range termInstances {
+    fmt.Printf("%d. %s going from %s (%d) => %s (%d)\n", i+1, *ti.InstanceId, *ti.PreviousState.Name, *ti.PreviousState.Code, *ti.CurrentState.Name, *ti.CurrentState.Code)
   }
-  fmt.Printf(".\n")
-  instanceToWatch := resp.TerminatingInstances[0].InstanceId
 
+  instanceToWatch := resp.TerminatingInstances[0].InstanceId
   awslib.OnInstanceTerminated(instanceToWatch, ec2Svc, func(err error) {
     if err == nil {
       fmt.Printf("EC2 Instance Termianted: %s.\n", *instanceToWatch)
@@ -693,8 +772,8 @@ func doTest() (error) {
 }
 
 func toggleVerbose() bool {
-  iVerbose = !iVerbose
-  return iVerbose
+  verbose = !verbose
+  return verbose
 }
 
 func doVerbose() (error) {

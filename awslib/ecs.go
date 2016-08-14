@@ -3,6 +3,7 @@ package awslib
 import (
   "fmt"
   "errors"
+  "time"
   "github.com/aws/aws-sdk-go/aws"
   "github.com/aws/aws-sdk-go/service/ecs"
   "github.com/aws/aws-sdk-go/service/ec2"
@@ -88,8 +89,11 @@ type ContainerInstance struct {
   Instance  *ecs.ContainerInstance
   Failure *ecs.Failure
 }
+
+// Keyed on ConatinerInstanceArn or Ec2InstanceId
 type ContainerInstanceMap map[string]*ContainerInstance
 
+// Retruns CI's keyed on ContainerInstanceArn
 func GetAllContainerInstanceDescriptions(clusterName string, svc *ecs.ECS) (ContainerInstanceMap, error) {
 
   instanceArns, err := GetContainerInstances(clusterName, svc)
@@ -117,6 +121,7 @@ func GetContainerInstanceDescription(clusterName string, containerArn string, ec
   return makeCIMapFromDescribeContainerInstancesOutput(resp), err
 }
 
+//Returns a map keyed on ContainerInstanceArns
 func makeCIMapFromDescribeContainerInstancesOutput(dcio *ecs.DescribeContainerInstancesOutput) (ContainerInstanceMap) {
 
   ciMap := make(ContainerInstanceMap)
@@ -150,6 +155,15 @@ func (ciMap ContainerInstanceMap) GetEc2InstanceIds() ([]*string) {
   return ids
 }
 
+// Returns a map keyed on EC2InstanceIds (note: thre will be no failures.)
+func (ciMap ContainerInstanceMap) GetEc2InstanceMap() (ContainerInstanceMap) {
+  ec2Map := make(ContainerInstanceMap)
+  for _, ci := range ciMap {
+    if ci.Instance != nil {ec2Map[*ci.Instance.Ec2InstanceId] = ci}
+  }
+  return ec2Map
+}
+
 func TerminateContainerInstance(clusterName string, containerArn string, ecs_svc *ecs.ECS, ec2Svc *ec2.EC2) (resp *ec2.TerminateInstancesOutput, err error) {
 
   // Need to get the container instance description in order to get the ec2-instanceID.
@@ -181,6 +195,32 @@ func getInstanceId(containerInstances []*ecs.ContainerInstance, containerArn str
     }
   }
   return instanceId
+}
+
+func WaitUntilContainerInstanceActive(clusterName string, ec2InstanceId string, ecsSvc *ecs.ECS) (*ecs.ContainerInstance, error) {
+
+  for {
+    resp, err := GetAllContainerInstanceDescriptions(clusterName, ecsSvc)
+    if err != nil {
+      return nil, fmt.Errorf("WaitUntilContainerInstanceActive: failed to get instance desecription on %s with %s : %s", clusterName, ec2InstanceId, err)
+    }
+
+    ec2iMap := resp.GetEc2InstanceMap()
+    if inst := ec2iMap[ec2InstanceId]; inst != nil {
+      if inst.Instance.Status == nil {continue}
+      if *inst.Instance.Status == "ACTIVE" { return inst.Instance, nil }
+    }
+    time.Sleep(2 * time.Second)
+  }
+
+  // We should never get here.
+}
+
+func OnContainerInstanceActive(clusterName string, ec2InstanceId string, ecsSvc *ecs.ECS, do func(*ecs.ContainerInstance, error)) {
+  go func() {
+    ci, err := WaitUntilContainerInstanceActive(clusterName, ec2InstanceId, ecsSvc)
+    do(ci, err)
+  }()
 }
 
 //
