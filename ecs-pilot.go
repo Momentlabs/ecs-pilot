@@ -132,7 +132,7 @@ func doListCluster(svc *ecs.ECS) {
   if err == nil {
     fmt.Println("Clusters")
     for i, cluster := range clusters {
-      fmt.Printf("%d: %s\n", i+1, *cluster.Arn)
+      fmt.Printf("%d: %s\n", i+1, *cluster)
     }
   } else {
     log.Errorf("Can't get clusters: %s\n", err)

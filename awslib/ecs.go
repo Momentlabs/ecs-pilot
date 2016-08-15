@@ -10,10 +10,6 @@ import (
   "github.com/spf13/viper"
 )
 
-type Cluster struct {
-  Arn *string
-}
-
 
 //
 // CLUSTERS
@@ -43,20 +39,14 @@ func DeleteCluster(clusterName string, svc *ecs.ECS) (*ecs.Cluster, error) {
   return cluster, err
 }
 
-func GetClusters(svc *ecs.ECS) ([]Cluster, error) {
+func GetClusters(svc *ecs.ECS) ([]*string, error) {
 
   params := &ecs.ListClustersInput {
     MaxResults: aws.Int64(100),
   } // TODO: this only will get the first 100 ....
   output, err := svc.ListClusters(params)
-  if err != nil{ return []Cluster{}, err }
-
-  clusters := make([]Cluster, len(output.ClusterArns))
-  for i, arn := range output.ClusterArns {
-    clusters[i] = Cluster{Arn: arn}
-  }
-
-  return clusters, nil
+  clusters := output.ClusterArns
+  return clusters, err
 }
 
 func DescribeCluster(clusterName string, svc *ecs.ECS) ([]*ecs.Cluster, error) {
@@ -66,6 +56,19 @@ func DescribeCluster(clusterName string, svc *ecs.ECS) ([]*ecs.Cluster, error) {
   }
 
   resp, err := svc.DescribeClusters(params)
+  return resp.Clusters, err
+}
+
+func GetAllClusterDescriptions(ecsSvc *ecs.ECS) ([]*ecs.Cluster, error) {
+
+  clusterArns, err := GetClusters(ecsSvc)
+  if err != nil {return make([]*ecs.Cluster, 0), err}
+
+  params := &ecs.DescribeClustersInput {
+    Clusters: clusterArns,
+  }
+  
+  resp, err := ecsSvc.DescribeClusters(params)
   return resp.Clusters, err
 }
 

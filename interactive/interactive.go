@@ -139,8 +139,8 @@ func doICommand(line string, ecsSvc *ecs.ECS, ec2Svc *ec2.EC2, awsConfig *aws.Co
   } else {
       switch command {
       case interVerbose.FullCommand(): err = doVerbose()
-      case interExit.FullCommand(): err = doQuit()
-      case interQuit.FullCommand(): err = doQuit()
+      case interExit.FullCommand(): err = doQuit(ecsSvc)
+      case interQuit.FullCommand(): err = doQuit(ecsSvc)
       case createCluster.FullCommand(): err = doCreateCluster(ecsSvc)
       case deleteCluster.FullCommand(): err = doDeleteCluster(ecsSvc)
       case interListClusters.FullCommand(): err = doListClusters(ecsSvc)
@@ -188,7 +188,7 @@ func doListClusters(svc *ecs.ECS) (error) {
 
   fmt.Printf("There are %d clusters\n", len(clusters))
   for i, cluster := range clusters {
-    fmt.Printf("%d: %s\n", i+1, *cluster.Arn)
+    fmt.Printf("%d: %s\n", i+1, *cluster)
   }
   return nil
 }
@@ -787,7 +787,17 @@ func doVerbose() (error) {
   return nil
 }
 
-func doQuit() (error) {
+func doQuit(ecsSvc *ecs.ECS) (error) {
+  clusters, err := awslib.GetAllClusterDescriptions(ecsSvc)
+  if err != nil {
+    fmt.Printf("doQuit: Error getting cluster data: %s\n", err)
+  } else {
+    for i, cluster := range clusters {
+      if *cluster.RegisteredContainerInstancesCount >= 0 {
+        fmt.Printf("%d. ECS Cluster %s\n", i+1, clusterShortString(cluster))
+      } 
+    }
+  }
   return io.EOF
 }
 
@@ -812,6 +822,12 @@ func promptLoop(prompt string, process func(string) (error)) (err error) {
     }
   }
   return nil
+}
+
+func clusterShortString(c *ecs.Cluster) (s string) {
+  s += fmt.Sprintf("%s has %d instances with %d running and %d pending tasks.", *c.ClusterName, 
+    *c.RegisteredContainerInstancesCount, *c.RunningTasksCount, *c.PendingTasksCount)
+  return s
 }
 
 // This gets called from the main program, presumably from the 'interactive' command on main's command line.
