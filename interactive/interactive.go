@@ -461,14 +461,14 @@ func doCreateContainerInstance(svc *ecs.ECS, ec2Svc *ec2.EC2) (error) {
       if err == nil {
         inst, err := awslib.GetInstanceForId(waitForId, ec2Svc)
         if err == nil {
-          fmt.Printf("ACTIVE: on cluster %s (%s)\n\tContainerInstance %s\n", thisClusterName, time.Since(startTime), *cis.ContainerInstanceArn)
-          fmt.Printf("EC2Instance: %s\n", shortInstanceString(inst))
+          fmt.Printf("\nACTIVE: on cluster %s (%s)\n\tContainerInstance %s\n", thisClusterName, time.Since(startTime), *cis.ContainerInstanceArn)
+          fmt.Printf("\nEC2Instance: %s\n", shortInstanceString(inst))
         } else {
-          fmt.Printf("Error getting instance details: %s\n", err)
-          fmt.Printf("On cluster %s ContainerInstance %s on EC2 instance %s is now active (%s)\n", thisClusterName, *cis.ContainerInstanceArn, waitForId, time.Since(startTime))
+          fmt.Printf("\nError getting instance details: %s\n", err)
+          fmt.Printf("\nOn cluster %s ContainerInstance %s on EC2 instance %s is now active (%s)\n", thisClusterName, *cis.ContainerInstanceArn, waitForId, time.Since(startTime))
         }
       } else {
-        fmt.Printf("Failed on waiting for instance active.\n")
+        fmt.Printf("\nFailed on waiting for instance active.\n")
       }
     })
   } 
