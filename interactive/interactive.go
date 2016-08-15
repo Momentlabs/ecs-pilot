@@ -434,7 +434,7 @@ func doCreateContainerInstance(svc *ecs.ECS, ec2Svc *ec2.EC2) (error) {
         if len(instances) == 1 {
           fmt.Printf("\nEC2 Instance running (%s): %s\n", time.Since(startTime), shortInstanceString(instances[0]))
         } else {
-          fmt.Printf("\nThere are (%d) EC2 Instances running. (%s)\n", len(instances), time.Since(startTime))
+          fmt.Printf("\nThere are%d) EC2 Instances running. (%s)\n", len(instances), time.Since(startTime))
           for i, inst := range instances {
             fmt.Printf("\t%d. %s\n", i+1, shortInstanceString(inst))
           }
@@ -461,7 +461,7 @@ func doCreateContainerInstance(svc *ecs.ECS, ec2Svc *ec2.EC2) (error) {
       if err == nil {
         inst, err := awslib.GetInstanceForId(waitForId, ec2Svc)
         if err == nil {
-          fmt.Printf("On cluster %s ContainerInstance %s is now active (%s)\n", thisClusterName, *cis.ContainerInstanceArn, time.Since(startTime))
+          fmt.Printf("ACTIVE: on cluster %s (%s)\n\tContainerInstance %s\n", thisClusterName, time.Since(startTime), *cis.ContainerInstanceArn)
           fmt.Printf("EC2Instance: %s\n", shortInstanceString(inst))
         } else {
           fmt.Printf("Error getting instance details: %s\n", err)
@@ -738,7 +738,7 @@ func doStopTask(svc *ecs.ECS) (error) {
   if err == nil {
     fmt.Println("This task is scheduled to stop.")
     fmt.Printf("%s\n", ContainerTaskDescriptionToString(resp.Task))
-    awslib.OnTaskStopped(interClusterName, interTaskArn, svc, func(err error){
+    awslib.OnTaskStopped(interClusterName, interTaskArn, svc, func(dto *ecs.DescribeTasksOutput, err error){
       if err == nil {
         fmt.Printf("Task: %s on cluster %s is now stopped.\n", interTaskArn, interClusterName)
       } else {

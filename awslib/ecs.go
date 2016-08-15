@@ -227,6 +227,47 @@ func OnContainerInstanceActive(clusterName string, ec2InstanceId string, ecsSvc 
 // TASKS
 //
 
+
+type DeepTask struct {
+  Task *ecs.Task
+  Failure *ecs.Failure
+  CInstance *ecs.ContainerInstance
+  CIFailure *ecs.Failure
+  EC2Instance *ec2.Instance
+}
+
+// [TaskArn]DeepTask
+type DeepTaskMap map[string]*DeepTask
+
+func GetDeepTasks(clusterName string, ecsSvc *ecs.ECS, ec2Svc *ec2.EC2) (dtm DeepTaskMap, err error) {
+  dtm = make(DeepTaskMap)
+  ctMap, err := GetAllTaskDescriptions(clusterName, ecsSvc)
+  if err != nil {return dtm, fmt.Errorf("GetDeepTasks: No tasks for cluster \"%s\": %s", clusterName, err)}
+
+  ciMap, err := GetAllContainerInstanceDescriptions(clusterName, ecsSvc)
+  if err != nil {return dtm, fmt.Errorf("GetDeepTasks: No ConatinerInstances for cluster \"%s\": %s", clusterName, err)}
+
+  ec2Map, err := DescribeEC2Instances(ciMap, ec2Svc)
+  if err != nil {return dtm, fmt.Errorf("GetDeepTasks: No EC2 instences for cluster \"%s\": %s", clusterName, err)}
+
+  for taskArn, ct := range ctMap {
+    dt := new(DeepTask)
+    dt.Task = ct.Task
+    dt.Failure = ct.Failure
+    if ct.Task != nil {
+      task := ct.Task
+      dt.CInstance = ciMap[*task.ContainerInstanceArn].Instance
+      dt.CIFailure = ciMap[*task.ContainerInstanceArn].Failure
+      if dt.CInstance != nil {
+        dt.EC2Instance = ec2Map[*dt.CInstance.Ec2InstanceId]
+      }
+    }
+    dtm[taskArn] = dt
+  }
+  return dtm, err
+}
+
+
 func ListTasksForCluster(clusterName string, ecs_svc *ecs.ECS) ([]*string, error) {
 
   params := &ecs.ListTasksInput{
@@ -242,6 +283,7 @@ type ContainerTask struct {
   Failure *ecs.Failure
 }
 type ContainerTaskMap map[string]*ContainerTask
+
 
 func GetAllTaskDescriptions(clusterName string, ecs_svc *ecs.ECS) (ContainerTaskMap, error) {
  
@@ -260,6 +302,15 @@ func GetAllTaskDescriptions(clusterName string, ecs_svc *ecs.ECS) (ContainerTask
 
   resp, err := ecs_svc.DescribeTasks(params)
   return makeCTMapFromDescribeTasksOutput(resp), err
+}
+
+func GetTaskDescription(clusterName string, taskArn string, ecsSvc *ecs.ECS) (*ecs.DescribeTasksOutput, error) {
+  params := &ecs.DescribeTasksInput {
+    Cluster: aws.String(clusterName),
+    Tasks: []*string{aws.String(taskArn)},
+  }
+  resp, err := ecsSvc.DescribeTasks(params)
+  return resp, err
 }
 
 func makeCTMapFromDescribeTasksOutput(dto *ecs.DescribeTasksOutput) (ContainerTaskMap) {
@@ -295,6 +346,7 @@ func RunTaskWithEnv(clusterName string, taskDefArn string, envMap ContainerEnvir
     Overrides: &to,
   }
   resp, err := ecsSvc.RunTask(params)
+  if err != nil {err = fmt.Errorf("RunTaskWithEnv %s %s:  %s", clusterName, taskDefArn, err)}
 
   return resp, err
 }
@@ -354,14 +406,18 @@ func StopTask(clusterName string, taskArn string, ecs_svc *ecs.ECS) (*ecs.StopTa
   return resp, err
 }
 
-func OnTaskStopped(clusterName, taskArn string, ecs_svc *ecs.ECS, do func(error)) {
+func OnTaskStopped(clusterName, taskArn string, ecsSvc *ecs.ECS, do func(dto *ecs.DescribeTasksOutput, err error)) {
   go func() {
-    params := &ecs.DescribeTasksInput{
+    waitParams := &ecs.DescribeTasksInput{
       Cluster: aws.String(clusterName),
       Tasks: []*string{aws.String(taskArn)},
     }
-    err := ecs_svc.WaitUntilTasksStopped(params)
-    do(err)
+    err := ecsSvc.WaitUntilTasksStopped(waitParams)
+    var dto *ecs.DescribeTasksOutput
+    if err == nil {
+      dto, err = GetTaskDescription(clusterName, taskArn, ecsSvc)
+    }
+    do(dto, err)
   }()
 }
 
