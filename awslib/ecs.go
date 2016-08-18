@@ -392,9 +392,9 @@ func OnTaskRunning(clusterName, taskDefArn string, ecsSvc *ecs.ECS, do func(*ecs
         Tasks: []*string{aws.String(taskDefArn)},
       }
       err := ecsSvc.WaitUntilTasksRunning(task_params)
-      var td  *ecs.DescribeTasksOutput
-      if err == nil {
-        td, err = ecsSvc.DescribeTasks(task_params)
+      td, newErr := ecsSvc.DescribeTasks(task_params)
+      if (newErr != nil ) {
+        fmt.Printf("OnTaskRunning: tried to get taskdescription but couldn't: %s\n", newErr)
       }
       do(td, err)
     }()
