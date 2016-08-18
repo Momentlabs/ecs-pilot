@@ -180,15 +180,17 @@ func doDeleteCluster(svc *ecs.ECS) (error) {
   return err
 }
 
-func doListClusters(svc *ecs.ECS) (error) {
-  clusters,  err := awslib.GetClusters(svc)
+func doListClusters(ecsSvc *ecs.ECS) (error) {
+  clusters,  err := awslib.GetAllClusterDescriptions(ecsSvc)
   if err != nil {
     return err
   }
 
   fmt.Printf("There are %d clusters\n", len(clusters))
   for i, cluster := range clusters {
-    fmt.Printf("%d: %s\n", i+1, *cluster)
+    fmt.Printf("%d. %s\n", i+1, clusterShortString(cluster))
+    fmt.Printf("   %s\n", *cluster.ClusterArn)
+
   }
   return nil
 }
@@ -318,6 +320,7 @@ func EC2InstanceToString(instance ec2.Instance, indent string) (s string) {
   s += fmt.Sprintf("%sLocation: %s\n", indent, *instance.Placement.AvailabilityZone)
   s += fmt.Sprintf("%sPublic IP: %s\n", indent, *instance.PublicIpAddress)
   s += fmt.Sprintf("%sPublic DNS: %s\n", indent, *instance.PublicDnsName)
+  s += fmt.Sprintf("%sKey Name: %s\n,", indent, *instance.KeyName)
   s += fmt.Sprintf("%sPrivate IP: %s\n", indent, *instance.PrivateIpAddress)
   s += fmt.Sprintf("%sPrivate DNS: %s\n", indent, *instance.PrivateDnsName)
   s += fmt.Sprintf("%sInstance Type: %s\n", indent, *instance.InstanceType)
@@ -668,12 +671,38 @@ func doRunTask(svc *ecs.ECS) (error) {
       taskToWaitOn := *runTaskOut.Tasks[0].TaskArn
       awslib.OnTaskRunning(interClusterName, taskToWaitOn, svc, func(taskDescrip *ecs.DescribeTasksOutput, err error) {
         if err == nil {
-          fmt.Printf("Task is now running on cluster %s.\n", interClusterName)
+          fmt.Printf("\nTask is now running on cluster %s\n", interClusterName)
           printTaskDescription(taskDescrip.Tasks, taskDescrip.Failures)
           fmt.Printf("%s.\n", containerEnvironmentsString(&containerEnvMap))
         } else {
-          fmt.Printf("Problem waiting for task: %s on cluster %s to start.\n", taskToWaitOn, interClusterName)
+          fmt.Printf("\nProblem waiting for task: %s on cluster %s to start.\n", taskToWaitOn, interClusterName)
           fmt.Printf("Error: %s.\n", err)
+
+          if taskDescrip != nil {
+            tasks := taskDescrip.Tasks
+            failures := taskDescrip.Failures
+            if len(tasks) == 1 {
+              task := tasks[0]
+              fmt.Printf("Task is: %s", *task.LastStatus)
+                if task.StoppedReason != nil {
+                  fmt.Printf(" beacuse: %s\n", *task.StoppedReason)
+                  } else {
+                    fmt.Printf("\n")
+                  }
+               if len(task.Containers) == 1 {
+                container := task.Containers[0]
+                fmt.Printf("Conatiner \"%s\" is %s because: %s.", *container.Name, *container.LastStatus, *container.Reason)
+               }
+            } else {
+              fmt.Printf("Expected 1, but there were (%d) tasks.\n", len(tasks))
+              for i, task := range tasks {
+                fmt.Printf("%d, Task: %ss\n%v", i+1, task.TaskArn, task)
+              }
+            }
+            for _, failure := range failures {
+              fmt.Printf("Failure: %#v", failure)
+            }
+          }
         }
       })
     }
@@ -684,16 +713,16 @@ func doRunTask(svc *ecs.ECS) (error) {
 func printTaskDescription(tasks []*ecs.Task, failures []*ecs.Failure) {
   fmt.Printf("There are (%d) failures.\n", len(failures))
   for i, failure := range failures {
-    fmt.Printf("%d: %s.\n", i+1, failure)
+    fmt.Printf("%d: %s\n", i+1, failure)
   }
   fmt.Printf("There are (%d) tasks.\n", len(tasks))
   for i, task := range tasks {
-    fmt.Printf("%d: %s.\n", i+1, shortTaskString(task))
+    fmt.Printf("%d: %s\n", i+1, shortTaskString(task))
   }
 }
 
 func shortTaskString(task *ecs.Task) (s string) {
-  s += fmt.Sprintf("%s - %s.\n", *task.TaskArn, *task.LastStatus)
+  s += fmt.Sprintf("%s - %s\n", *task.TaskArn, *task.LastStatus)
   containers := task.Containers
   switch {
   case len(containers) == 1:
@@ -710,7 +739,7 @@ func shortTaskString(task *ecs.Task) (s string) {
 }
 
 func shortContainerString(container *ecs.Container) (s string) {
-  s += fmt.Sprintf("%s - %s.", *container.Name, *container.LastStatus)
+  s += fmt.Sprintf("%s - %s", *container.Name, *container.LastStatus)
   bindings := container.NetworkBindings
   switch {
   case len(bindings) == 1:
@@ -740,10 +769,10 @@ func doStopTask(svc *ecs.ECS) (error) {
     fmt.Printf("%s\n", ContainerTaskDescriptionToString(resp.Task))
     awslib.OnTaskStopped(interClusterName, interTaskArn, svc, func(dto *ecs.DescribeTasksOutput, err error){
       if err == nil {
-        fmt.Printf("Task: %s on cluster %s is now stopped.\n", interTaskArn, interClusterName)
+        fmt.Printf("\nTask: %s on cluster %s is now stopped.\n", interTaskArn, interClusterName)
       } else {
-        fmt.Printf("There was a problem waiting for task %s on cluster %s to stop.\n", interTaskArn, interClusterName)
-        fmt.Printf("Error: %s.\n", err)
+        fmt.Printf("\nThere was a problem waiting for task %s on cluster %s to stop.\n", interTaskArn, interClusterName)
+        fmt.Printf("\nError: %s.\n", err)
       }
     })
   }
