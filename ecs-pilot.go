@@ -22,14 +22,25 @@ import (
   "gopkg.in/alecthomas/kingpin.v2"
 )
 
-var (
+type Version struct {
+  Major int 
+  Minor int
+  Name string
+  Status string
+  Hash string
+}
+
+var(
+  version = Version{ Major: 0, Minor: 1, Name: "Launch", Status: "development", }
   app                               *kingpin.Application
   log = logging.MustGetLogger("ecs-pilot")
   verbose                           bool
+  printVersion                      bool
   region                            string
 
   // Prompt for Commands
   interactiveCmd *kingpin.CmdClause
+  versionCmd *kingpin.CmdClause
 
   // List clusters
   cluster *kingpin.CmdClause
@@ -45,11 +56,12 @@ var (
 )
 
 func init() {
+
   app = kingpin.New("ecs-pilot", "A tool to manage AWS ECS.")
   app.Flag("verbose", "Describe what is happening, as it happens.").Short('v').BoolVar(&verbose)
-
   app.Flag("region", "Manage continers in this AWS region.").Default("us-east-1").StringVar(&region)
 
+  versionCmd = app.Command("version","Print the version number and exit.")
   interactiveCmd = app.Command("interactive", "Prompt for commands.")
 
   cluster = app.Command("cluster", "Operate on clusters.")
@@ -85,6 +97,7 @@ func main() {
   // Perhaps use the EC2 DescribeAccountAttributes to get at interesting infromation.
   // List of commands as parsed matched against functions to execute the commands.
   commandMap := map[string]func(*ecs.ECS) {
+    versionCmd.FullCommand(): doPrintVersion,
     listClusters.FullCommand(): doListCluster,
     listTaskDefinitions.FullCommand(): doListTaskDefinitions,
     describeTaskDefinition.FullCommand(): doDescribeTaskDefinition,
@@ -100,6 +113,10 @@ func main() {
   } else {
     commandMap[command](ecs_svc)
   }
+}
+
+func doPrintVersion(svc *ecs.ECS) {
+  fmt.Printf("Version: %d.%d %s <%s>\n", version.Major, version.Minor, version.Name, version.Status)
 }
 
 func doListCluster(svc *ecs.ECS) {
