@@ -1,25 +1,25 @@
 package main
 
 import (
+  "bytes"
+  "encoding/json"
   "fmt"
-  "github.com/aws/aws-sdk-go/aws"
-  "github.com/aws/aws-sdk-go/aws/defaults"
-  "github.com/aws/aws-sdk-go/aws/session"
-  "github.com/aws/aws-sdk-go/service/ecs"
-  // "github.com/aws/aws-sdk-go/service/iam"
-  // "github.com/aws/aws-sdk-go/aws/awsutil"
-  // "github.com/bobappleyard/readline"
-  "gopkg.in/alecthomas/kingpin.v2"
-  "github.com/op/go-logging"
   // "io"
   "os"
-  "bytes"
-  "ecs-pilot/interactive"
-  "ecs-pilot/awslib"
-  "encoding/json"
   // "path/filepath"
   // "strings"
   // "time"
+  "ecs-pilot/interactive"
+  "ecs-pilot/awslib"
+  "github.com/aws/aws-sdk-go/aws"
+  // "github.com/aws/aws-sdk-go/aws/credentials"
+  // "github.com/aws/aws-sdk-go/aws/defaults"
+  "github.com/aws/aws-sdk-go/aws/session"
+  // "github.com/aws/aws-sdk-go/aws/awsutil"
+  "github.com/aws/aws-sdk-go/service/ecs"
+  // "github.com/aws/aws-sdk-go/service/iam"
+  "github.com/op/go-logging"
+  "gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
@@ -75,37 +75,12 @@ func main() {
     logging.SetLevel(logging.DEBUG,"")
   }
 
-  // The AWS library doesn't read configuariton information
-  // out of .aws/config, just the credentials from .aws/credentials.
-  config := defaults.Get().Config
-
-  log.Debugf("Default region: \"%s\"\n", *config.Region)
-  if *config.Region == "" {
-    config.Region = aws.String(region)
+  awsConfig := awslib.GetDefaultConfig()
+  log.Debugf("Default region: \"%s\"\n", *awsConfig.Region)
+  if *awsConfig.Region == "" {
+    awsConfig.Region = aws.String(region)
   }
-
-  fmt.Printf("%s", awslib.AccountDetailsString(config))
-  // // Provide a description of the account and region that's being used.
-  // if (command == interactiveCmd.FullCommand() || verbose) {
-  //   iam_svc := iam.New(session.New(config))
-  //   params := &iam.ListAccountAliasesInput{
-  //     MaxItems: aws.Int64(100),
-  //   }
-  //   resp, err := iam_svc.ListAccountAliases(params)
-  //   if err == nil {
-  //     if len(resp.AccountAliases) == 1 {
-  //       fmt.Printf("Account: %s.\n", *resp.AccountAliases[0])
-  //     } else {
-  //       fmt.Printf("Account:\n")
-  //       for i, alias := range resp.AccountAliases {
-  //         fmt.Printf("%d. %s.\n", i+1, *alias)
-  //       }
-  //     }
-  //   } else {
-  //     fmt.Printf("Couldn't get account aliases: %s.\n", err)
-  //   }
-  //   fmt.Printf("Region: %s.\n", *config.Region)
-  // }
+  fmt.Printf("%s\n", awslib.AccountDetailsString(awsConfig))
 
   // Perhaps use the EC2 DescribeAccountAttributes to get at interesting infromation.
   // List of commands as parsed matched against functions to execute the commands.
@@ -117,11 +92,11 @@ func main() {
     defaultTaskDefinition.FullCommand(): doDefaultTaskDefinition,
   }
 
-  ecs_svc := ecs.New(session.New(config))
+  ecs_svc := ecs.New(session.New(awsConfig))
 
   // Execute the command.
   if interactiveCmd.FullCommand() == command {
-    interactive.DoInteractive(config)
+    interactive.DoInteractive(awsConfig)
   } else {
     commandMap[command](ecs_svc)
   }
