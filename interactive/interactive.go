@@ -59,11 +59,16 @@ var (
   registerTaskDefinition *kingpin.CmdClause
   taskConfigFileName string
   // interTaskDefinitionArn string
+
+  log *logging.Logger
+
 )
 
 func init() {
 
   taskEnv = make(map[string]string)
+  log = logging.MustGetLogger("ecs-pilot/interactive")
+
 
   interApp = kingpin.New("", "Interactive mode.").Terminate(doTerminate)
 
@@ -808,7 +813,9 @@ func toggleVerbose() bool {
 func doVerbose() (error) {
   if toggleVerbose() {
     fmt.Println("Verbose is on.")
-    logging.SetLevel(logging.DEBUG,"")
+    logging.SetLevel(logging.DEBUG,"ecs-pilot")
+    logging.SetLevel(logging.DEBUG, "ecs-pilot/interactive")
+    logging.SetLevel(logging.DEBUG, "ecs-pilot/awslib")
   } else {
     fmt.Println("Verbose is off.")
     logging.SetLevel(logging.ERROR,"")

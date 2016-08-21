@@ -8,6 +8,7 @@ import (
   // "io"
   "os"
   "os/user"
+  "path/filepath"
   "github.com/aws/aws-sdk-go/aws"
   "github.com/aws/aws-sdk-go/aws/credentials"
   "github.com/aws/aws-sdk-go/aws/defaults"
@@ -18,7 +19,8 @@ import (
 
 // TODO: Verify that this  "does the right thing" if the creds file doesn't exist.
 // Also, consider filling it out by looking at a 'config' file as well.
-func GetConfig(profile string) (*aws.Config) {
+// Also should support environment variables for Keys.
+func GetConfig(profile string, credFile string) (*aws.Config) {
   config := defaults.Get().Config
 
   user, err  :=  user.Current()
@@ -26,7 +28,10 @@ func GetConfig(profile string) (*aws.Config) {
     fmt.Printf("ecs-pilot: Could't get the current user from the OS: \n", err)
     os.Exit(1)
   }
-  credFile := user.HomeDir + "/.aws/credentials"
+  if credFile == "" { 
+    credFile = filepath.Join(user.HomeDir,"/.aws/credentials")
+  }
+  log.Debugf("Loading credentials from file: %s", credFile)
   creds := credentials.NewSharedCredentials(credFile, profile)  
   config.Credentials = creds
 
@@ -43,7 +48,7 @@ func GetDefaultConfig() (*aws.Config) {
   if profile == "" {
     profile = "default"
   }
-  return GetConfig(profile)
+  return GetConfig(profile, "")
 }
 
 func AccountDetailsString(config *aws.Config) (details string) {

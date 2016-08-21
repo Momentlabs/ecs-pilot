@@ -7,9 +7,16 @@ import (
   "github.com/aws/aws-sdk-go/aws"
   "github.com/aws/aws-sdk-go/service/ecs"
   "github.com/aws/aws-sdk-go/service/ec2"
+  "github.com/op/go-logging"
   "github.com/spf13/viper"
 )
+var(
+  log *logging.Logger
+)
 
+func init() {
+  log = logging.MustGetLogger("ecs-pilot/awslib")
+}
 
 //
 // CLUSTERS
@@ -393,9 +400,7 @@ func OnTaskRunning(clusterName, taskDefArn string, ecsSvc *ecs.ECS, do func(*ecs
       }
       err := ecsSvc.WaitUntilTasksRunning(task_params)
       td, newErr := ecsSvc.DescribeTasks(task_params)
-      if (newErr != nil ) {
-        fmt.Printf("OnTaskRunning: tried to get taskdescription but couldn't: %s\n", newErr)
-      }
+      if err == nil { err = newErr }
       do(td, err)
     }()
 }
