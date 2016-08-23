@@ -7,16 +7,10 @@ import (
   "github.com/aws/aws-sdk-go/aws"
   "github.com/aws/aws-sdk-go/service/ecs"
   "github.com/aws/aws-sdk-go/service/ec2"
-  "github.com/op/go-logging"
+  // "github.com/op/go-logging"
   "github.com/spf13/viper"
 )
-var(
-  log *logging.Logger
-)
 
-func init() {
-  log = logging.MustGetLogger("ecs-pilot/awslib")
-}
 
 //
 // CLUSTERS
@@ -256,9 +250,12 @@ func GetDeepTasks(clusterName string, ecsSvc *ecs.ECS, ec2Svc *ec2.EC2) (dtm Dee
 
   ciMap, err := GetAllContainerInstanceDescriptions(clusterName, ecsSvc)
   if err != nil {return dtm, fmt.Errorf("GetDeepTasks: No ConatinerInstances for cluster \"%s\": %s", clusterName, err)}
+  if len(ciMap) == 0 {
+    return dtm, fmt.Errorf("GetDeepTasks: There are currently no ContainerInstances on cluster: \"%s\".", clusterName)
+  }
 
   ec2Map, err := DescribeEC2Instances(ciMap, ec2Svc)
-  if err != nil {return dtm, fmt.Errorf("GetDeepTasks: No EC2 instences for cluster \"%s\": %s", clusterName, err)}
+  if err != nil {return dtm, fmt.Errorf("GetDeepTasks: No EC2 instances for cluster \"%s\": %s", clusterName, err)}
 
   for taskArn, ct := range ctMap {
     dt := new(DeepTask)
@@ -562,7 +559,7 @@ func DefaultTaskDefinition() (ecs.RegisterTaskDefinitionInput) {
 }
 
 func CompleteEmptyTaskDefinition() (ecs.RegisterTaskDefinitionInput) {
-    var tdi = ecs.RegisterTaskDefinitionInput{
+  var tdi = ecs.RegisterTaskDefinitionInput{
     Family: aws.String(""),
     // TaskRoleArn: This appears not to be in the golang definition.
     ContainerDefinitions: []*ecs.ContainerDefinition{
@@ -653,12 +650,7 @@ func CompleteEmptyTaskDefinition() (ecs.RegisterTaskDefinitionInput) {
         },
 
         // Logs
-        LogConfiguration: &ecs.LogConfiguration{
-          LogDriver: aws.String("LogDriver"),
-          Options: map[string]*string{
-            "Key": aws.String(""),
-          },
-        },
+        LogConfiguration: nil,
 
         // Security
         //

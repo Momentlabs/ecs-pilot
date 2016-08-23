@@ -1,18 +1,19 @@
 package interactive 
 
 import (
-  "gopkg.in/alecthomas/kingpin.v2"
-  "github.com/bobappleyard/readline"
   "strings"
   "fmt"
   "io"
   "time"
+  "ecs-pilot/awslib"
   "github.com/aws/aws-sdk-go/aws"
   "github.com/aws/aws-sdk-go/aws/session"
   "github.com/aws/aws-sdk-go/service/ecs"
   "github.com/aws/aws-sdk-go/service/ec2"
+  "github.com/bobappleyard/readline"
   "github.com/op/go-logging"
-  "ecs-pilot/awslib"
+  "github.com/mgutz/ansi"
+  "gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
@@ -470,13 +471,13 @@ func doCreateContainerInstance(svc *ecs.ECS, ec2Svc *ec2.EC2) (error) {
         inst, err := awslib.GetInstanceForId(waitForId, ec2Svc)
         if err == nil {
           fmt.Printf("\nACTIVE: on cluster %s (%s)\n\tContainerInstance %s\n", thisClusterName, time.Since(startTime), *cis.ContainerInstanceArn)
-          fmt.Printf("\nEC2Instance: %s\n", shortInstanceString(inst))
+          fmt.Printf("EC2Instance: %s\n", shortInstanceString(inst))
         } else {
           fmt.Printf("\nError getting instance details: %s\n", err)
-          fmt.Printf("\nOn cluster %s ContainerInstance %s on EC2 instance %s is now active (%s)\n", thisClusterName, *cis.ContainerInstanceArn, waitForId, time.Since(startTime))
+          fmt.Printf("On cluster %s ContainerInstance %s on EC2 instance %s is now active (%s)\n", thisClusterName, *cis.ContainerInstanceArn, waitForId, time.Since(startTime))
         }
       } else {
-        fmt.Printf("\nFailed on waiting for instance active.\n")
+        log.Errorf("\nFailed on waiting for instance active: %s", err)
       }
     })
   } 
@@ -861,8 +862,14 @@ func promptLoop(prompt string, process func(string) (error)) (err error) {
 }
 
 func clusterShortString(c *ecs.Cluster) (s string) {
-  s += fmt.Sprintf("%s has %d instances with %d running and %d pending tasks.", *c.ClusterName, 
-    *c.RegisteredContainerInstancesCount, *c.RunningTasksCount, *c.PendingTasksCount)
+  h := ""
+  r := ""
+  if *c.RegisteredContainerInstancesCount > 0  {  
+    h = fmt.Sprintf(ansi.ColorCode("red+b"))
+    r = fmt.Sprintf(ansi.ColorCode("reset"))
+  }
+  s += fmt.Sprintf("%s%s%s has %s%d%s instances with %s%d%s running and %d pending tasks.", h, *c.ClusterName, r,
+    h, *c.RegisteredContainerInstancesCount,r, h,*c.RunningTasksCount,r, *c.PendingTasksCount)
   return s
 }
 

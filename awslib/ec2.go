@@ -1,18 +1,11 @@
 package awslib
 
 import (
-  // "strings"
   "fmt"
-  // "errors"
-  // "time"  
-  // "io"
   "encoding/base64"
   "github.com/aws/aws-sdk-go/aws"
-  // "github.com/aws/aws-sdk-go/aws/session"
-  // "github.com/aws/aws-sdk-go/service/ecs"
+  "github.com/aws/aws-sdk-go/aws/credentials"
   "github.com/aws/aws-sdk-go/service/ec2"
-  // "github.com/spf13/viper"
-  // "github.com/op/go-logging"
 )
 
 
@@ -118,11 +111,13 @@ func LaunchInstanceWithTags(clusterName string, tags []*ec2.Tag, ec2Svc *ec2.EC2
 //    what we currently have.
 func LaunchInstance(clusterName string, ec2Svc *ec2.EC2) (*ec2.Reservation, error) {
 
-  params := &ec2.RunInstancesInput {
-    // amzn-ami-2016.03.e-amazon-ecs-optimized-4ce33fd9-63ff-4f35-8d3a-939b641f1931-ami-55870742.3
-    ImageId: aws.String(getAmi()),
-    // ImageId: aws.String("ami-a88a46c5"),
+  userData, err := getUserData(clusterName)
+  if err != nil {
+    return nil, fmt.Errorf("Can't get user data: %s", err)
+  }
 
+  params := &ec2.RunInstancesInput {
+    ImageId: aws.String(getAmi()),
     InstanceType: aws.String(getInstanceType()),
     KeyName: aws.String(getKeyPairName()),
     // SubnetId: aws.String("vpc-2eb68c4a"),
@@ -131,7 +126,6 @@ func LaunchInstance(clusterName string, ec2Svc *ec2.EC2) (*ec2.Reservation, erro
     BlockDeviceMappings: getBlockDeviceMappings(),
 
     IamInstanceProfile: &ec2.IamInstanceProfileSpecification {
-      // Arn: aws.String("arn:aws:iam::033441544097:instance-profile/ecsInstanceRole"),
       Name: aws.String(getInstanceProfileName()),
     },
 
@@ -145,7 +139,7 @@ func LaunchInstance(clusterName string, ec2Svc *ec2.EC2) (*ec2.Reservation, erro
     //   aws.String("")
     // },
 
-    UserData: aws.String(getUserData(clusterName)),
+    UserData: aws.String(userData),
 
     Monitoring: &ec2.RunInstancesMonitoringEnabled{
       Enabled: aws.Bool(true),
@@ -181,22 +175,101 @@ func LaunchInstance(clusterName string, ec2Svc *ec2.EC2) (*ec2.Reservation, erro
 // some files somewhere but that all might want to Llive a level up
 // in which case each of these things might need to be put into 
 // some structure that is passed into the LaunchInstance Methods.
-//
 
-func getUserData(clusterName string) (string) {
+// The userData provisioning here is 
+// It would probably be better to provision ecs.config by storing a file
+// in S3 and having userdata download that directly.
 
-  user_data_template := `#!/bin/bash
-echo ECS_CLUSTER=%s >> /etc/ecs/ecs.config
-`
-  user_data := fmt.Sprintf(user_data_template,clusterName)
-  data := []byte(user_data)
-  user_data_encoded := base64.StdEncoding.EncodeToString(data)
+// This will create a bash script to run on instance boot through userdata.
+// Returns a base64 encoded string that provisions /etc/ecs/ecs.config
+// see getECSConfigString()
+func getUserData(clusterName string) (s string, err error) {
+  ecsConfig, err := getECSConfigString(clusterName)
+  if err != nil { return s, fmt.Errorf("Can't get ecs.config contents: %s", err) }
+  credentialsConfig, err := getCredentialsString()
+  if err != nil { return s, fmt.Errorf("Can't get instance credentials contents: %s", err) }
 
-  return user_data_encoded
+  userDataString := ecsConfig + credentialsConfig
+  // userDataString := ecsConfig
+  userDataTemplate := "#!/bin/bash\n%s\n" // >> /etc/ecs/ecs.config"
+  userData := fmt.Sprintf(userDataTemplate, userDataString)
+
+  log.Debugf("Creating an instance with UserData:\n%s\n", userData)
+  data := []byte(userData)
+  userDataEncoded := base64.StdEncoding.EncodeToString(data)
+  log.Debug("User-data encoded.")
+
+  return userDataEncoded, nil
 }
 
+
+// Return a copy of the data file that will configure the ECS agent on the instance.
+// details at: http://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-agent-config.html
+// This will set ECS_CLUSTER, AWS keys, and default region (for communicating with AWS from the image.)
+func getECSConfigString(clusterName string) (s string, err error) {
+  ecsEntries := [][2]string {
+    {"ECS_CLUSTER", clusterName},
+    // {"AWS_ACCESS_KEY_ID", accessKeyId},
+    // {"AWS_SECRET_ACCESS_KEY", secretAccessKey},
+    // {"AWS_DEFAULT_REGION", defaultRegion},
+  }
+  for _, e := range ecsEntries {
+    s += getEchoEntryToFileString(e[0], e[1], "/etc/ecs/ecs.config")
+  }
+  return s, err
+}
+
+// Sigh ....
+func getCredentialsString() (s string, err error) {
+  credDir := "/opt/configuration"
+  credFileName := credDir + "/credentials"
+  credProfileName := awslibConfig[InstCredProfileKey]
+  accessKeyId, secretAccessKey, err := getInstanceAWSKeys()
+  if err != nil {return s, err}
+  template :=`
+if [ ! -e %s ]; then
+mkdir -p %s
+fi
+cat <<EOF  >>%s
+[%s]
+aws_access_key_id=%s
+aws_secret_access_key=%s
+EOF`
+  s += fmt.Sprintf(template, credDir, credDir, credFileName, credProfileName, accessKeyId, secretAccessKey)
+  return s, err
+}
+
+func shellCatStringToFile(content string, fileName string, delim string) (s string) {
+  template := `
+cat <<%s >>%s
+%s
+%s`
+  s += fmt.Sprintf(template, delim, fileName, content, delim)
+  return s
+}
+// This is certainly an ugly hack, but rather than make echo (or printf) work 
+// with multiple lines etc. We'll just do one echo per entry.
+func getEchoEntryToFileString(key string, value string, file string) (string) {
+  return fmt.Sprintf("echo %s=%s >> %s\n", key, value, file)
+}
+
+
+// amzn-ami-2016.03.e-amazon-ecs-optimized-4ce33fd9-63ff-4f35-8d3a-939b641f1931-ami-55870742.3
 func getAmi() (string) {
   return "ami-55870742"
+}
+
+// Returns AWS keys to be used by containers running on an instance.
+// e.g. to make calls to S3 or EC2.
+func getInstanceAWSKeys() (accessKeyId string, secretAccessKey string, err error) {
+  credFile := awslibConfig[InstCredFileKey]
+  credProfile := awslibConfig[InstCredProfileKey]
+  creds, err := credentials.NewSharedCredentials(credFile,credProfile).Get()
+  if err == nil {
+    accessKeyId = creds.AccessKeyID
+    secretAccessKey = creds.SecretAccessKey
+  }
+  return accessKeyId, secretAccessKey, err
 }
 
 func getInstanceType() (string) {
@@ -207,6 +280,7 @@ func getKeyPairName() (string) {
   return "momentlabs-us-east-1"
 }
 
+// Arn: aws.String("arn:aws:iam::033441544097:instance-profile/ecsInstanceRole"),
 func getInstanceProfileName() (string) {
   return "ecsInstanceRole"
 }

@@ -35,8 +35,11 @@ var(
   app                               *kingpin.Application
   log = logging.MustGetLogger("ecs-pilot")
   verbose                           bool
+  debug                             bool
   printVersion                      bool
   region                            string
+  profileArg                        string
+  credFileArg                       string
 
   // Prompt for Commands
   interactiveCmd *kingpin.CmdClause
@@ -59,7 +62,11 @@ func init() {
 
   app = kingpin.New("ecs-pilot", "A tool to manage AWS ECS.")
   app.Flag("verbose", "Describe what is happening, as it happens.").Short('v').BoolVar(&verbose)
+  app.Flag("debug", "Detailed log output.").Short('d').BoolVar(&debug)
   app.Flag("region", "Manage continers in this AWS region.").Default("us-east-1").StringVar(&region)
+
+  app.Flag("profile", "AWS profile for credentials.").Default("minecraft").StringVar(&profileArg)
+  app.Flag("config-file", "AWS profile for credentials.").StringVar(&credFileArg)
 
   versionCmd = app.Command("version","Print the version number and exit.")
   interactiveCmd = app.Command("interactive", "Prompt for commands.")
@@ -83,11 +90,11 @@ func main() {
 
   // Parse the command line to fool with flags and get the command we'll execeute.
   command := kingpin.MustParse(app.Parse(os.Args[1:]))
-  if verbose {
-    logging.SetLevel(logging.DEBUG,"")
+  if verbose || debug{
+    SetLogLevel(logging.DEBUG)
   }
 
-  awsConfig := awslib.GetDefaultConfig()
+  awsConfig := awslib.GetConfig(profileArg, credFileArg)
   log.Debugf("Default region: \"%s\"\n", *awsConfig.Region)
   if *awsConfig.Region == "" {
     awsConfig.Region = aws.String(region)
@@ -117,6 +124,13 @@ func main() {
 
 func doPrintVersion(svc *ecs.ECS) {
   fmt.Printf("Version: %d.%d %s <%s>\n", version.Major, version.Minor, version.Name, version.Status)
+}
+
+func SetLogLevel(l logging.Level) {
+  logs := []string{"ecs-pilot", "ecs-pilot/interactive", "ecs-pilot/awslib"}
+  for _, log := range logs {
+    logging.SetLevel(l, log)
+  }
 }
 
 func doListCluster(svc *ecs.ECS) {
@@ -161,7 +175,6 @@ func doDescribeTaskDefinition(svc *ecs.ECS) {
     log.Errorf("Can't get TaskDefinition for: \"%S\".\nError: %s", taskDefinitionArn, err)
   }
 }
-
 
 func doEmptyTaskDefinition(svc *ecs.ECS) {
   tdi := awslib.CompleteEmptyTaskDefinition()
