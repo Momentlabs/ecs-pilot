@@ -4,22 +4,19 @@ import (
   "bytes"
   "encoding/json"
   "fmt"
-  // "io"
   "os"
-  // "path/filepath"
-  // "strings"
-  // "time"
   "ecs-pilot/interactive"
   "ecs-pilot/awslib"
-  "github.com/aws/aws-sdk-go/aws"
-  // "github.com/aws/aws-sdk-go/aws/credentials"
-  // "github.com/aws/aws-sdk-go/aws/defaults"
+  "github.com/alecthomas/kingpin"
   "github.com/aws/aws-sdk-go/aws/session"
-  // "github.com/aws/aws-sdk-go/aws/awsutil"
   "github.com/aws/aws-sdk-go/service/ecs"
-  // "github.com/aws/aws-sdk-go/service/iam"
-  "github.com/op/go-logging"
-  "gopkg.in/alecthomas/kingpin.v2"
+  "github.com/jdrivas/sl"
+  "github.com/Sirupsen/logrus"
+)
+
+const(
+  jsonLog = "json"
+  textLog = "text"
 )
 
 type Version struct {
@@ -32,14 +29,17 @@ type Version struct {
 
 var(
   version = Version{ Major: 0, Minor: 1, Name: "Launch", Status: "development", }
+
+  log = sl.New()
+
   app                               *kingpin.Application
-  log = logging.MustGetLogger("ecs-pilot")
   verbose                           bool
   debug                             bool
   printVersion                      bool
   region                            string
   profileArg                        string
   credFileArg                       string
+  logsFormatArg                     string
 
   // Prompt for Commands
   interactiveCmd *kingpin.CmdClause
@@ -64,6 +64,7 @@ func init() {
   app.Flag("verbose", "Describe what is happening, as it happens.").Short('v').BoolVar(&verbose)
   app.Flag("debug", "Detailed log output.").Short('d').BoolVar(&debug)
   app.Flag("region", "Manage continers in this AWS region.").Default("us-east-1").StringVar(&region)
+  app.Flag("log-format", "Chosose text or json output.").Default(jsonLog).EnumVar(&logsFormatArg, jsonLog, textLog)
 
   app.Flag("profile", "AWS profile for credentials.").Default("minecraft").StringVar(&profileArg)
   app.Flag("config-file", "AWS profile for credentials.").StringVar(&credFileArg)
@@ -81,26 +82,23 @@ func init() {
   emptyTaskDefinition = taskDefinition.Command("empty", "Print out an full but empty task defintion in JSON format.")
   defaultTaskDefinition = taskDefinition.Command("default", "Print a default task definition in JSON format.")
 
-
   kingpin.CommandLine.Help = `A command-line AWS ECS tool.`
-  logging.SetLevel(logging.ERROR, "")
+
 }
 
 func main() {
 
   // Parse the command line to fool with flags and get the command we'll execeute.
   command := kingpin.MustParse(app.Parse(os.Args[1:]))
-  if verbose || debug{
-    SetLogLevel(logging.DEBUG)
-  }
+  configureLogs()
 
   awsConfig := awslib.GetConfig(profileArg, credFileArg)
-  log.Debugf("Default region: \"%s\"\n", *awsConfig.Region)
-  if *awsConfig.Region == "" {
-    awsConfig.Region = aws.String(region)
+  region := *awsConfig.Region
+  accountAliases, err := awslib.GetAccountAliases(awsConfig)
+  if err == nil {
+    log.Debug(logrus.Fields{"account": accountAliases, "region": region}, "ecs-pilot startup.")
   }
-  fmt.Printf("%s\n", awslib.AccountDetailsString(awsConfig))
-
+ 
   // Perhaps use the EC2 DescribeAccountAttributes to get at interesting infromation.
   // List of commands as parsed matched against functions to execute the commands.
   commandMap := map[string]func(*ecs.ECS) {
@@ -122,16 +120,6 @@ func main() {
   }
 }
 
-func doPrintVersion(svc *ecs.ECS) {
-  fmt.Printf("Version: %d.%d %s <%s>\n", version.Major, version.Minor, version.Name, version.Status)
-}
-
-func SetLogLevel(l logging.Level) {
-  logs := []string{"ecs-pilot", "ecs-pilot/interactive", "ecs-pilot/awslib"}
-  for _, log := range logs {
-    logging.SetLevel(l, log)
-  }
-}
 
 func doListCluster(svc *ecs.ECS) {
   clusters,  err := awslib.GetClusters(svc)
@@ -141,7 +129,7 @@ func doListCluster(svc *ecs.ECS) {
       fmt.Printf("%d: %s\n", i+1, *cluster)
     }
   } else {
-    log.Errorf("Can't get clusters: %s\n", err)
+    log.Error(nil, "Can't get clusters.", err)
     return
   }
 }
@@ -154,7 +142,7 @@ func doListTaskDefinitions(svc *ecs.ECS) {
       fmt.Printf("%d: %s.\n", i+1, *arn)
     }
   } else {
-    log.Errorf("Can't get task defintion arns: %s.\n", err)
+    log.Error(nil, "Can't get task defintion arns.", err)
   }
 }
 
@@ -172,7 +160,7 @@ func doDescribeTaskDefinition(svc *ecs.ECS) {
     }
     // fmt.Printf("%s\n", taskDefinition)
   } else {
-    log.Errorf("Can't get TaskDefinition for: \"%S\".\nError: %s", taskDefinitionArn, err)
+    log.Error(logrus.Fields{"task-def-arn": taskDefinitionArn,},"Can't get TaskDefinition.", err)
   }
 }
 
@@ -184,6 +172,10 @@ func doEmptyTaskDefinition(svc *ecs.ECS) {
 func doDefaultTaskDefinition(svc *ecs.ECS) {
   tdi := awslib.DefaultTaskDefinition()
   printAsJsonObject(tdi)
+}
+
+func doPrintVersion(svc *ecs.ECS) {
+  fmt.Printf("Version: %d.%d %s <%s>\n", version.Major, version.Minor, version.Name, version.Status)
 }
 
 func printAsJsonObject(o interface{}) {
@@ -199,5 +191,24 @@ func printAsJsonObject(o interface{}) {
   }
 }
 
+func configureLogs() {
+
+  switch logsFormatArg {
+  case jsonLog:
+    log.SetFormatter(new(logrus.JSONFormatter))
+  case textLog:
+    f := new(sl.TextFormatter)
+    f.FullTimestamp = true
+    log.SetFormatter(f)
+    awslib.SetLogFormatter(f)
+  }
+
+  l := logrus.InfoLevel
+  if debug || verbose {
+    l = logrus.DebugLevel
+  }
+  log.SetLevel(l)
+  awslib.SetLogLevel(l)
+}
 
 

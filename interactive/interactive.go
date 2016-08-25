@@ -6,6 +6,7 @@ import (
   "io"
   "time"
   "ecs-pilot/awslib"
+  "github.com/alecthomas/kingpin"
   "github.com/aws/aws-sdk-go/aws"
   "github.com/aws/aws-sdk-go/aws/session"
   "github.com/aws/aws-sdk-go/service/ecs"
@@ -13,7 +14,6 @@ import (
   "github.com/bobappleyard/readline"
   "github.com/op/go-logging"
   "github.com/mgutz/ansi"
-  "gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (

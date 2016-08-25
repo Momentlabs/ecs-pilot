@@ -6,6 +6,7 @@ import (
   "github.com/aws/aws-sdk-go/aws"
   "github.com/aws/aws-sdk-go/aws/credentials"
   "github.com/aws/aws-sdk-go/service/ec2"
+  // "github.com/Sirupsen/logrus"
 )
 
 
@@ -190,14 +191,13 @@ func getUserData(clusterName string) (s string, err error) {
   if err != nil { return s, fmt.Errorf("Can't get instance credentials contents: %s", err) }
 
   userDataString := ecsConfig + credentialsConfig
-  // userDataString := ecsConfig
   userDataTemplate := "#!/bin/bash\n%s\n" // >> /etc/ecs/ecs.config"
   userData := fmt.Sprintf(userDataTemplate, userDataString)
 
-  log.Debugf("Creating an instance with UserData:\n%s\n", userData)
+  log.Logger.Debugf("Creating an instance with UserData:\n%s\n", userData)
   data := []byte(userData)
   userDataEncoded := base64.StdEncoding.EncodeToString(data)
-  log.Debug("User-data encoded.")
+  log.Debug(nil, "User-data encoded.")
 
   return userDataEncoded, nil
 }

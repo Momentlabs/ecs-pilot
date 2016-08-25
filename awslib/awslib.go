@@ -1,25 +1,42 @@
 package awslib
 
 import (
-  "github.com/op/go-logging"
+"github.com/jdrivas/sl"
+"github.com/Sirupsen/logrus"
 )
 
 var(
-  log *logging.Logger
+  log = sl.New()
   awslibConfig libConfig
 )
 
+// Logs
 
 func init() {
-  log = logging.MustGetLogger("ecs-pilot/awslib")
-  logging.SetLevel(logging.INFO, "ecs-pilot/awslib")
+  defaultConfigureLogs()
   awslibConfig = NewConfig()
 }
 
-func SetLogLevel(l logging.Level) {
-  logging.SetLevel(l,"ecs-pilot/awslib")
+func SetLogLevel(l logrus.Level) {
+  log.SetLevel(l)
 }
 
+
+func SetLogFormatter(f logrus.Formatter) {
+  log.SetFormatter(f)
+}
+
+func defaultConfigureLogs() {
+  formatter := new(sl.TextFormatter)
+  formatter.FullTimestamp = true
+  log.SetFormatter(formatter)
+  log.SetLevel(logrus.InfoLevel)
+}
+
+//
+// Sketchy configuration machineary. Waiting for config with files etc.
+// Viper?
+//
 type libConfig map[string]string
 
 const(
