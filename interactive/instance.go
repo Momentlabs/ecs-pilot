@@ -2,28 +2,67 @@ package interactive
 
 import (
   "fmt"
+  "os"
   "time"
+  "text/tabwriter"
   "github.com/aws/aws-sdk-go/aws"
   "github.com/aws/aws-sdk-go/aws/session"
   "github.com/aws/aws-sdk-go/service/ecs"
   "github.com/aws/aws-sdk-go/service/ec2"
 
   // THIS WILL UNDOUBTADLY CAUSE PROBLEMS
-  // "awslib"
-  "github.com/jdrivas/awslib"
+  "awslib"
+  // "github.com/jdrivas/awslib"
 
 )
 
 func doListContainerInstances(sess *session.Session) (error) {
-  instanceArns, err := awslib.GetContainerInstances(interClusterName, sess)
-  if err != nil {
-    return err
-  }
+  ciMap, ecMap, err := awslib.GetContainerMaps(interClusterName, sess)
+  if err != nil {return fmt.Errorf("Can't get container instances for %s: %s", interClusterName, err)}
 
-  fmt.Printf("%d instances for cluster \"%s\"\n", len(instanceArns), interClusterName)
-  for i, instance := range instanceArns {
-    fmt.Printf("%d: %s\n", i+1, *instance)
+  fmt.Printf("%s%s %s: %d instances.%s\n", 
+    emphColor, time.Now().Local().Format(humanTimeFormat), interClusterName, len(ciMap), resetColor)
+  w := tabwriter.NewWriter(os.Stdout, 4, 2, 2, ' ', 0)
+  // fmt.Fprintf(w, "%sAddress\tType\tStatus\tA-CPU\t%sR-CPU%s\tA-Memory\t%sR-Memory%s\tEC2ID\tARN%s\n", 
+  //   emphColor, defaultColor, defaultColor, defaultColor, defaultColor, resetColor)
+  fmt.Fprintf(w, "%sAddress\tType\tActive\tUptime\tA-CPU\tR-CPU\tA-Mem\tR-Mem\tEC2ID\tARN%s\n", 
+    emphColor, resetColor)
+  for ciArn, awslibCi := range ciMap {
+    ci := awslibCi.Instance
+    ecI := ecMap[*ci.Ec2InstanceId]
+    if ecI == nil {return fmt.Errorf("Got a nil address for the EC2 Instance.\n")}
+    addr := "unassigned"
+    if ecI.PublicIpAddress != nil {addr = *ecI.PublicIpAddress}
+    iType := "unknown"
+    aCpu := getCpu(ci.RegisteredResources)
+    rCpu := getCpu(ci.RemainingResources)
+    aMem := getMemory(ci.RegisteredResources)
+    rMem :=getMemory(ci.RemainingResources)
+    uptime := shortDurationString(time.Since(*ecI.LaunchTime))
+
+    eColor := nullColor
+    // cColor := defaultColor
+    // mColor := defaultColor
+    if *ci.Status == "INACTIVE" {
+      eColor = highlightColor
+    } else {
+      if rCpu < 200 {eColor = warnColor}
+      if rMem < 512 {eColor = warnColor}
+    }
+    if ecI.InstanceType != nil {iType = *ecI.InstanceType}
+    // fmt.Fprintf(w, "%s%s\t%s\t%s\t%d\t%s%d%s\t%d\t%s%d%s\t%s\t%s%s\n", eColor,
+    fmt.Fprintf(w, "%s%s\t%s\t%s\t%s\t%d\t%d\t%d\t%d\t%s\t%s%s\n", eColor,
+      // addr, iType, *ci.Status, aCpu, cColor, rCpu, resetColor, aMem, mColor, rMem, resetColor, 
+      addr, iType, *ci.Status, uptime, aCpu, rCpu, aMem, rMem, 
+      *ci.Ec2InstanceId, awslib.ShortArnString(&ciArn),resetColor) 
   }
+  w.Flush()
+
+
+  // fmt.Printf("%d instances for cluster \"%s\"\n", len(instanceArns), interClusterName)
+  // for i, instance := range instanceArns {
+  //   fmt.Printf("%d: %s\n", i+1, *instance)
+  // }
 
   return nil
 }
@@ -155,6 +194,26 @@ func EC2InstanceToString(instance ec2.Instance, indent string) (s string) {
   return s
 }
 
+func getCpu(resources []*ecs.Resource) (cpu int64) {
+  for _, r := range resources {
+    if *r.Name == "CPU" {
+      cpu = *r.IntegerValue
+      break
+    }
+  }
+  return cpu
+}
+
+func getMemory(resources []*ecs.Resource) (mem int64) {
+  for _, r := range resources {
+    if *r.Name == "MEMORY" {
+      mem = *r.IntegerValue
+      break
+    }
+  }
+  return mem
+}
+
 func resourceValue(r *ecs.Resource) (interface{}) {
 
   switch *r.Type {
@@ -204,14 +263,14 @@ func doCreateContainerInstance(sess *session.Session) (error) {
 
   if len(resp.Instances) == 1 {
     inst := resp.Instances[0]
-    fmt.Printf("On cluster %s launched instance: ", thisClusterName)
+    fmt.Printf("%sOn cluster %s launched instance: %s", highlightColor, thisClusterName, resetColor)
     if verbose {
       fmt.Printf("%#v\n", inst)
     } else {
       fmt.Printf("%s\n", shortInstanceString(inst))
     }
   } else {
-    fmt.Printf("Launched (%d) EC2Instances:\n", len(resp.Instances))
+    fmt.Printf("%sLaunched (%d) EC2Instances:%s\n", highlightColor, len(resp.Instances), resetColor)
     if verbose {
       fmt.Printf("%#v\n",resp) 
     } else {
@@ -240,14 +299,14 @@ func doCreateContainerInstance(sess *session.Session) (error) {
           }
         }
       } else {
-        fmt.Printf("\nError when trying to get Instance Descriptions: %s\n", err)
+        fmt.Printf("\n%sError when trying to get Instance Descriptions: %s%sn", highlightColor, err, resetColor)
         fmt.Printf("But (%d) instances should be running for cluster %s - (will notify on Status OK):\n", len(iIds), thisClusterName)
         for i, instId := range iIds {
           fmt.Printf("\t%d. %s\n", i+1, instId)
         }
       }
     } else {
-      fmt.Printf("\nError on waiting for instance to start running.\n")
+      fmt.Printf("\n%serror on waiting for instance to start running.%s\n", highlightColor, resetColor)
       fmt.Printf("error: %s.\n", err)
     } 
   })
@@ -261,29 +320,18 @@ func doCreateContainerInstance(sess *session.Session) (error) {
       if err == nil {
         inst, err := awslib.GetInstanceForId(waitForId, sess)
         if err == nil {
-          fmt.Printf("\nACTIVE: on cluster %s (%s)\n\tContainerInstance %s\n", thisClusterName, time.Since(startTime), *cis.ContainerInstanceArn)
-          fmt.Printf("EC2Instance: %s\n", shortInstanceString(inst))
+          fmt.Printf("\n%sACTIVE: on cluster %s (%s)%s\n\tContainerInstance %s\n", 
+            highlightColor, thisClusterName, time.Since(startTime), resetColor, *cis.ContainerInstanceArn)
+          fmt.Printf("\tEC2Instance: %s\n", shortInstanceString(inst))
         } else {
-          fmt.Printf("\nError getting instance details: %s\n", err)
+          fmt.Printf("\n%sError getting instance details: %s%s\n", highlightColor, err, resetColor)
           fmt.Printf("On cluster %s ContainerInstance %s on EC2 instance %s is now active (%s)\n", thisClusterName, *cis.ContainerInstanceArn, waitForId, time.Since(startTime))
         }
       } else {
-        log.Errorf("\nFailed on waiting for instance active: %s", err)
+        log.Errorf("\n%sFailed on waiting for instance active: %s.%s", highlightColor,  err, resetColor)
       }
     })
   } 
-
-  // Don't think we need this anymore.
-  // awslib.OnInstanceOk(resp, ec2Svc, func(err error) {
-  //   if err == nil {
-  //     fmt.Printf("Instance Status OK on cluster %s:\n", thisClusterName)
-  //     for i, instance := range resp.Instances {
-  //       fmt.Printf("\t%d. %s\n", i+1, *instance.InstanceId)
-  //     } 
-  //   } else {
-  //     fmt.Errorf("Failed on waiting for instance to get to OK status - %s", err)
-  //   }
-  // })
 
   return nil
 }
@@ -309,7 +357,7 @@ func doTerminateContainerInstance(svc *ecs.ECS, ec2Svc *ec2.EC2) (error) {
   if len(termInstances) > 1 {
     fmt.Printf("Got (%d) instances terminating, expecting only 1.", len(resp.TerminatingInstances))
   }
-  fmt.Printf("Terminated container instance \n\t%s\n", interContainerArn)
+  fmt.Printf("%sTerminated container instance \n\t%s%s\n", highlightColor, interContainerArn, resetColor)
   fmt.Printf("Terminating (%d) EC2 Instances:\n", len(termInstances))
   for i, ti := range termInstances {
     fmt.Printf("%d. %s going from %s (%d) => %s (%d)\n", i+1, *ti.InstanceId, *ti.PreviousState.Name, *ti.PreviousState.Code, *ti.CurrentState.Name, *ti.CurrentState.Code)
@@ -318,9 +366,9 @@ func doTerminateContainerInstance(svc *ecs.ECS, ec2Svc *ec2.EC2) (error) {
   instanceToWatch := resp.TerminatingInstances[0].InstanceId
   awslib.OnInstanceTerminated(instanceToWatch, ec2Svc, func(err error) {
     if err == nil {
-      fmt.Printf("EC2 Instance Termianted: %s.\n", *instanceToWatch)
+      fmt.Printf("%sEC2 Instance Termianted: %s.%s\n", highlightColor, *instanceToWatch, resetColor)
     } else {
-      fmt.Printf("Error on waiting for instance to terminate.\n")
+      fmt.Printf("%sError on waiting for instance to terminate.%s\n", highlightColor, resetColor)
       fmt.Printf("error: %s.\n", err)
     }
   })

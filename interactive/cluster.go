@@ -2,9 +2,11 @@ package interactive
 
 import (
   "fmt"
+  "os"
+  "time"
+  "text/tabwriter"
   "github.com/aws/aws-sdk-go/aws/session"
   "github.com/aws/aws-sdk-go/service/ecs"
-  "github.com/mgutz/ansi"
 
 
   // THIS WILL UNDOUBTADLY CAUSE PROBLEMS
@@ -34,27 +36,40 @@ func doListClusters(sess *session.Session) (error) {
     return err
   }
 
-  fmt.Printf("There are %d clusters\n", len(clusters))
-  for i, cluster := range clusters {
-    fmt.Printf("%d. %s\n", i+1, clusterShortString(cluster))
-    fmt.Printf("   %s\n", *cluster.ClusterArn)
+  fmt.Printf("%s%s: there are %d clusters.%s\n", 
+  emphColor, time.Now().Local().Format(humanTimeFormat), len(clusters), resetColor)
+  w := tabwriter.NewWriter(os.Stdout, 4, 10, 2, ' ', 0)
+  fmt.Fprintf(w, "%sName\tStatus\tInstances\tPending\tRunning%s\n", emphColor, resetColor)
+  for _, c := range clusters {
+    instanceCount := *c.RegisteredContainerInstancesCount
+    color := nullColor
+    if instanceCount > 0 {color = highlightColor}
+    fmt.Fprintf(w, "%s%s\t%s\t%d\t%d\t%d%s\n", color, *c.ClusterName, *c.Status, 
+      instanceCount, *c.PendingTasksCount, *c.RunningTasksCount, resetColor)
+  }      
+  w.Flush()
 
-  }
+  // for i, cluster := range clusters {
+  //   w
+  //   fmt.Printf("%d. %s\n", i+1, clusterShortString(cluster))
+  //   fmt.Printf("   %s\n", *cluster.ClusterArn)
+
+  // }
   return nil
 }
 
-func doListCluster(svc *ecs.ECS) {
-  clusters,  err := awslib.GetClusters(svc)
-  if err == nil {
-    fmt.Println("Clusters")
-    for i, cluster := range clusters {
-      fmt.Printf("%d: %s\n", i+1, *cluster)
-    }
-  } else {
-    log.Error(nil, "Can't get clusters.", err)
-    return
-  }
-}
+// func doListCluster(svc *ecs.ECS) {
+//   clusters,  err := awslib.GetClusters(svc)
+//   if err == nil {
+//     fmt.Println("%sCluster%s", emph, reset)
+//     for i, cluster := range clusters {
+//       fmt.Printf("%d: %s\n", i+1, *cluster)
+//     }
+//   } else {
+//     log.Error(nil, "Can't get clusters.", err)
+//     return
+//   }
+// }
 
 func doDescribeCluster(svc *ecs.ECS) (error) {
   clusters, err := awslib.DescribeCluster(interClusterName, svc)
@@ -82,8 +97,8 @@ func clusterShortString(c *ecs.Cluster) (s string) {
   h := ""
   r := ""
   if *c.RegisteredContainerInstancesCount > 0  {  
-    h = fmt.Sprintf(ansi.ColorCode("red+b"))
-    r = fmt.Sprintf(ansi.ColorCode("reset"))
+    h = highlightColor
+    r = resetColor
   }
   s += fmt.Sprintf("%s%s%s has %s%d%s instances with %s%d%s running and %d pending tasks.", h, *c.ClusterName, r,
     h, *c.RegisteredContainerInstancesCount,r, h,*c.RunningTasksCount,r, *c.PendingTasksCount)

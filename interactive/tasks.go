@@ -122,9 +122,6 @@ func doRunTask(svc *ecs.ECS) (error) {
       containerNames = append(containerNames, *containerDef.Name)
       containerEnvMap[*containerDef.Name] = taskEnv
     }
-    if len(containerDefs) > 1 {
-      fmt.Printf("There were (%d) containers in this task. Environment setting on a per container basis not currently supported. Environment sent to all containers.")
-    }
   }
 
   runTaskOut, err := awslib.RunTaskWithEnv(interClusterName, interTaskDefinitionArn, containerEnvMap, svc)
@@ -134,11 +131,12 @@ func doRunTask(svc *ecs.ECS) (error) {
       taskToWaitOn := *runTaskOut.Tasks[0].TaskArn
       awslib.OnTaskRunning(interClusterName, taskToWaitOn, svc, func(taskDescrip *ecs.DescribeTasksOutput, err error) {
         if err == nil {
-          fmt.Printf("\nTask is now running on cluster %s\n", interClusterName)
+          fmt.Printf("\n%sTask is now running on cluster %s%s\n", highlightColor, interClusterName, resetColor)
           printTaskDescription(taskDescrip.Tasks, taskDescrip.Failures)
           fmt.Printf("%s.\n", containerEnvironmentsString(&containerEnvMap))
         } else {
-          fmt.Printf("\nProblem waiting for task: %s on cluster %s to start.\n", taskToWaitOn, interClusterName)
+          fmt.Printf("\n%sProblem waiting for task: %s on cluster %s to start.%s\n", 
+            highlightColor, taskToWaitOn, interClusterName, resetColor)
           fmt.Printf("Error: %s.\n", err)
 
           if taskDescrip != nil {
@@ -218,11 +216,11 @@ func doStopTask(sess *session.Session) (error) {
   fmt.Printf("Stopping the task: %s.\n", interTaskArn)
   resp, err := awslib.StopTask(interClusterName, interTaskArn, sess)
   if err == nil {
-    fmt.Println("This task is scheduled to stop.")
+    fmt.Println("%sThis task is scheduled to stop.%s", highlightColor, resetColor)
     fmt.Printf("%s\n", ContainerTaskDescriptionToString(resp.Task))
     awslib.OnTaskStopped(interClusterName, interTaskArn, sess, func(dto *ecs.DescribeTasksOutput, err error){
       if err == nil {
-        fmt.Printf("\nTask: %s on cluster %s is now stopped.\n", interTaskArn, interClusterName)
+        fmt.Printf("\n%sTask: %s on cluster %s is now stopped.%s\n", highlightColor, interTaskArn, interClusterName, resetColor)
       } else {
         fmt.Printf("\nThere was a problem waiting for task %s on cluster %s to stop.\n", interTaskArn, interClusterName)
         fmt.Printf("\nError: %s.\n", err)

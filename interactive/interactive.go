@@ -4,6 +4,7 @@ import (
   "strings"
   "fmt"
   "io"
+  "time"
   "github.com/alecthomas/kingpin"
   "github.com/aws/aws-sdk-go/aws"
   "github.com/aws/aws-sdk-go/aws/session"
@@ -11,12 +12,30 @@ import (
   "github.com/aws/aws-sdk-go/service/ec2"
   "github.com/bobappleyard/readline"
   "github.com/op/go-logging"
+  "github.com/mgutz/ansi"
 
   // THIS WILL UNDOUBTADLY CAUSE PROBLEMS
   // "awslib"
   "github.com/jdrivas/awslib"
 
 )
+
+var (
+  nullColor = fmt.Sprintf("%s", "\x00\x00\x00\x00\x00\x00\x00")
+  defaultColor = fmt.Sprintf("%s%s", "\x00\x00", ansi.ColorCode("default"))
+  defaultShortColor = fmt.Sprintf("%s", ansi.ColorCode("default"))
+  emphColor = fmt.Sprintf(ansi.ColorCode("default+b"))
+  emphBlueColor = fmt.Sprintf(ansi.ColorCode("blue+b"))
+  warnColor = fmt.Sprintf(ansi.ColorCode("yellow+b"))
+  highlightColor = fmt.Sprintf(ansi.ColorCode("red+b"))
+  resetColor = fmt.Sprintf(ansi.ColorCode("reset"))
+)
+
+var (
+  humanTimeFormat = time.RFC1123
+  // logTimeFormat = 
+)
+
 
 var (
 
@@ -236,7 +255,17 @@ func promptLoop(prompt string, process func(string) (error)) (err error) {
   return nil
 }
 
-
+func shortDurationString(d time.Duration) (s string) {
+  days := int(d.Hours()) / 24
+  hours := int(d.Hours()) % 24
+  minutes := int(d.Minutes()) % 60
+  if days == 0 {
+    s = fmt.Sprintf("%dh %dm", hours, minutes)
+  } else {
+    s = fmt.Sprintf("%dd %dh %dm", days, hours, minutes)
+  }
+  return s
+}
 
 // This gets called from the main program, presumably from the 'interactive' command on main's command line.
 func DoInteractive(sess *session.Session, defaultConfig *aws.Config) {
