@@ -6,12 +6,15 @@ import (
   "fmt"
   "os"
   "ecs-pilot/interactive"
-  "ecs-pilot/awslib"
   "github.com/alecthomas/kingpin"
   "github.com/aws/aws-sdk-go/aws/session"
   "github.com/aws/aws-sdk-go/service/ecs"
   "github.com/jdrivas/sl"
   "github.com/Sirupsen/logrus"
+
+  // THIS WILL CERTAINLY CAUSE PROBLEMS.
+  // "awslib"
+  "github.com/jdrivas/awslib"
 )
 
 const(
@@ -92,7 +95,14 @@ func main() {
   command := kingpin.MustParse(app.Parse(os.Args[1:]))
   configureLogs()
 
-  awsConfig := awslib.GetConfig(profileArg, credFileArg)
+  sess, err := awslib.GetSession(profileArg, credFileArg)
+  if err != nil { 
+  fmt.Printf("Can't get aws session from %s[%s]\n", credFileArg, profileArg)
+    os.Exit(-1)
+  }
+
+  // awsConfig := awslib.GetConfig(profileArg, credFileArg)
+  awsConfig := sess.Config
   region := *awsConfig.Region
   accountAliases, err := awslib.GetAccountAliases(awsConfig)
   if err == nil {
@@ -114,7 +124,7 @@ func main() {
 
   // Execute the command.
   if interactiveCmd.FullCommand() == command {
-    interactive.DoInteractive(awsConfig)
+    interactive.DoInteractive(sess, awsConfig)
   } else {
     commandMap[command](ecs_svc)
   }
