@@ -2,12 +2,15 @@ package interactive
 
 import (
   "fmt"
+  "os"
+  "time"
+  "text/tabwriter"
   "github.com/aws/aws-sdk-go/aws/session"
   "github.com/aws/aws-sdk-go/service/ecs"
 
   // THIS WILL UNDOUBTADLY CAUSE PROBLEMS
-  // "awslib"
-  "github.com/jdrivas/awslib"
+  "awslib"
+  // "github.com/jdrivas/awslib"
 
 )
 
@@ -15,13 +18,22 @@ import (
 func doListTasks(svc *ecs.ECS) (error) {
   arns, err := awslib.ListTasksForCluster(interClusterName, svc)
   tasksMap, err := awslib.GetAllTaskDescriptions(interClusterName, svc)
+  // TODO: research into inflectors for go.
   if err == nil {
-   fmt.Printf("There are (%d) tasks for cluster: %s\n", len(arns), interClusterName)
+    fmt.Printf("%sCluster: %s%s\n", titleColor, interClusterName, resetColor)
+    w := tabwriter.NewWriter(os.Stdout, 4, 10, 2, ' ', 0)
+    fmt.Fprintf(w, "%s#\tContainers\tUptime\tTTL\tStatus\tTask Definition\tARN%s\n", titleColor, resetColor)
     for i, arn := range arns {
-      containerTask := tasksMap[*arn]
-      fmt.Printf("%d: %s\n", i+1, collectContainerNames(containerTask.Task))
-      fmt.Printf("\t%s.\n", *arn)
+      ct := tasksMap[*arn]
+      t := ct.Task
+      // fmt.Fprintf(w, "%s%s\t%s%s\n", nullColor, collectContainerNames(containerTask.Task), *arn, resetColor)
+      fmt.Fprintf(w, "%s%d.\t%s\t%s\t%s\t%s\t%s\t%s%s\n", nullColor, i+1, 
+        collectContainerNames(t), ct.UptimeString(), t.StartedAt.Sub(*t.CreatedAt),
+        *t.LastStatus, awslib.ShortArnString(t.TaskDefinitionArn), awslib.ShortArnString(arn), resetColor)
+      // fmt.Fprintf(w, "%s\t%s%s\n", nullColor, *arn, resetColor)
+      // fmt.Fprintln(w)
     }
+    w.Flush()
   }
   return err
 }
@@ -97,16 +109,6 @@ func ContainerTaskDescriptionToString(task *ecs.Task) (string) {
   return s
 }
 
-func doListTaskDefinitions(svc *ecs.ECS) (error) {
-  arns, err := awslib.ListTaskDefinitions(svc)
-  if err == nil {
-    fmt.Printf("There are (%d) task definitions.\n", len(arns))
-    for i, arn := range arns {
-      fmt.Printf("%d: %s.\n", i+1, *arn)
-    }
-  }
-  return err
-}
 
 
 func doRunTask(svc *ecs.ECS) (error) {
@@ -126,34 +128,43 @@ func doRunTask(svc *ecs.ECS) (error) {
 
   runTaskOut, err := awslib.RunTaskWithEnv(interClusterName, interTaskDefinitionArn, containerEnvMap, svc)
   if err == nil {
-    printTaskDescription(runTaskOut.Tasks, runTaskOut.Failures)
+    fmt.Printf("%sStarting task.%s\n", successColor, resetColor)
+    printTaskDescription(runTaskOut.Tasks, runTaskOut.Failures, false)
     if len(runTaskOut.Tasks) > 0 {
       taskToWaitOn := *runTaskOut.Tasks[0].TaskArn
       awslib.OnTaskRunning(interClusterName, taskToWaitOn, svc, func(taskDescrip *ecs.DescribeTasksOutput, err error) {
         if err == nil {
-          fmt.Printf("\n%sTask is now running on cluster %s%s\n", highlightColor, interClusterName, resetColor)
-          printTaskDescription(taskDescrip.Tasks, taskDescrip.Failures)
-          fmt.Printf("%s.\n", containerEnvironmentsString(&containerEnvMap))
+          fmt.Printf("\n%sTask is now running on cluster %s%s\n", successColor, interClusterName, resetColor)
+          printTaskDescription(taskDescrip.Tasks, taskDescrip.Failures, true)
+          fmt.Printf("%s\n", containerEnvironmentsString(&containerEnvMap))
         } else {
-          fmt.Printf("\n%sProblem waiting for task: %s on cluster %s to start.%s\n", 
-            highlightColor, taskToWaitOn, interClusterName, resetColor)
-          fmt.Printf("Error: %s.\n", err)
-
+          fmt.Printf("\n%sProblem starting task: %s on cluster %s.%s\n", 
+            failColor, awslib.ShortArnString(&taskToWaitOn), interClusterName, resetColor)
+          fmt.Printf("%sError: %s.%s\n", warnColor, err, resetColor)
           if taskDescrip != nil {
             tasks := taskDescrip.Tasks
             failures := taskDescrip.Failures
             if len(tasks) == 1 {
               task := tasks[0]
               fmt.Printf("Task is: %s", *task.LastStatus)
-                if task.StoppedReason != nil {
-                  fmt.Printf(" beacuse: %s\n", *task.StoppedReason)
-                  } else {
-                    fmt.Printf("\n")
-                  }
-               if len(task.Containers) == 1 {
-                container := task.Containers[0]
-                fmt.Printf("Conatiner \"%s\" is %s because: %s.", *container.Name, *container.LastStatus, *container.Reason)
-               }
+              if task.StoppedReason != nil {
+                fmt.Printf(" beacuse: %s\n", *task.StoppedReason)
+              } else {
+                fmt.Println()
+              }
+              if len(task.Containers) == 0 {
+                fmt.Printf("Received no containers in the description.\n")
+              }
+              w := tabwriter.NewWriter(os.Stdout, 8, 10, 2, ' ', 0)
+              fmt.Fprintf(w, "%sContainer\tLast Status\tStopped Reason%s\n", titleColor, resetColor)
+              for _, c := range task.Containers {
+                ls := "<nil>"
+                if c.LastStatus != nil { ls = *c.LastStatus }
+                r := "<nil>"
+                if c.Reason != nil { r = *c.Reason}
+                fmt.Fprintf(w, "%s%s\t%s\t%s%s\n", nullColor, *c.Name, ls, r, resetColor)
+              }
+              w.Flush()
             } else {
               fmt.Printf("Expected 1, but there were (%d) tasks.\n", len(tasks))
               for i, task := range tasks {
@@ -172,22 +183,99 @@ func doRunTask(svc *ecs.ECS) (error) {
 }
 
 
-func shortTaskString(task *ecs.Task) (s string) {
-  s += fmt.Sprintf("%s - %s\n", *task.TaskArn, *task.LastStatus)
-  containers := task.Containers
-  switch {
-  case len(containers) == 1:
-    s += shortContainerString(containers[0])
-  case len(containers ) >1:
-    s += fmt.Sprintf("There were (%d) containers for this task.", len(containers))
-    for i, c := range containers {
-      s += fmt.Sprintf("%d. %s\n", i+1, shortContainerString(c))
+func doStopTask(sess *session.Session) (error) {
+  fmt.Printf("%sStopping the task: %s%s\n", warnColor, interTaskArn, resetColor)
+  resp, err := awslib.StopTask(interClusterName, interTaskArn, sess)
+  if err == nil {
+    t := resp.Task
+    fmt.Printf("%sTask scheduled to stop.\n%s", successColor, resetColor)
+    // fmt.Printf("%s\n", ContainerTaskDescriptionToString(resp.Task))
+    w := tabwriter.NewWriter(os.Stdout, 8, 10, 2, ' ', 0)
+    var uptime time.Duration = 0
+    if t.CreatedAt != nil && t.StoppedAt != nil {
+      uptime = t.StoppedAt.Sub(*t.StartedAt)
     }
-  case len(containers) <= 0:
-    s += "There were NO contianers attached to this task!"
+    fmt.Fprintf(w, "%sCluster\tTask\tTask Definition\tContainerInstance\tStatus\tUptime%s\n", titleColor, resetColor)
+    fmt.Fprintf(w, "%s%s\t%s\t%s\t%s\t%s\t%s%s\n", nullColor,
+      awslib.ShortArnString(t.ClusterArn), awslib.ShortArnString(t.TaskArn), awslib.ShortArnString(t.TaskDefinitionArn),
+      awslib.ShortArnString(t.ContainerInstanceArn), *t.LastStatus, shortDurationString(uptime),
+      resetColor)
+    w.Flush()
+
+    awslib.OnTaskStopped(interClusterName, interTaskArn, sess, func(dto *ecs.DescribeTasksOutput, err error){
+      if err == nil {
+        fmt.Printf("\n%sTask: %s: %s is now stopped.%s\n", warnColor, interClusterName, interTaskArn,resetColor)
+      } else {
+        fmt.Printf("\n%sThere was a problem waiting for task %s on cluster %s to stop.%s\n", 
+          failColor, interTaskArn, interClusterName, resetColor)
+        fmt.Printf("\n%sError: %s.%s\n", warnColor, err, resetColor)
+      }
+    })
+  }
+  return err
+}
+
+
+//
+// Print support.
+//
+
+func printTaskDescription(tasks []*ecs.Task, failures []*ecs.Failure, printStartUp bool) {
+  if len(failures) == 0 {
+    if verbose {
+      fmt.Printf("There were no failures.")
+    }
+  } else {
+    w := tabwriter.NewWriter(os.Stdout, 8, 10, 2, ' ', 0)
+    fmt.Fprintf(w, "%sResource\tARN%s\n", titleColor, resetColor)
+    for _, failure := range failures {
+      fmt.Fprintf(w, "%s%s\t%s%s\n", nullColor, awslib.ShortArnString(failure.Arn), *failure.Reason)
+    }
+    w.Flush()
+  }
+  if len(tasks) == 0 {
+    fmt.Printf("There were no tasks!")
+  }
+  w := tabwriter.NewWriter(os.Stdout, 8, 10, 2, ' ', 0)
+  if printStartUp {
+    fmt.Fprintf(w, "%sCluster\tTaskDefinition\tContainers\tState\tStart\tARN%s\n", titleColor, resetColor)
+    for _, t := range tasks {
+      fmt.Fprintf(w, "%s%s\t%s\t%s\t%s\t%s\t%s%s\n", nullColor, 
+        awslib.ShortArnString(t.ClusterArn), awslib.ShortArnString(t.TaskDefinitionArn), 
+        collectContainerNames(t), *t.LastStatus, t.StartedAt.Sub(*t.CreatedAt),
+        awslib.ShortArnString(t.TaskArn), resetColor)
+    }
+  } else {
+    fmt.Fprintf(w, "%sCluster\tTaskDefinition\tContainers\tState\tARN%s\n", titleColor, resetColor)
+    for _, t := range tasks {
+      fmt.Fprintf(w, "%s%s\t%s\t%s\t%s\t%s%s\n", nullColor, 
+        awslib.ShortArnString(t.ClusterArn), awslib.ShortArnString(t.TaskDefinitionArn), 
+        collectContainerNames(t), *t.LastStatus, awslib.ShortArnString(t.TaskArn), resetColor)
+    }
+  }
+  w.Flush()
+}
+
+func bindingString(bind *ecs.NetworkBinding) (s string) {
+  s += fmt.Sprintf("%s - container: %d -> host: %d (%s)", *bind.BindIP, *bind.ContainerPort, *bind.HostPort, *bind.Protocol)
+  return s
+}
+
+
+func containerEnvironmentsString(cenvs *awslib.ContainerEnvironmentMap) (s string) {
+  if cenvs == nil { return s }
+  for cName, cEnv := range *cenvs {
+    if len(cEnv) > 0 {
+      s += fmt.Sprintf("Container %s environment: ", cName)
+      for key, value := range cEnv {
+        s += fmt.Sprintf(" %s=%s", key, value)
+      }
+    }
   }
   return s
 }
+
+
 
 func shortContainerString(container *ecs.Container) (s string) {
   s += fmt.Sprintf("%s - %s", *container.Name, *container.LastStatus)
@@ -207,38 +295,3 @@ func shortContainerString(container *ecs.Container) (s string) {
   return s
 }
 
-func bindingString(bind *ecs.NetworkBinding) (s string) {
-  s += fmt.Sprintf("%s - container: %d -> host: %d (%s)", *bind.BindIP, *bind.ContainerPort, *bind.HostPort, *bind.Protocol)
-  return s
-}
-
-func doStopTask(sess *session.Session) (error) {
-  fmt.Printf("Stopping the task: %s.\n", interTaskArn)
-  resp, err := awslib.StopTask(interClusterName, interTaskArn, sess)
-  if err == nil {
-    fmt.Println("%sThis task is scheduled to stop.%s", highlightColor, resetColor)
-    fmt.Printf("%s\n", ContainerTaskDescriptionToString(resp.Task))
-    awslib.OnTaskStopped(interClusterName, interTaskArn, sess, func(dto *ecs.DescribeTasksOutput, err error){
-      if err == nil {
-        fmt.Printf("\n%sTask: %s on cluster %s is now stopped.%s\n", highlightColor, interTaskArn, interClusterName, resetColor)
-      } else {
-        fmt.Printf("\nThere was a problem waiting for task %s on cluster %s to stop.\n", interTaskArn, interClusterName)
-        fmt.Printf("\nError: %s.\n", err)
-      }
-    })
-  }
-  return err
-}
-
-func containerEnvironmentsString(cenvs *awslib.ContainerEnvironmentMap) (s string) {
-  if cenvs == nil { return s }
-  for cName, cEnv := range *cenvs {
-    if len(cEnv) > 0 {
-      s += fmt.Sprintf("Container %s environment: ", cName)
-      for key, value := range cEnv {
-        s += fmt.Sprintf(" %s=%s", key, value)
-      }
-    }
-  }
-  return s
-}

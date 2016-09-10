@@ -39,11 +39,11 @@ func doListClusters(sess *session.Session) (error) {
   fmt.Printf("%s%s: there are %d clusters.%s\n", 
   emphColor, time.Now().Local().Format(humanTimeFormat), len(clusters), resetColor)
   w := tabwriter.NewWriter(os.Stdout, 4, 10, 2, ' ', 0)
-  fmt.Fprintf(w, "%sName\tStatus\tInstances\tPending\tRunning%s\n", emphColor, resetColor)
+  fmt.Fprintf(w, "%sName\tStatus\tInstances\tPending\tRunning%s\n", titleColor, resetColor)
   for _, c := range clusters {
     instanceCount := *c.RegisteredContainerInstancesCount
     color := nullColor
-    if instanceCount > 0 {color = highlightColor}
+    if instanceCount > 0 {color = successColor}
     fmt.Fprintf(w, "%s%s\t%s\t%d\t%d\t%d%s\n", color, *c.ClusterName, *c.Status, 
       instanceCount, *c.PendingTasksCount, *c.RunningTasksCount, resetColor)
   }      
@@ -57,19 +57,6 @@ func doListClusters(sess *session.Session) (error) {
   // }
   return nil
 }
-
-// func doListCluster(svc *ecs.ECS) {
-//   clusters,  err := awslib.GetClusters(svc)
-//   if err == nil {
-//     fmt.Println("%sCluster%s", emph, reset)
-//     for i, cluster := range clusters {
-//       fmt.Printf("%d: %s\n", i+1, *cluster)
-//     }
-//   } else {
-//     log.Error(nil, "Can't get clusters.", err)
-//     return
-//   }
-// }
 
 func doDescribeCluster(svc *ecs.ECS) (error) {
   clusters, err := awslib.DescribeCluster(interClusterName, svc)
@@ -97,7 +84,7 @@ func clusterShortString(c *ecs.Cluster) (s string) {
   h := ""
   r := ""
   if *c.RegisteredContainerInstancesCount > 0  {  
-    h = highlightColor
+    h = successColor
     r = resetColor
   }
   s += fmt.Sprintf("%s%s%s has %s%d%s instances with %s%d%s running and %d pending tasks.", h, *c.ClusterName, r,

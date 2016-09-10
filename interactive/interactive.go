@@ -24,10 +24,14 @@ var (
   nullColor = fmt.Sprintf("%s", "\x00\x00\x00\x00\x00\x00\x00")
   defaultColor = fmt.Sprintf("%s%s", "\x00\x00", ansi.ColorCode("default"))
   defaultShortColor = fmt.Sprintf("%s", ansi.ColorCode("default"))
-  emphColor = fmt.Sprintf(ansi.ColorCode("default+b"))
   emphBlueColor = fmt.Sprintf(ansi.ColorCode("blue+b"))
+  emphRedColor = fmt.Sprintf(ansi.ColorCode("red+b"))
+  emphColor = emphBlueColor
+  titleColor = fmt.Sprintf(ansi.ColorCode("default+b"))
+  titleEmph = emphBlueColor
+  successColor = fmt.Sprintf(ansi.ColorCode("green+b"))
   warnColor = fmt.Sprintf(ansi.ColorCode("yellow+b"))
-  highlightColor = fmt.Sprintf(ansi.ColorCode("red+b"))
+  failColor = emphRedColor
   resetColor = fmt.Sprintf(ansi.ColorCode("reset"))
 )
 
@@ -235,37 +239,25 @@ func doQuit(sess *session.Session) (error) {
 func doTerminate(i int) {}
 
 func promptLoop(prompt string, process func(string) (error)) (err error) {
-  errStr := "Error - %s.\n"
   for moreCommands := true; moreCommands; {
     line, err := readline.String(prompt)
     if err == io.EOF {
       moreCommands = false
     } else if err != nil {
-      fmt.Printf(errStr, err)
+      fmt.Printf("%sError! %s%s\n", failColor, err, resetColor)
     } else {
       readline.AddHistory(line)
       err = process(line)
       if err == io.EOF {
         moreCommands = false
       } else if err != nil {
-        fmt.Printf(errStr, err)
+        fmt.Printf("%sError: %s%s\n", failColor, err, resetColor)
       }
     }
   }
   return nil
 }
 
-func shortDurationString(d time.Duration) (s string) {
-  days := int(d.Hours()) / 24
-  hours := int(d.Hours()) % 24
-  minutes := int(d.Minutes()) % 60
-  if days == 0 {
-    s = fmt.Sprintf("%dh %dm", hours, minutes)
-  } else {
-    s = fmt.Sprintf("%dd %dh %dm", days, hours, minutes)
-  }
-  return s
-}
 
 // This gets called from the main program, presumably from the 'interactive' command on main's command line.
 func DoInteractive(sess *session.Session, defaultConfig *aws.Config) {
@@ -274,6 +266,6 @@ func DoInteractive(sess *session.Session, defaultConfig *aws.Config) {
   xICommand := func(line string) (err error) {return doICommand(line, ecs_svc, ec2_svc, defaultConfig, sess)}
   prompt := "> "
   err := promptLoop(prompt, xICommand)
-  if err != nil {fmt.Printf("Error - %s.\n", err)}
+  if err != nil {fmt.Printf("%sError! %s.%s\n", failColor, err, resetColor)}
 }
 
