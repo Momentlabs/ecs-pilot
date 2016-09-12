@@ -9,6 +9,8 @@ import (
   "github.com/aws/aws-sdk-go/aws/session"
   "github.com/aws/aws-sdk-go/service/ecs"
   "github.com/aws/aws-sdk-go/service/ec2"
+  // "github.com/Sirupsen/logrus"
+
 
   // THIS WILL UNDOUBTADLY CAUSE PROBLEMS
   // "awslib"
@@ -330,7 +332,7 @@ func doCreateContainerInstance(sess *session.Session) (error) {
           fmt.Printf("On cluster %s ContainerInstance %s on EC2 instance %s is now active (%s)\n", thisClusterName, *cis.ContainerInstanceArn, waitForId, time.Since(startTime))
         }
       } else {
-        log.Errorf("\n%sFailed on waiting for instance active: %s.%s", failColor,  err, resetColor)
+        log.Error(nil, "Failed on waiting for instance active.", err)
       }
     })
   } 

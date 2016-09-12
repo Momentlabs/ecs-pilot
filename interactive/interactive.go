@@ -12,8 +12,10 @@ import (
   "github.com/aws/aws-sdk-go/service/ec2"
   // "github.com/bobappleyard/readline"
   "github.com/chzyer/readline"
-  "github.com/op/go-logging"
+  "github.com/jdrivas/sl"
   "github.com/mgutz/ansi"
+  "github.com/Sirupsen/logrus"
+
 
   // THIS WILL UNDOUBTADLY CAUSE PROBLEMS
   // "awslib"
@@ -58,6 +60,8 @@ var (
   interQuit *kingpin.CmdClause
   interVerbose *kingpin.CmdClause
   verbose bool
+  debugCmd *kingpin.CmdClause
+  debug bool
   interTestString []string
 
   // Clusters
@@ -98,18 +102,18 @@ var (
   taskConfigFileName string
   // interTaskDefinitionArn string
 
-  log *logging.Logger
+  log = sl.New()
 
 )
 
 func init() {
 
   taskEnv = make(map[string]string)
-  log = logging.MustGetLogger("ecs-pilot/interactive")
 
   interApp = kingpin.New("", "Interactive mode.").Terminate(doTerminate)
 
   // state
+  debugCmd = interApp.Command("debug", "toggle debug logging and description.")
   interVerbose = interApp.Command("verbose", "toggle verbose mode.")
   interExit = interApp.Command("exit", "exit the program. <ctrl-D> works too.")
   interQuit = interApp.Command("quit", "exit the program.")
@@ -199,6 +203,7 @@ func doICommand(line string, ecsSvc *ecs.ECS, ec2Svc *ec2.EC2, awsConfig *aws.Co
     return nil
   } else {
       switch command {
+      case debugCmd.FullCommand(): err = doDebug()
       case interVerbose.FullCommand(): err = doVerbose()
       case interExit.FullCommand(): err = doQuit(sess)
       case interQuit.FullCommand(): err = doQuit(sess)
@@ -257,6 +262,22 @@ func doTest() (error) {
   return nil
 }
 
+func toggleDebug() bool {
+  debug = !debug
+  return debug
+}
+
+func doDebug() (error) {
+
+  if toggleDebug() {
+    fmt.Println("Debug is on.")
+  } else {
+    fmt.Println("Debug is off.")
+  }
+  configureLogs()
+  return nil
+}
+
 func toggleVerbose() bool {
   verbose = !verbose
   return verbose
@@ -265,14 +286,24 @@ func toggleVerbose() bool {
 func doVerbose() (error) {
   if toggleVerbose() {
     fmt.Println("Verbose is on.")
-    logging.SetLevel(logging.DEBUG,"ecs-pilot")
-    logging.SetLevel(logging.DEBUG, "ecs-pilot/interactive")
-    logging.SetLevel(logging.DEBUG, "ecs-pilot/awslib")
   } else {
     fmt.Println("Verbose is off.")
-    logging.SetLevel(logging.ERROR,"")
   }
+  configureLogs()
   return nil
+}
+
+func configureLogs() {
+  formatter := new(sl.TextFormatter)
+  formatter.FullTimestamp = true
+  log.SetFormatter(formatter)
+  if debug || verbose {
+    log.SetLevel(logrus.DebugLevel)
+    awslib.SetLogLevel(logrus.DebugLevel)
+  } else {
+    log.SetLevel(logrus.InfoLevel)
+    awslib.SetLogLevel(logrus.InfoLevel)
+  }
 }
 
 func doQuit(sess *session.Session) (error) {

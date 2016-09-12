@@ -59,11 +59,14 @@ func doDescribeTaskDefinition(svc *ecs.ECS) (error) {
 }
 
 func doRegisterTaskDefinition(svc *ecs.ECS) (error) {
-  resp, err := awslib.RegisterTaskDefinition(taskConfigFileName, svc)
+  file, err := os.Open(taskConfigFileName)
+  if err != nil { return err}
+
+  resp, err := awslib.RegisterTaskDefinitionWithJSON(file, svc)
   if err == nil {
-    fmt.Printf("Got the following response: %+v\n", resp)
+    fmt.Printf("Got the following response:\n %+v\n", resp)
   } else {
-    fmt.Printf("Couldn't register the task definition: %s.\n", err)
+    err = fmt.Errorf("Couldn't register the task definition: %s.", err)
   }
 
   return err
