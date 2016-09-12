@@ -2,9 +2,11 @@ FROM golang
 
 MAINTAINER David Rivas david@momentlabs.io
 
-VOLUME ["/go/src/"]
-ENV app_name ecs-pilot
-# This is what the parent expects.
-WORKDIR /go/src/${app_name}
+ENV app ecs-pilot
 
-ENTRYPOINT ["make", "release/${app_name}_linux_amd64"]
+VOLUME ["/go/src/"]
+ENV target=release/${app}_linux_amd64
+
+# This is what the parent expects.
+WORKDIR /go/src/${app}
+ENTRYPOINT  make ${target}

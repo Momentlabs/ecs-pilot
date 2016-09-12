@@ -1,15 +1,15 @@
 version: '2'
 services: 
-  craft-config-builder:
+  ecs-pilot-builder:
     build:
       context: .
       dockerfile: dockerfile
     volumes:
       - ${GOPATH}/src:/go/src
 
-  # images:  033441544097.dkr.ecr.us-east-1.amazonaws.com/craft-config-builder
-    image:  craft-config-builder
-    container_name: craft-config-builder
+    image:  ecs-pilot
+    container_name: ecs-pilot-builder
     environment:
       - GOOS=linux
       - GOARCH=amd64
+

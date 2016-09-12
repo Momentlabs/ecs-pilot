@@ -1,7 +1,7 @@
 repo := ecs-pilot
 aws_profile = momentlabs
 
-prog := craft-config
+prog := ecs-pilot
 release_dir := release
 builds := darwin_build linux_build
 darwin_target := $(release_dir)/$(prog)_darwin_amd64
@@ -33,19 +33,19 @@ $(linux_target) :
 darwin_build : $(darwin_target)
 
 # This is a docker build to get a linux target because of golang cgo dependency in os.user
-linux_build : $(linux_target)
-	docker-compose up
+linux_build :
+	docker-compose up --build
 
 release-build: $(builds)
 
 # TODO: Consider doing some git tagging and building in a file for description.
 new-release: clean release-build
 	@echo creating release on github, version: ${version}: $(description)
-	github-release release -u Momentlabs -r craft-config -t ${version} -d "${description}"
-	github-release upload -u Momentlabs -r craft-config -t ${version} -n craft-config_linux_amd64 -f $(release_dir)/$(prog)_linux_amd64
-	github-release upload -u Momentlabs -r craft-config -t ${version} -n craft-config_darwin_amd64 -f $(release_dir)/$(prog)_darwin_amd64
+	github-release release -u Momentlabs -r $(prog) -t ${version} -d "${description}"
+	github-release upload -u Momentlabs -r $(prog) -t ${version} -n $(prog)_linux_amd64 -f $(release_dir)/$(prog)_linux_amd64
+	github-release upload -u Momentlabs -r $(prog) -t ${version} -n $(prog)_darwin_amd64 -f $(release_dir)/$(prog)_darwin_amd64
 
-release-publish: release-build
-	github-release upload -u Momentlabs -r craft-config -t ${version} -n craft-config_linux_amd64 -f $(release_dir)/$(prog)_linux_amd64
-	github-release upload -u Momentlabs -r craft-config -t ${version} -n craft-config_darwin_amd64 -f $(release_dir)/$(prog)_darwin_amd64
+publish-release: release-build
+	github-release upload -u Momentlabs -r $(prog) -t ${version} -n $(prog)_linux_amd64 -f $(release_dir)/$(prog)_linux_amd64
+	github-release upload -u Momentlabs -r $(prog) -t ${version} -n $(prog)_darwin_amd64 -f $(release_dir)/$(prog)_darwin_amd64
 
