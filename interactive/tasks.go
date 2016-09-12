@@ -3,6 +3,7 @@ package interactive
 import (
   "fmt"
   "os"
+  "strings"
   "time"
   "text/tabwriter"
   "github.com/aws/aws-sdk-go/aws/session"
@@ -24,13 +25,13 @@ func doListTasks(sess *session.Session) (error) {
   if err == nil {
     fmt.Printf("%sCluster: %s%s\n", titleColor, currentCluster, resetColor)
     w := tabwriter.NewWriter(os.Stdout, 4, 10, 2, ' ', 0)
-    fmt.Fprintf(w, "%sInstance\tContainers\tUptime\tTTS\tStatus\tTask Definition\tARN%s\n", titleColor, resetColor)
+    fmt.Fprintf(w, "%sInstance\tBindings\tContainers\tUptime\tTTS\tStatus\tTask Definition\tARN%s\n", titleColor, resetColor)
     for arn, dt := range dtm {
       // ct := tasksMap[*arn]
       t := dt.Task
       // fmt.Fprintf(w, "%s%s\t%s%s\n", nullColor, collectContainerNames(containerTask.Task), *arn, resetColor)
-      fmt.Fprintf(w, "%s%s\t%s\t%s\t%s\t%s\t%s\t%s%s\n", nullColor, 
-        dt.PublicIpAddress(), collectContainerNames(t), dt.UptimeString(), dt.TimeToStartString(),
+      fmt.Fprintf(w, "%s%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s%s\n", nullColor, 
+        dt.PublicIpAddress(), collectBindings(t), collectContainerNames(t), dt.UptimeString(), dt.TimeToStartString(),
         *t.LastStatus, awslib.ShortArnString(t.TaskDefinitionArn), awslib.ShortArnString(&arn), resetColor)
       // fmt.Fprintf(w, "%s\t%s%s\n", nullColor, *arn, resetColor)
       // fmt.Fprintln(w)
@@ -44,6 +45,20 @@ func collectContainerNames(task *ecs.Task) (string) {
   s := ""
   for _, container := range task.Containers {
     s += fmt.Sprintf("%s ", *container.Name)
+  }
+  return s
+}
+
+func collectBindings(task *ecs.Task) (string) {
+  s := ""
+  for _, c := range task.Containers {
+    bdgs := c.NetworkBindings
+    if len(bdgs) == 0 {continue}
+    s += *c.Name + ": "
+    for _, b := range bdgs {
+      s += fmt.Sprintf("%d->%d, ", *b.ContainerPort, *b.HostPort)
+    }
+    s = strings.Trim(s,", ")
   }
   return s
 }

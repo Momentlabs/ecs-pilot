@@ -1,4 +1,5 @@
 node_modules
 release
+compose-files
 *.json
 .instance_credentials
