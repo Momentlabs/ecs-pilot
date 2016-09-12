@@ -25,7 +25,7 @@ func doListTasks(sess *session.Session) (error) {
   if err == nil {
     fmt.Printf("%sCluster: %s%s\n", titleColor, currentCluster, resetColor)
     w := tabwriter.NewWriter(os.Stdout, 4, 10, 2, ' ', 0)
-    fmt.Fprintf(w, "%sInstance\tBindings\tContainers\tUptime\tTTS\tStatus\tTask Definition\tARN%s\n", titleColor, resetColor)
+    fmt.Fprintf(w, "%sInstance\tBindings\tContainers\tUptime\tTTS\tStatus\tTask Definition\tTask ARN%s\n", titleColor, resetColor)
     for arn, dt := range dtm {
       // ct := tasksMap[*arn]
       t := dt.Task
