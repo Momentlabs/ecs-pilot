@@ -15,7 +15,7 @@ import (
 )
 
 func doCreateCluster(svc *ecs.ECS) (error) {
-  cluster, err := awslib.CreateCluster(interClusterName, svc)
+  cluster, err := awslib.CreateCluster(currentCluster, svc)
   if err == nil {
     printCluster(cluster)
   }
@@ -23,7 +23,7 @@ func doCreateCluster(svc *ecs.ECS) (error) {
 }
 
 func doDeleteCluster(svc *ecs.ECS) (error) {
-  cluster, err := awslib.DeleteCluster(interClusterName, svc)
+  cluster, err := awslib.DeleteCluster(currentCluster, svc)
   if err == nil {
     printCluster(cluster)
   }
@@ -59,10 +59,10 @@ func doListClusters(sess *session.Session) (error) {
 }
 
 func doDescribeCluster(svc *ecs.ECS) (error) {
-  clusters, err := awslib.DescribeCluster(interClusterName, svc)
+  clusters, err := awslib.DescribeCluster(currentCluster, svc)
   if err == nil  {
     if len(clusters) <= 0 {
-      fmt.Printf("Couldn't get any clusters for %s.\n", interClusterName)
+      fmt.Printf("Couldn't get any clusters for %s.\n", currentCluster)
     } else {
       printCluster(clusters[0])
     }

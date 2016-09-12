@@ -11,17 +11,19 @@ import (
   "github.com/aws/aws-sdk-go/service/ec2"
 
   // THIS WILL UNDOUBTADLY CAUSE PROBLEMS
-  "awslib"
-  // "github.com/jdrivas/awslib"
+  // "awslib"
+  "github.com/jdrivas/awslib"
 
 )
 
 func doListContainerInstances(sess *session.Session) (error) {
-  ciMap, ecMap, err := awslib.GetContainerMaps(interClusterName, sess)
-  if err != nil {return fmt.Errorf("Can't get container instances for %s: %s", interClusterName, err)}
+  ciMap, ecMap, err := awslib.GetContainerMaps(currentCluster, sess)
+  if err != nil {return fmt.Errorf("Can't get container instances for %s: %s", currentCluster, err)}
 
-  fmt.Printf("%s%s %s: %d instances.%s\n", 
-    emphColor, time.Now().Local().Format(humanTimeFormat), interClusterName, len(ciMap), resetColor)
+  instanceNoun := "instances"
+  if len(ciMap) == 1 { instanceNoun = "instance"}
+  fmt.Printf("%s%s %s: %d %s.%s\n", 
+    emphColor, time.Now().Local().Format(humanTimeFormat), currentCluster, len(ciMap), instanceNoun, resetColor)
   w := tabwriter.NewWriter(os.Stdout, 4, 2, 2, ' ', 0)
   // fmt.Fprintf(w, "%sAddress\tType\tStatus\tA-CPU\t%sR-CPU%s\tA-Memory\t%sR-Memory%s\tEC2ID\tARN%s\n", 
   //   emphColor, defaultColor, defaultColor, defaultColor, defaultColor, resetColor)
@@ -59,7 +61,7 @@ func doListContainerInstances(sess *session.Session) (error) {
   w.Flush()
 
 
-  // fmt.Printf("%d instances for cluster \"%s\"\n", len(instanceArns), interClusterName)
+  // fmt.Printf("%d instances for cluster \"%s\"\n", len(instanceArns), currentCluster)
   // for i, instance := range instanceArns {
   //   fmt.Printf("%d: %s\n", i+1, *instance)
   // }
@@ -68,7 +70,7 @@ func doListContainerInstances(sess *session.Session) (error) {
 }
 
 func doDescribeContainerInstance(sess *session.Session) (error) {
-  ciMap, err := awslib.GetContainerInstanceDescription(interClusterName, interContainerArn, sess)
+  ciMap, err := awslib.GetContainerInstanceDescription(currentCluster, interContainerArn, sess)
   if err == nil {
     ec2InstanceMap, err := awslib.DescribeEC2Instances(ciMap, sess)
     if err != nil {
@@ -81,10 +83,10 @@ func doDescribeContainerInstance(sess *session.Session) (error) {
 }
 
 func doDescribeAllContainerInstances(sess *session.Session) (error) {
-  ciMap, err := awslib.GetAllContainerInstanceDescriptions(interClusterName, sess)
+  ciMap, err := awslib.GetAllContainerInstanceDescriptions(currentCluster, sess)
   if err == nil {
     if len(ciMap) <= 0 {
-      fmt.Printf("There are no containers for: %s.\n", interClusterName)
+      fmt.Printf("There are no containers for: %s.\n", currentCluster)
     } else {
       ec2InstanceMap, err := awslib.DescribeEC2Instances(ciMap, sess)
       if err != nil {
@@ -248,8 +250,8 @@ func attributeString(attr *ecs.Attribute) (string) {
 }
 
 func doCreateContainerInstance(sess *session.Session) (error) {
-  thisClusterName := interClusterName // TODO: Check if this is a copying the string over for the OnWait routines below.
-  nameTag := fmt.Sprintf("%s - ecs instance", interClusterName)
+  thisClusterName := currentCluster // TODO: Check if this is a copying the string over for the OnWait routines below.
+  nameTag := fmt.Sprintf("%s - ecs instance", currentCluster)
   tags := []*ec2.Tag{
     {
       Key: aws.String("Name"),
@@ -291,7 +293,7 @@ func doCreateContainerInstance(sess *session.Session) (error) {
       instances, err := awslib.GetInstancesForIds(iIds, sess)
       if err == nil {
         if len(instances) == 1 {
-          fmt.Printf("\nEC2 Instance running (%s): %s\n", time.Since(startTime), shortInstanceString(instances[0]))
+          fmt.Printf("\n%sEC2 Instance running (%s): %s%s\n", infoColor, time.Since(startTime), shortInstanceString(instances[0]), resetColor)
         } else {
           fmt.Printf("\nThere are%d) EC2 Instances running. (%s)\n", len(instances), time.Since(startTime))
           for i, inst := range instances {
@@ -349,7 +351,7 @@ func shortInstanceString(inst *ec2.Instance) (s string) {
 }
 
 func doTerminateContainerInstance(svc *ecs.ECS, ec2Svc *ec2.EC2) (error) {
-  resp, err := awslib.TerminateContainerInstance(interClusterName, interContainerArn, svc, ec2Svc)
+  resp, err := awslib.TerminateContainerInstance(currentCluster, interContainerArn, svc, ec2Svc)
   if err != nil {
     return err
   }

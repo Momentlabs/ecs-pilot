@@ -9,27 +9,29 @@ import (
   "github.com/aws/aws-sdk-go/service/ecs"
 
   // THIS WILL UNDOUBTADLY CAUSE PROBLEMS
-  "awslib"
-  // "github.com/jdrivas/awslib"
+  // "awslib"
+  "github.com/jdrivas/awslib"
 
 )
 
-
-func doListTasks(svc *ecs.ECS) (error) {
-  arns, err := awslib.ListTasksForCluster(interClusterName, svc)
-  tasksMap, err := awslib.GetAllTaskDescriptions(interClusterName, svc)
+// TODO: figure out a way to display port-host bindings on the listing.
+func doListTasks(sess *session.Session) (error) {
+  dtm,  err:= awslib.GetDeepTasks(currentCluster, sess)
+  if err != nil { return err }
+  // arns, err := awslib.ListTasksForCluster(currentCluster, svc)
+  // tasksMap, err := awslib.GetAllTaskDescriptions(currentCluster, svc)
   // TODO: research into inflectors for go.
   if err == nil {
-    fmt.Printf("%sCluster: %s%s\n", titleColor, interClusterName, resetColor)
+    fmt.Printf("%sCluster: %s%s\n", titleColor, currentCluster, resetColor)
     w := tabwriter.NewWriter(os.Stdout, 4, 10, 2, ' ', 0)
-    fmt.Fprintf(w, "%s#\tContainers\tUptime\tTTL\tStatus\tTask Definition\tARN%s\n", titleColor, resetColor)
-    for i, arn := range arns {
-      ct := tasksMap[*arn]
-      t := ct.Task
+    fmt.Fprintf(w, "%sInstance\tContainers\tUptime\tTTS\tStatus\tTask Definition\tARN%s\n", titleColor, resetColor)
+    for arn, dt := range dtm {
+      // ct := tasksMap[*arn]
+      t := dt.Task
       // fmt.Fprintf(w, "%s%s\t%s%s\n", nullColor, collectContainerNames(containerTask.Task), *arn, resetColor)
-      fmt.Fprintf(w, "%s%d.\t%s\t%s\t%s\t%s\t%s\t%s%s\n", nullColor, i+1, 
-        collectContainerNames(t), ct.UptimeString(), t.StartedAt.Sub(*t.CreatedAt),
-        *t.LastStatus, awslib.ShortArnString(t.TaskDefinitionArn), awslib.ShortArnString(arn), resetColor)
+      fmt.Fprintf(w, "%s%s\t%s\t%s\t%s\t%s\t%s\t%s%s\n", nullColor, 
+        dt.PublicIpAddress(), collectContainerNames(t), dt.UptimeString(), dt.TimeToStartString(),
+        *t.LastStatus, awslib.ShortArnString(t.TaskDefinitionArn), awslib.ShortArnString(&arn), resetColor)
       // fmt.Fprintf(w, "%s\t%s%s\n", nullColor, *arn, resetColor)
       // fmt.Fprintln(w)
     }
@@ -46,12 +48,30 @@ func collectContainerNames(task *ecs.Task) (string) {
   return s
 }
 
+func doDescribeTask(sess *session.Session) (error) {
+  dt, err := awslib.GetDeepTask(currentCluster, interTaskArn, sess)
+  if err != nil {
+    return err
+  }
+  t := dt.Task
+  // ec2 := dt.EC2Instance
+  up := 0 * time.Minute
+  if u, err := dt.Uptime(); err == nil { up = u }
+  w := tabwriter.NewWriter(os.Stdout, 4, 10, 2, ' ', 0)
+  fmt.Fprintf(w, "%sAddress\tCluster\tTaskDefinition\tUptime\tStatus\tARN%s\n", titleColor, 
+    dt.PublicIpAddress(), awslib.ShortArnString(t.ClusterArn), awslib.ShortArnString(t.TaskDefinitionArn),
+    up, *t.LastStatus, *t.TaskArn, resetColor)
+  w.Flush()
+
+  return nil
+}
+
 func doDescribeAllTasks(svc *ecs.ECS) (error) {
-  resp, err := awslib.GetAllTaskDescriptions(interClusterName, svc)
+  resp, err := awslib.GetAllTaskDescriptions(currentCluster, svc)
 
   if err == nil {
     if len(resp) <= 0 {
-      fmt.Printf("No tasks for %s.\n", interClusterName)
+      fmt.Printf("No tasks for %s.\n", currentCluster)
     } else {
       fmt.Printf("%s", ContainerTaskMapToString(resp))
     }
@@ -126,20 +146,20 @@ func doRunTask(svc *ecs.ECS) (error) {
     }
   }
 
-  runTaskOut, err := awslib.RunTaskWithEnv(interClusterName, interTaskDefinitionArn, containerEnvMap, svc)
+  runTaskOut, err := awslib.RunTaskWithEnv(currentCluster, interTaskDefinitionArn, containerEnvMap, svc)
   if err == nil {
     fmt.Printf("%sStarting task.%s\n", successColor, resetColor)
     printTaskDescription(runTaskOut.Tasks, runTaskOut.Failures, false)
     if len(runTaskOut.Tasks) > 0 {
       taskToWaitOn := *runTaskOut.Tasks[0].TaskArn
-      awslib.OnTaskRunning(interClusterName, taskToWaitOn, svc, func(taskDescrip *ecs.DescribeTasksOutput, err error) {
+      awslib.OnTaskRunning(currentCluster, taskToWaitOn, svc, func(taskDescrip *ecs.DescribeTasksOutput, err error) {
         if err == nil {
-          fmt.Printf("\n%sTask is now running on cluster %s%s\n", successColor, interClusterName, resetColor)
+          fmt.Printf("\n%sTask is now running on cluster %s%s\n", successColor, currentCluster, resetColor)
           printTaskDescription(taskDescrip.Tasks, taskDescrip.Failures, true)
           fmt.Printf("%s\n", containerEnvironmentsString(&containerEnvMap))
         } else {
           fmt.Printf("\n%sProblem starting task: %s on cluster %s.%s\n", 
-            failColor, awslib.ShortArnString(&taskToWaitOn), interClusterName, resetColor)
+            failColor, awslib.ShortArnString(&taskToWaitOn), currentCluster, resetColor)
           fmt.Printf("%sError: %s.%s\n", warnColor, err, resetColor)
           if taskDescrip != nil {
             tasks := taskDescrip.Tasks
@@ -185,7 +205,7 @@ func doRunTask(svc *ecs.ECS) (error) {
 
 func doStopTask(sess *session.Session) (error) {
   fmt.Printf("%sStopping the task: %s%s\n", warnColor, interTaskArn, resetColor)
-  resp, err := awslib.StopTask(interClusterName, interTaskArn, sess)
+  resp, err := awslib.StopTask(currentCluster, interTaskArn, sess)
   if err == nil {
     t := resp.Task
     fmt.Printf("%sTask scheduled to stop.\n%s", successColor, resetColor)
@@ -202,12 +222,12 @@ func doStopTask(sess *session.Session) (error) {
       resetColor)
     w.Flush()
 
-    awslib.OnTaskStopped(interClusterName, interTaskArn, sess, func(dto *ecs.DescribeTasksOutput, err error){
+    awslib.OnTaskStopped(currentCluster, interTaskArn, sess, func(dto *ecs.DescribeTasksOutput, err error){
       if err == nil {
-        fmt.Printf("\n%sTask: %s: %s is now stopped.%s\n", warnColor, interClusterName, interTaskArn,resetColor)
+        fmt.Printf("\n%sTask: %s: %s is now stopped.%s\n", warnColor, currentCluster, interTaskArn,resetColor)
       } else {
         fmt.Printf("\n%sThere was a problem waiting for task %s on cluster %s to stop.%s\n", 
-          failColor, interTaskArn, interClusterName, resetColor)
+          failColor, interTaskArn, currentCluster, resetColor)
         fmt.Printf("\n%sError: %s.%s\n", warnColor, err, resetColor)
       }
     })
