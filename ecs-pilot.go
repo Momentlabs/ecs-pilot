@@ -6,6 +6,7 @@ import (
   "fmt"
   "os"
   "ecs-pilot/interactive"
+  "ecs-pilot/version"
   "github.com/alecthomas/kingpin"
   "github.com/aws/aws-sdk-go/aws/session"
   "github.com/aws/aws-sdk-go/service/ecs"
@@ -22,17 +23,8 @@ const(
   textLog = "text"
 )
 
-type Version struct {
-  Major int 
-  Minor int
-  Name string
-  Status string
-  Hash string
-}
 
 var(
-  version = Version{ Major: 0, Minor: 1, Name: "Launch", Status: "development", }
-
   log = sl.New()
 
   app                               *kingpin.Application
@@ -185,7 +177,7 @@ func doDefaultTaskDefinition(svc *ecs.ECS) {
 }
 
 func doPrintVersion(svc *ecs.ECS) {
-  fmt.Printf("Version: %d.%d %s <%s>\n", version.Major, version.Minor, version.Name, version.Status)
+  fmt.Println(version.Version)
 }
 
 func printAsJsonObject(o interface{}) {
