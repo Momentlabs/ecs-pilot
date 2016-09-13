@@ -15,7 +15,6 @@ import (
   // THIS WILL UNDOUBTADLY CAUSE PROBLEMS
   // "awslib"
   "github.com/jdrivas/awslib"
-
 )
 
 func doListContainerInstances(sess *session.Session) (error) {
@@ -72,15 +71,18 @@ func doListContainerInstances(sess *session.Session) (error) {
 }
 
 func doDescribeContainerInstance(sess *session.Session) (error) {
-  ciMap, err := awslib.GetContainerInstanceDescription(currentCluster, interContainerArn, sess)
-  if err == nil {
-    ec2InstanceMap, err := awslib.DescribeEC2Instances(ciMap, sess)
-    if err != nil {
-      fmt.Printf("%s\n", ContainerInstanceMapToString(ciMap, map[string]*ec2.Instance{}))
-      return err
-    }
-    fmt.Printf("%s\n", ContainerInstanceMapToString(ciMap, ec2InstanceMap))
+  ciArn, err := awslib.LongArnString(interContainerArn, awslib.ContainerInstanceType, sess)
+  if err != nil { return fmt.Errorf("Failed to get long arn from short arn (%s): %s", interContainerArn)}
+  ciMap, err := awslib.GetContainerInstanceDescription(currentCluster, ciArn, sess)
+  if err != nil {return fmt.Errorf("Error getting Container Instance description for %s: %s", ciArn, err)}
+
+  ec2InstanceMap, err := awslib.DescribeEC2Instances(ciMap, sess)
+  if err != nil { 
+    fmt.Printf("%sError getting EC2 Instance data: %s%s", failColor, err, resetColor)
+    ec2InstanceMap = map[string]*ec2.Instance{}
   }
+
+  fmt.Printf("%s\n", ContainerInstanceMapToString(ciMap, ec2InstanceMap))
   return err
 }
 
@@ -114,7 +116,7 @@ func ContainerInstanceMapToString(ciMap awslib.ContainerInstanceMap, instances m
     }
     s += fmt.Sprintf("%s", iString)
     if ci.Failure != nil {
-      s += fmt.Sprintf("\n+v", *ci.Failure)
+      s += fmt.Sprintf("\n+#v", *ci.Failure)
     }
   } 
   return s

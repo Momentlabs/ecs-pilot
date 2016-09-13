@@ -38,6 +38,10 @@ func doDescribeTaskDefinition(svc *ecs.ECS) (error) {
   return err
 }
 
+
+// Consider adding a test to ensure that file-name.json matche the family inside the jason.
+// So that spigot-test.json => "family": "spigot-test".
+// Keeps us from accidentially overwritting task-descriptions when we copy and past into a new .json file.
 func doRegisterTaskDefinition(svc *ecs.ECS) (error) {
   file, err := os.Open(taskConfigFileName)
   if err != nil { return err}
@@ -46,7 +50,7 @@ func doRegisterTaskDefinition(svc *ecs.ECS) (error) {
   if err == nil {
     td := resp.TaskDefinition
     // fmt.Printf("Got the following response:\n %+v\n", resp)
-    fmt.Printf("Registered TaskDefinition: $%s:%d\n", *td.Family, *td.Revision)
+    fmt.Printf("%sRegistered TaskDefinition: %s:%d%s\n", successColor, *td.Family, *td.Revision, resetColor)
     describeTaskDefinition(td)
   } else {
     err = fmt.Errorf("Couldn't register the task definition: %s.", err)
