@@ -4,6 +4,7 @@ import (
   "fmt"
   "os"
   "text/tabwriter"
+  "github.com/aws/aws-sdk-go/aws/session"
   "github.com/aws/aws-sdk-go/service/ecs"
 
   // THIS WILL UNDOUBTADLY CAUSE PROBLEMS
@@ -12,22 +13,24 @@ import (
 
 )
 
-func doListTaskDefinitions(svc *ecs.ECS) (error) {
-  arns, err := awslib.ListTaskDefinitions(svc)
+func doListTaskDefinitions(sess *session.Session) (error) {
+  // arns, err := awslib.ListTaskDefinitions(svc)
+  tds, err := awslib.ListTaskDefinitionFamilies(sess)
   if err == nil {
-
-    fmt.Printf("There are (%d) task definitions.\n", len(arns))
-    for i, arn := range arns {
-      fmt.Printf("%d: %s.\n", i+1, *arn)
+    w := tabwriter.NewWriter(os.Stdout, 4, 8, 3, ' ', 0)
+    fmt.Fprintf(w, "%sTask Definition%s\n", titleColor, resetColor)
+    for _, tdf := range tds {
+      fmt.Fprintf(w,"%s%s%s\n", nullColor, *tdf, resetColor)
     }
+    w.Flush()
   }
   return err
 }
 
 
-func doDescribeTaskDefinition(svc *ecs.ECS) (error) {
+func doDescribeTaskDefinition(sess *session.Session) (error) {
 
-  td, err := awslib.GetTaskDefinition(interTaskDefinitionArn, svc)
+  td, err := awslib.GetTaskDefinition(interTaskDefinitionArn, sess)
     if err == nil {
       describeTaskDefinition(td)
     if verbose {
@@ -42,11 +45,11 @@ func doDescribeTaskDefinition(svc *ecs.ECS) (error) {
 // Consider adding a test to ensure that file-name.json matche the family inside the jason.
 // So that spigot-test.json => "family": "spigot-test".
 // Keeps us from accidentially overwritting task-descriptions when we copy and past into a new .json file.
-func doRegisterTaskDefinition(svc *ecs.ECS) (error) {
+func doRegisterTaskDefinition(sess *session.Session) (error) {
   file, err := os.Open(taskConfigFileName)
   if err != nil { return err}
 
-  resp, err := awslib.RegisterTaskDefinitionWithJSON(file, svc)
+  resp, err := awslib.RegisterTaskDefinitionWithJSON(file, sess)
   if err == nil {
     td := resp.TaskDefinition
     // fmt.Printf("Got the following response:\n %+v\n", resp)

@@ -3,7 +3,6 @@ package interactive
 import (
   "fmt"
   "os"
-  "strings"
   "time"
   "text/tabwriter"
   "github.com/aws/aws-sdk-go/aws/session"
@@ -31,7 +30,7 @@ func doListTasks(sess *session.Session) (error) {
       t := dt.Task
       // fmt.Fprintf(w, "%s%s\t%s%s\n", nullColor, collectContainerNames(containerTask.Task), *arn, resetColor)
       fmt.Fprintf(w, "%s%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s%s\n", nullColor, 
-        dt.PublicIpAddress(), collectBindings(t), collectContainerNames(t), dt.UptimeString(), dt.TimeToStartString(),
+        dt.PublicIpAddress(), awslib.CollectBindings(t), awslib.CollectContainerNames(t.Containers), dt.UptimeString(), dt.TimeToStartString(),
         *t.LastStatus, awslib.ShortArnString(t.TaskDefinitionArn), awslib.ShortArnString(&arn), resetColor)
       // fmt.Fprintf(w, "%s\t%s%s\n", nullColor, *arn, resetColor)
       // fmt.Fprintln(w)
@@ -39,28 +38,6 @@ func doListTasks(sess *session.Session) (error) {
     w.Flush()
   }
   return err
-}
-
-func collectContainerNames(task *ecs.Task) (string) {
-  s := ""
-  for _, container := range task.Containers {
-    s += fmt.Sprintf("%s ", *container.Name)
-  }
-  return s
-}
-
-func collectBindings(task *ecs.Task) (string) {
-  s := ""
-  for _, c := range task.Containers {
-    bdgs := c.NetworkBindings
-    if len(bdgs) == 0 {continue}
-    s += *c.Name + ": "
-    for _, b := range bdgs {
-      s += fmt.Sprintf("%d->%d, ", *b.ContainerPort, *b.HostPort)
-    }
-    s = strings.Trim(s,", ")
-  }
-  return s
 }
 
 func doDescribeTask(sess *session.Session) (error) {
@@ -146,10 +123,11 @@ func ContainerTaskDescriptionToString(task *ecs.Task) (string) {
 
 
 
-func doRunTask(svc *ecs.ECS) (error) {
+func doRunTask(sess *session.Session) (error) {
+  // svc := ecs.New(sess)
   containerEnvMap := make(awslib.ContainerEnvironmentMap)
   if len(taskEnv) > 0 {
-    taskDef, err  := awslib.GetTaskDefinition(interTaskDefinitionArn, svc)
+    taskDef, err  := awslib.GetTaskDefinition(interTaskDefinitionArn, sess)
     if err != nil {
       return err
     }
@@ -161,13 +139,13 @@ func doRunTask(svc *ecs.ECS) (error) {
     }
   }
 
-  runTaskOut, err := awslib.RunTaskWithEnv(currentCluster, interTaskDefinitionArn, containerEnvMap, svc)
+  runTaskOut, err := awslib.RunTaskWithEnv(currentCluster, interTaskDefinitionArn, containerEnvMap, sess)
   if err == nil {
     fmt.Printf("%sStarting task.%s\n", successColor, resetColor)
     printTaskDescription(runTaskOut.Tasks, runTaskOut.Failures, false)
     if len(runTaskOut.Tasks) > 0 {
       taskToWaitOn := *runTaskOut.Tasks[0].TaskArn
-      awslib.OnTaskRunning(currentCluster, taskToWaitOn, svc, func(taskDescrip *ecs.DescribeTasksOutput, err error) {
+      awslib.OnTaskRunning(currentCluster, taskToWaitOn, sess, func(taskDescrip *ecs.DescribeTasksOutput, err error) {
         if err == nil {
           fmt.Printf("\n%sTask is now running on cluster %s%s\n", successColor, currentCluster, resetColor)
           printTaskDescription(taskDescrip.Tasks, taskDescrip.Failures, true)
@@ -277,7 +255,7 @@ func printTaskDescription(tasks []*ecs.Task, failures []*ecs.Failure, printStart
     for _, t := range tasks {
       fmt.Fprintf(w, "%s%s\t%s\t%s\t%s\t%s\t%s%s\n", nullColor, 
         awslib.ShortArnString(t.ClusterArn), awslib.ShortArnString(t.TaskDefinitionArn), 
-        collectContainerNames(t), *t.LastStatus, t.StartedAt.Sub(*t.CreatedAt),
+        awslib.CollectContainerNames(t.Containers), *t.LastStatus, t.StartedAt.Sub(*t.CreatedAt),
         awslib.ShortArnString(t.TaskArn), resetColor)
     }
   } else {
@@ -285,7 +263,7 @@ func printTaskDescription(tasks []*ecs.Task, failures []*ecs.Failure, printStart
     for _, t := range tasks {
       fmt.Fprintf(w, "%s%s\t%s\t%s\t%s\t%s%s\n", nullColor, 
         awslib.ShortArnString(t.ClusterArn), awslib.ShortArnString(t.TaskDefinitionArn), 
-        collectContainerNames(t), *t.LastStatus, awslib.ShortArnString(t.TaskArn), resetColor)
+        awslib.CollectContainerNames(t.Containers), *t.LastStatus, awslib.ShortArnString(t.TaskArn), resetColor)
     }
   }
   w.Flush()

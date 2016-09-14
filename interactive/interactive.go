@@ -216,7 +216,7 @@ func doICommand(line string, ecsSvc *ecs.ECS, ec2Svc *ec2.EC2, awsConfig *aws.Co
       case interListTasks.FullCommand(): err = doListTasks(sess)
       case interDescribeTask.FullCommand(): err = doDescribeTask(sess)
       case interDescribeAllTasks.FullCommand(): err = doDescribeAllTasks(ecsSvc)
-      case interRunTask.FullCommand(): err = doRunTask(ecsSvc)
+      case interRunTask.FullCommand(): err = doRunTask(sess)
       case interStopTask.FullCommand(): err = doStopTask(sess)
 
       case interListContainerInstances.FullCommand(): err = doListContainerInstances(sess)
@@ -225,9 +225,9 @@ func doICommand(line string, ecsSvc *ecs.ECS, ec2Svc *ec2.EC2, awsConfig *aws.Co
       case interCreateContainerInstance.FullCommand(): err = doCreateContainerInstance(sess)
       case interTerminateContainerInstance.FullCommand(): err = doTerminateContainerInstance(ecsSvc, ec2Svc)
 
-      case interListTaskDefinitions.FullCommand(): err = doListTaskDefinitions(ecsSvc)
-      case interDescribeTaskDefinition.FullCommand(): err = doDescribeTaskDefinition(ecsSvc)
-      case registerTaskDefinition.FullCommand(): err = doRegisterTaskDefinition(ecsSvc)
+      case interListTaskDefinitions.FullCommand(): err = doListTaskDefinitions(sess)
+      case interDescribeTaskDefinition.FullCommand(): err = doDescribeTaskDefinition(sess)
+      case registerTaskDefinition.FullCommand(): err = doRegisterTaskDefinition(sess)
     }
   }
   return err
