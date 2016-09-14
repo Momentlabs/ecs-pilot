@@ -107,7 +107,7 @@ func main() {
     versionCmd.FullCommand(): doPrintVersion,
     listClusters.FullCommand(): doListCluster,
     listTaskDefinitions.FullCommand(): doListTaskDefinitions,
-    describeTaskDefinition.FullCommand(): doDescribeTaskDefinition,
+    // describeTaskDefinition.FullCommand(): doDescribeTaskDefinition,
     emptyTaskDefinition.FullCommand(): doEmptyTaskDefinition,
     defaultTaskDefinition.FullCommand(): doDefaultTaskDefinition,
   }
@@ -148,23 +148,23 @@ func doListTaskDefinitions(svc *ecs.ECS) {
   }
 }
 
-func doDescribeTaskDefinition(svc *ecs.ECS) {
-  taskDefinition, err := awslib.GetTaskDefinition(taskDefinitionArn, svc)
-  if err == nil {
-    b, err := json.Marshal(taskDefinition)
-    if err == nil {
-      var out bytes.Buffer
-      json.Indent(&out, b, "", "\t")
-      // fmt.Printf("%s\n", b)
-      out.WriteTo(os.Stdout)
-    } else {
-      fmt.Printf("Couldn't marhsall task definition into JSON: %s\n", err)
-    }
-    // fmt.Printf("%s\n", taskDefinition)
-  } else {
-    log.Error(logrus.Fields{"task-def-arn": taskDefinitionArn,},"Can't get TaskDefinition.", err)
-  }
-}
+// func doDescribeTaskDefinition(svc *ecs.ECS) {
+//   taskDefinition, err := awslib.GetTaskDefinition(taskDefinitionArn, sess)
+//   if err == nil {
+//     b, err := json.Marshal(taskDefinition)
+//     if err == nil {
+//       var out bytes.Buffer
+//       json.Indent(&out, b, "", "\t")
+//       // fmt.Printf("%s\n", b)
+//       out.WriteTo(os.Stdout)
+//     } else {
+//       fmt.Printf("Couldn't marhsall task definition into JSON: %s\n", err)
+//     }
+//     // fmt.Printf("%s\n", taskDefinition)
+//   } else {
+//     log.Error(logrus.Fields{"task-def-arn": taskDefinitionArn,},"Can't get TaskDefinition.", err)
+//   }
+// }
 
 func doEmptyTaskDefinition(svc *ecs.ECS) {
   tdi := awslib.CompleteEmptyTaskDefinition()
