@@ -307,16 +307,7 @@ func configureLogs() {
 }
 
 func doQuit(sess *session.Session) (error) {
-  clusters, err := awslib.GetAllClusterDescriptions(sess)
-  if err != nil {
-    fmt.Printf("doQuit: Error getting cluster data: %s\n", err)
-  } else {
-    for i, cluster := range clusters {
-      if *cluster.RegisteredContainerInstancesCount >= 0 {
-        fmt.Printf("%d. ECS Cluster %s\n", i+1, clusterShortString(cluster))
-      } 
-    }
-  }
+  doListClusters(sess)
   return io.EOF
 }
 
@@ -324,7 +315,7 @@ func doTerminate(i int) {}
 
 func promptLoop(process func(string) (error)) (err error) {
   for moreCommands := true; moreCommands; {
-    prompt := fmt.Sprintf("%s[%s%s%s]:%s ", titleEmph, infoColor, currentCluster, titleEmph, resetColor)
+    prompt := fmt.Sprintf("%spilot [%s%s%s]:%s ", titleEmph, infoColor, currentCluster, titleEmph, resetColor)
     line, err := readline.Line(prompt)
     if err == io.EOF {
       moreCommands = false
