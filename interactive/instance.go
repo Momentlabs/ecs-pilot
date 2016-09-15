@@ -220,6 +220,8 @@ func getMemory(resources []*ecs.Resource) (mem int64) {
   return mem
 }
 
+// TODO: Move this to the awslib functions.
+// getValueString etc.
 func resourceValue(r *ecs.Resource) (interface{}) {
 
   switch *r.Type {

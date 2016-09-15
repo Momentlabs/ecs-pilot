@@ -36,8 +36,8 @@ func doListClusters(sess *session.Session) (error) {
     return err
   }
 
-  fmt.Printf("%s%s: there are %d clusters.%s\n", 
-  emphColor, time.Now().Local().Format(humanTimeFormat), len(clusters), resetColor)
+  fmt.Printf("%s%s: there are %d clusters.%s\n", titleColor, 
+    time.Now().Local().Format(humanTimeFormat), len(clusters), resetColor)
   w := tabwriter.NewWriter(os.Stdout, 4, 10, 2, ' ', 0)
   fmt.Fprintf(w, "%sName\tStatus\tInstances\tPending\tRunning%s\n", titleColor, resetColor)
   for _, c := range clusters {
@@ -58,15 +58,53 @@ func doListClusters(sess *session.Session) (error) {
   return nil
 }
 
-func doDescribeCluster(svc *ecs.ECS) (error) {
-  clusters, err := awslib.DescribeCluster(currentCluster, svc)
-  if err == nil  {
-    if len(clusters) <= 0 {
-      fmt.Printf("Couldn't get any clusters for %s.\n", currentCluster)
-    } else {
-      printCluster(clusters[0])
-    }
-  }
+func doDescribeCluster(sess *session.Session) (error) {
+  // ecsSvc := ecs.New(sess)
+  // cs, err := awslib.DescribeCluster(currentCluster, ecsSvc)
+  // if err != nil { return err }
+
+  // dtm, err := awslib.GetDeepTasks(currentCluster, sess)
+  // if err != nil { return err }
+
+  // w := tabwriter.NewWriter(os.Stdout, 4, 10, 2, ' ', 0)
+  // fmt.Fprintf(w, "%sName\tStatus\tInstances\tPending\tRunning%s\n", titleColor, resetColor)
+  // ic := len(cs)
+  // color := nullColor
+  // if ic > 0 {color = successColor}
+  // fmt.Fprintf(w, "%s%s\t%s\t%d\t%d\t%d%s\n", color, *c.ClusterName, *c.Status, 
+  //   instanceCount, *c.PendingTasksCount, *c.RunningTasksCount, resetColor)
+  // w.Flush()
+
+  cimap, _, err := awslib.GetContainerMaps(currentCluster, sess)
+  if err != nil { return err }
+
+  totals := cimap.Totals()
+  w := tabwriter.NewWriter(os.Stdout, 4, 10, 2, ' ', 0)
+  fmt.Fprintf(w,"%s%s: Total Resources: %s%s\n", titleColor, 
+    time.Now().Local().Format(time.RFC1123), currentCluster,
+    resetColor)
+  fmt.Fprintf(w,"%sInst\tTask-R\tTask-P\tCPU-A\tCPU-R\tMEM-A\tMEM-R%s\n", titleColor, resetColor)
+  fmt.Fprintf(w,"%s%d\t%d\t%d\t%s\t%s\t%s\t%s%s\n", nullColor,
+    cimap.InstanceCount(), totals.RunningTasks, totals.PendingTasks,
+    totals.Registered.StringFor("CPU"), totals.Remaining.StringFor("CPU"),
+    totals.Registered.StringFor("MEMORY"), totals.Remaining.StringFor("MEMORY"),
+    resetColor)
+  w.Flush()
+
+  w = tabwriter.NewWriter(os.Stdout, 4, 10, 2, ' ', 0)
+  fmt.Fprintf(w,"%sAddress\tType\tUptime\tTasks\tCPU-A\tCPU-R\tMEM-A\t-MEM-R%s\n", titleColor, resetColor)
+  w.Flush()  
+
+
+
+  // clusters, err := awslib.DescribeCluster(currentCluster, svc)
+  // if err == nil  {
+  //   if len(clusters) <= 0 {
+  //     fmt.Printf("Couldn't get any clusters for %s.\n", currentCluster)
+  //   } else {
+  //     printCluster(clusters[0])
+  //   }
+  // }
   return err
 }
 

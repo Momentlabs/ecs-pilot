@@ -211,7 +211,7 @@ func doICommand(line string, ecsSvc *ecs.ECS, ec2Svc *ec2.EC2, awsConfig *aws.Co
       case createCluster.FullCommand(): err = doCreateCluster(ecsSvc)
       case deleteCluster.FullCommand(): err = doDeleteCluster(ecsSvc)
       case interListClusters.FullCommand(): err = doListClusters(sess)
-      case interDescribeCluster.FullCommand(): err = doDescribeCluster(ecsSvc)
+      case interDescribeCluster.FullCommand(): err = doDescribeCluster(sess)
 
       case interListTasks.FullCommand(): err = doListTasks(sess)
       case interDescribeTask.FullCommand(): err = doDescribeTask(sess)
