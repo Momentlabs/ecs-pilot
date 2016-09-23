@@ -73,17 +73,24 @@ func describeTaskDefinition(td *ecs.TaskDefinition) {
   //   fmt.Printf("Attribute: %s\n", *a.Name)
   // }
   w = tabwriter.NewWriter(os.Stdout, 8, 10, 2, ' ', 0)
-  fmt.Fprintf(w, "%s#\tContainer\tMemory\tCPU\tEssential\tImage%s\n", titleColor, resetColor)
-  for i, c := range td.ContainerDefinitions {
-    fmt.Fprintf(w,"%s%d.\t%s\t%d\t%d\t%t\t%s%s\n", nullColor, i+1,
+  fmt.Fprintf(w, "\n%sContainer\tMemory\tCPU\tEssential\tImage%s\n", titleColor, resetColor)
+  for _, c := range td.ContainerDefinitions {
+    fmt.Fprintf(w,"%s%s\t%d\t%d\t%t\t%s%s\n", nullColor,
       *c.Name, *c.Memory, *c.Cpu, *c.Essential, *c.Image, resetColor)
     // fmt.Fprintf(w,"%s\tEntrypoint: %s%s\n", nullColor, collectStringPointers(c.EntryPoint), resetColor)
     // fmt.Fprintf(w, "%s\tCMD: %s%s\n", nullColor, collectStringPointers(c.Command), resetColor)
     // fmt.Fprintln(w, "")
   }
   w.Flush()
-  // Volumes
-
+  // Network Bindings
+  w = tabwriter.NewWriter(os.Stdout, 8, 10, 2, ' ', 0)
+  fmt.Fprintf(w,"\n%sContainer\tCont Port\tHost Port\tProtocol%s\n", titleColor, resetColor)
+  for _, c := range td.ContainerDefinitions {
+    for _, pm := range c.PortMappings {
+      fmt.Fprintf(w,"%s%s\t%d\t%d\t%s%s\n", nullColor, *c.Name, *pm.ContainerPort, *pm.HostPort, *pm.Protocol, resetColor)      
+    }
+  }
+  w.Flush()
 
 }
 
