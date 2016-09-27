@@ -185,8 +185,10 @@ func init() {
 
 func doICommand(line string, ecsSvc *ecs.ECS, ec2Svc *ec2.EC2, awsConfig *aws.Config, sess *session.Session) (err error) {
 
-  // This is due to a 'peculiarity' of kingpin: it collects strings as arguments across parses.
+  // Globals (arg variables) keep their state through iterations
+  // through doICommand. So we reset them here.
   interTestString = []string{}
+  taskEnv = make(map[string]string)
 
   // Prepare a line for parsing
   line = strings.TrimRight(line, "\n")
