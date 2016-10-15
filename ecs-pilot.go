@@ -33,7 +33,6 @@ var(
   printVersion                      bool
   region                            string
   profileArg                        string
-  credFileArg                       string
   logsFormatArg                     string
 
   // Prompt for Commands
@@ -62,7 +61,6 @@ func init() {
   app.Flag("log-format", "Chosose text or json output.").Default(jsonLog).EnumVar(&logsFormatArg, jsonLog, textLog)
 
   app.Flag("profile", "AWS profile for credentials.").Default("minecraft").StringVar(&profileArg)
-  app.Flag("config-file", "AWS profile for credentials.").StringVar(&credFileArg)
 
   versionCmd = app.Command("version","Print the version number and exit.")
   interactiveCmd = app.Command("interactive", "Prompt for commands.")
@@ -87,13 +85,12 @@ func main() {
   command := kingpin.MustParse(app.Parse(os.Args[1:]))
   configureLogs()
 
-  sess, err := awslib.GetSession(profileArg, credFileArg)
+  sess, err := awslib.GetSession(profileArg)
   if err != nil { 
-  fmt.Printf("Can't get aws session from %s[%s]\n", credFileArg, profileArg)
+  fmt.Printf("Can't get aws session from profile: %s\n", profileArg)
     os.Exit(-1)
   }
 
-  // awsConfig := awslib.GetConfig(profileArg, credFileArg)
   awsConfig := sess.Config
   region := *awsConfig.Region
   accountAliases, err := awslib.GetAccountAliases(awsConfig)

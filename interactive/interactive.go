@@ -1,5 +1,4 @@
-package interactive 
-
+package interactive
 import (
   "strings"
   "fmt"
@@ -64,6 +63,8 @@ var (
   debug bool
   interTestString []string
 
+  useClusterCmd *kingpin.CmdClause
+
   // Clusters
   interCluster *kingpin.CmdClause
   createCluster *kingpin.CmdClause
@@ -117,6 +118,9 @@ func init() {
   interVerbose = interApp.Command("verbose", "toggle verbose mode.")
   interExit = interApp.Command("exit", "exit the program. <ctrl-D> works too.")
   interQuit = interApp.Command("quit", "exit the program.")
+
+  useClusterCmd = interApp.Command("use", "Set the cluster use as default.")
+  useClusterCmd.Arg("cluster-name", "New default cluster.").Required().Action(setCurrent).StringVar(&clusterNameArg)
 
   // Cluster Commands
   interCluster = interApp.Command("cluster", "the context for cluster commands")
@@ -248,7 +252,7 @@ func setCurrent(pc *kingpin.ParseContext) (error) {
     switch c.(type) {
     // case *kingpin.CmdClause : fmt.Printf("CmdClause: %s\n", (c.(*kingpin.CmdClause)).Model().Name)
     // case *kingpin.FlagClause : fmt.Printf("ArgClause: %s\n", c.(*kingpin.FlagClause).Model().Name)
-    case *kingpin.ArgClause : 
+    case *kingpin.ArgClause :
       fc := c.(*kingpin.ArgClause)
       if fc.Model().Name == "cluster-name" {
         currentCluster = *pe.Value
