@@ -8,15 +8,16 @@ var readline = require('readline')
 
 var gulpProcess;
 var verbose = false;
+var short = true;
 var rl = readline.createInterface({input: process.stdin, output: process.stdin});
 
 gulp.task('test', function() {
-  if(verbose) {
-    args = ["test", "-v"]
-  } else {
-    args = ["test"]
-  }
+  args = ["test"]
+  if(verbose) { args.push("-v"); }
+  if(short) { args.push("-test.short"); }
+  args.push("./...")
 
+  util.log("go " + args)
   test = child.spawnSync("go", args)
   if(test.status == 0) {
     util.log(chalk.white.bgGreen.bold(' Go Test Successful'));
@@ -29,6 +30,10 @@ gulp.task('test', function() {
   } else {
     util.log(chalk.white.bgRed.bold(" GO Test Failed "))
     var lines = test.stdout.toString().split("\n");
+    for (var l in lines) {
+      util.log(chalk.black(lines[l]));
+    }
+    var lines = test.stderr.toString().split("\n");
     for (var l in lines) {
       util.log(chalk.red(lines[l]));
     }
@@ -68,12 +73,23 @@ function doCommand(command) {
       } else {
         verbose = true;
       }
-      util.log("Verbose is now " + verbose.toString())
+      util.log("Verbose is now " + verbose.toString());
+      break;
+    case 'long':
+      short = false;
+      util.log("Short test is now " + short.toString());
+      break;
+    case 'short':
+      short = true;
+      util.log("Short test is now " + short.toString());
+      break;
+    case 'quit':
+      process.exit();
       break;
     case '': // just eat returns.
       break
     default:
-      util.log("Unknown command: ", command)
+      util.log("Unknown command: ", command);
       retVal = false;
   }
   return retVal;

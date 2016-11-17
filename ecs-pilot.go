@@ -9,7 +9,6 @@ import (
   "ecs-pilot/version"
   "github.com/alecthomas/kingpin"
   "github.com/aws/aws-sdk-go/aws/session"
-  "github.com/aws/aws-sdk-go/service/ecs"
   "github.com/jdrivas/sl"
   "github.com/Sirupsen/logrus"
 
@@ -100,7 +99,7 @@ func main() {
  
   // Perhaps use the EC2 DescribeAccountAttributes to get at interesting infromation.
   // List of commands as parsed matched against functions to execute the commands.
-  commandMap := map[string]func(*ecs.ECS) {
+  commandMap := map[string]func(*session.Session) {
     versionCmd.FullCommand(): doPrintVersion,
     listClusters.FullCommand(): doListCluster,
     listTaskDefinitions.FullCommand(): doListTaskDefinitions,
@@ -109,19 +108,17 @@ func main() {
     defaultTaskDefinition.FullCommand(): doDefaultTaskDefinition,
   }
 
-  ecs_svc := ecs.New(session.New(awsConfig))
-
   // Execute the command.
   if interactiveCmd.FullCommand() == command {
     interactive.DoInteractive(sess, awsConfig)
   } else {
-    commandMap[command](ecs_svc)
+    commandMap[command](sess)
   }
 }
 
 
-func doListCluster(svc *ecs.ECS) {
-  clusters,  err := awslib.GetClusters(svc)
+func doListCluster(sess *session.Session) {
+  clusters,  err := awslib.GetClusters(sess)
   if err == nil {
     fmt.Println("Clusters")
     for i, cluster := range clusters {
@@ -133,8 +130,8 @@ func doListCluster(svc *ecs.ECS) {
   }
 }
 
-func doListTaskDefinitions(svc *ecs.ECS) {
-  arns, err := awslib.ListTaskDefinitions(svc)
+func doListTaskDefinitions(sess *session.Session) {
+  arns, err := awslib.ListTaskDefinitions(sess)
   if err == nil {
     fmt.Printf("There are (%d) task definitions.\n", len(arns))
     for i, arn := range arns {
@@ -163,17 +160,17 @@ func doListTaskDefinitions(svc *ecs.ECS) {
 //   }
 // }
 
-func doEmptyTaskDefinition(svc *ecs.ECS) {
+func doEmptyTaskDefinition(*session.Session) {
   tdi := awslib.CompleteEmptyTaskDefinition()
   printAsJsonObject(tdi)
 }
 
-func doDefaultTaskDefinition(svc *ecs.ECS) {
+func doDefaultTaskDefinition(*session.Session) {
   tdi := awslib.DefaultTaskDefinition()
   printAsJsonObject(tdi)
 }
 
-func doPrintVersion(svc *ecs.ECS) {
+func doPrintVersion(*session.Session) {
   fmt.Println(version.Version)
 }
 

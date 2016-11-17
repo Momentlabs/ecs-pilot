@@ -58,8 +58,8 @@ func doDescribeTask(sess *session.Session) (error) {
   return nil
 }
 
-func doDescribeAllTasks(svc *ecs.ECS) (error) {
-  resp, err := awslib.GetAllTaskDescriptions(currentCluster, svc)
+func doDescribeAllTasks(sess *session.Session) (error) {
+  resp, err := awslib.GetAllTaskDescriptions(currentCluster, sess)
 
   if err == nil {
     if len(resp) <= 0 {

@@ -346,7 +346,8 @@ func doCreateContainerInstance(sess *session.Session) (error) {
 
 func shortInstanceString(inst *ec2.Instance) (s string) {
   if inst != nil {
-    s += fmt.Sprintf("%s %s in %s", *inst.InstanceId, *inst.InstanceType, *inst.Placement.AvailabilityZone)
+    s += fmt.Sprintf("%s %s in %s", *inst.InstanceId, 
+      *inst.InstanceType, *inst.Placement.AvailabilityZone)
     if inst.PublicIpAddress != nil {
       s += fmt.Sprintf(" - %s", *inst.PublicIpAddress)
     }
@@ -356,23 +357,27 @@ func shortInstanceString(inst *ec2.Instance) (s string) {
   return s
 }
 
-func doTerminateContainerInstance(svc *ecs.ECS, ec2Svc *ec2.EC2) (error) {
-  resp, err := awslib.TerminateContainerInstance(currentCluster, interContainerArn, svc, ec2Svc)
+func doTerminateContainerInstance(sess *session.Session) (error) {
+
+  resp, err := awslib.TerminateContainerInstance(currentCluster, interContainerArn, sess)
   if err != nil {
     return err
   }
   termInstances := resp.TerminatingInstances
   if len(termInstances) > 1 {
-    fmt.Printf("%sGot (%d) instances terminating, expecting only 1.%s\nn", warnColor, len(resp.TerminatingInstances), resetColor)
+    fmt.Printf("%sGot (%d) instances terminating, expecting only 1.%s\nn", 
+      warnColor, len(resp.TerminatingInstances), resetColor)
   }
   fmt.Printf("%sTerminated container instance \n\t%s%s\n", warnColor, interContainerArn, resetColor)
   fmt.Printf("Terminating (%d) EC2 Instances:\n", len(termInstances))
   for i, ti := range termInstances {
-    fmt.Printf("%d. %s going from %s (%d) => %s (%d)\n", i+1, *ti.InstanceId, *ti.PreviousState.Name, *ti.PreviousState.Code, *ti.CurrentState.Name, *ti.CurrentState.Code)
+    fmt.Printf("%d. %s going from %s (%d) => %s (%d)\n", i+1, 
+      *ti.InstanceId, *ti.PreviousState.Name, *ti.PreviousState.Code, 
+      *ti.CurrentState.Name, *ti.CurrentState.Code)
   }
 
   instanceToWatch := resp.TerminatingInstances[0].InstanceId
-  awslib.OnInstanceTerminated(instanceToWatch, ec2Svc, func(err error) {
+  awslib.OnInstanceTerminated(instanceToWatch, sess, func(err error) {
     if err == nil {
       fmt.Printf("%sEC2 Instance Termianted: %s.%s\n", warnColor, *instanceToWatch, resetColor)
     } else {

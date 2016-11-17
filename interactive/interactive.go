@@ -48,6 +48,7 @@ var (
 const defaultCluster = "minecraft"
 var (
   currentCluster = defaultCluster
+  currentSession *session.Session
 )
 
 
@@ -126,6 +127,9 @@ func init() {
   interCluster = interApp.Command("cluster", "the context for cluster commands")
   createCluster = interCluster.Command("create", "create a new cluster.")
   createCluster.Arg("cluster-name", "the name of the cluster to create.").Required().Action(setCurrent).StringVar(&clusterNameArg)
+
+  clusterUseCmd := interCluster.Command("use", "start using the named cluster in future commands.")
+  clusterUseCmd.Arg("cluster-name", "the name of the cluster you want to start using.").Required().Action(setCurrent).StringVar(&clusterNameArg)
 
   deleteCluster = interCluster.Command("delete", "delete a cluster.")
   deleteCluster.Arg("cluster=name", "the name of the cluster to delete.").Required().Action(setCurrent).StringVar(&clusterNameArg)
@@ -214,14 +218,14 @@ func doICommand(line string, ecsSvc *ecs.ECS, ec2Svc *ec2.EC2, awsConfig *aws.Co
       case interExit.FullCommand(): err = doQuit(sess)
       case interQuit.FullCommand(): err = doQuit(sess)
 
-      case createCluster.FullCommand(): err = doCreateCluster(ecsSvc)
-      case deleteCluster.FullCommand(): err = doDeleteCluster(ecsSvc)
+      case createCluster.FullCommand(): err = doCreateCluster(sess)
+      case deleteCluster.FullCommand(): err = doDeleteCluster(sess)
       case interListClusters.FullCommand(): err = doListClusters(sess)
       case interDescribeCluster.FullCommand(): err = doDescribeCluster(sess)
 
       case interListTasks.FullCommand(): err = doListTasks(sess)
       case interDescribeTask.FullCommand(): err = doDescribeTask(sess)
-      case interDescribeAllTasks.FullCommand(): err = doDescribeAllTasks(ecsSvc)
+      case interDescribeAllTasks.FullCommand(): err = doDescribeAllTasks(sess)
       case interRunTask.FullCommand(): err = doRunTask(sess)
       case interStopTask.FullCommand(): err = doStopTask(sess)
 
@@ -229,7 +233,7 @@ func doICommand(line string, ecsSvc *ecs.ECS, ec2Svc *ec2.EC2, awsConfig *aws.Co
       case interDescribeContainerInstance.FullCommand(): err = doDescribeContainerInstance(sess)
       case interDescribeAllContainerInstances.FullCommand(): err = doDescribeAllContainerInstances(sess)
       case interCreateContainerInstance.FullCommand(): err = doCreateContainerInstance(sess)
-      case interTerminateContainerInstance.FullCommand(): err = doTerminateContainerInstance(ecsSvc, ec2Svc)
+      case interTerminateContainerInstance.FullCommand(): err = doTerminateContainerInstance(sess)
 
       case interListTaskDefinitions.FullCommand(): err = doListTaskDefinitions(sess)
       case interDescribeTaskDefinition.FullCommand(): err = doDescribeTaskDefinition(sess)
@@ -255,7 +259,17 @@ func setCurrent(pc *kingpin.ParseContext) (error) {
     case *kingpin.ArgClause :
       fc := c.(*kingpin.ArgClause)
       if fc.Model().Name == "cluster-name" {
-        currentCluster = *pe.Value
+        nc := *pe.Value
+        there, err := cCache.contains(nc, currentSession)
+        if there {
+          currentCluster = nc
+        } else {
+          if err != nil {
+            fmt.Printf("Failed to find cluster: %s\n", err)
+          } else {
+            fmt.Printf("Failed to find cluster \"%s\".\n", nc)
+          }
+        }
       }
     }
   }
@@ -343,6 +357,7 @@ func promptLoop(process func(string) (error)) (err error) {
 
 // This gets called from the main program, presumably from the 'interactive' command on main's command line.
 func DoInteractive(sess *session.Session, defaultConfig *aws.Config) {
+  currentSession = sess
   ecs_svc := ecs.New(sess)
   ec2_svc := ec2.New(sess)
   xICommand := func(line string) (err error) {return doICommand(line, ecs_svc, ec2_svc, defaultConfig, sess)}

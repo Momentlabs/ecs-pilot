@@ -3,6 +3,7 @@ package interactive
 import (
   "fmt"
   "os"
+  // "strings"
   "time"
   "text/tabwriter"
   "github.com/aws/aws-sdk-go/aws/session"
@@ -14,17 +15,57 @@ import (
   "github.com/jdrivas/awslib"
 )
 
-func doCreateCluster(svc *ecs.ECS) (error) {
-  cluster, err := awslib.CreateCluster(currentCluster, svc)
+type ClusterCache map[string]bool
+
+var cCache = make(ClusterCache,0)
+
+func (cc *ClusterCache) update(sess *session.Session) (error) {
+  clusterArns, err := awslib.GetClusters(sess)
+  if err != nil { return err }
+
+  cc.empty()
+  for _, a := range clusterArns {
+    n := awslib.ShortArnString(a)
+    (*cc)[n] = true
+  }
+  return err
+}
+
+func (cc *ClusterCache) empty() {
+  for k, _ := range *cc {
+    delete(*cc,k)
+  }
+}
+
+func (cc *ClusterCache) contains(v string, sess *session.Session) (contains bool, err error) {
+  if (*cc)[v] { return true, nil }
+
+  err = cc.update(sess)
+  if err != nil { return false, err }
+
+  if (*cc)[v] { return true, nil }
+  return false, nil
+}
+
+func doCreateCluster(sess *session.Session) (error) {
+  dup, err := cCache.contains(currentCluster, sess);
+  if err != nil { return err }
+  if !dup {
+    return fmt.Errorf("Duplicate cluster: %s already exists.", currentCluster)
+  }
+
+  cluster, err := awslib.CreateCluster(currentCluster, sess)
   if err == nil {
+    cCache.update(sess)
     printCluster(cluster)
   }
   return err
 }
 
-func doDeleteCluster(svc *ecs.ECS) (error) {
-  cluster, err := awslib.DeleteCluster(currentCluster, svc)
+func doDeleteCluster(sess *session.Session) (error) {
+  cluster, err := awslib.DeleteCluster(currentCluster, sess)
   if err == nil {
+    cCache.update(sess)
     printCluster(cluster)
   }
   return err
@@ -48,63 +89,102 @@ func doListClusters(sess *session.Session) (error) {
       instanceCount, *c.PendingTasksCount, *c.RunningTasksCount, resetColor)
   }      
   w.Flush()
-
-  // for i, cluster := range clusters {
-  //   w
-  //   fmt.Printf("%d. %s\n", i+1, clusterShortString(cluster))
-  //   fmt.Printf("   %s\n", *cluster.ClusterArn)
-
-  // }
   return nil
 }
 
 func doDescribeCluster(sess *session.Session) (error) {
-  // ecsSvc := ecs.New(sess)
-  // cs, err := awslib.DescribeCluster(currentCluster, ecsSvc)
-  // if err != nil { return err }
-
-  // dtm, err := awslib.GetDeepTasks(currentCluster, sess)
-  // if err != nil { return err }
-
-  // w := tabwriter.NewWriter(os.Stdout, 4, 10, 2, ' ', 0)
-  // fmt.Fprintf(w, "%sName\tStatus\tInstances\tPending\tRunning%s\n", titleColor, resetColor)
-  // ic := len(cs)
-  // color := nullColor
-  // if ic > 0 {color = successColor}
-  // fmt.Fprintf(w, "%s%s\t%s\t%d\t%d\t%d%s\n", color, *c.ClusterName, *c.Status, 
-  //   instanceCount, *c.PendingTasksCount, *c.RunningTasksCount, resetColor)
-  // w.Flush()
 
   cimap, _, err := awslib.GetContainerMaps(currentCluster, sess)
   if err != nil { return err }
+  if len(cimap) == 0 {
+    fmt.Printf("%sThis cluster has no instances attached to it.%s\n", warnColor, resetColor)
+    return nil
+  }
 
   totals := cimap.Totals()
+
+  fmt.Printf("%s%s%s\n", titleColor, time.Now().Local().Format(time.RFC1123), resetColor)
+
+  fmt.Printf("\n%sCluster \"%s\" stats:%s\n", titleColor, currentCluster , resetColor)
   w := tabwriter.NewWriter(os.Stdout, 4, 10, 2, ' ', 0)
-  fmt.Fprintf(w,"%s%s: Total Resources: %s%s\n", titleColor, 
-    time.Now().Local().Format(time.RFC1123), currentCluster,
-    resetColor)
-  fmt.Fprintf(w,"%sInst\tTask-R\tTask-P\tCPU-A\tCPU-R\tMEM-A\tMEM-R%s\n", titleColor, resetColor)
+  fmt.Fprintf(w,"%sInst\tTasks Running\tTasks Pending\tCPU-A\tCPU-R\tMEM-A\tMEM-R%s\n", titleColor, resetColor)
   fmt.Fprintf(w,"%s%d\t%d\t%d\t%s\t%s\t%s\t%s%s\n", nullColor,
     cimap.InstanceCount(), totals.RunningTasks, totals.PendingTasks,
-    totals.Registered.StringFor("CPU"), totals.Remaining.StringFor("CPU"),
-    totals.Registered.StringFor("MEMORY"), totals.Remaining.StringFor("MEMORY"),
+    totals.Remaining.StringFor(awslib.CPU), totals.Registered.StringFor(awslib.CPU),
+    totals.Remaining.StringFor(awslib.MEMORY), totals.Registered.StringFor(awslib.MEMORY),
     resetColor)
   w.Flush()
 
+  imap, err := awslib.DescribeEC2Instances(cimap, sess)
+  if err != nil { return err }
+
+  fmt.Printf("%s\nContainer Instance Stats:%s\n", titleColor, resetColor)
   w = tabwriter.NewWriter(os.Stdout, 4, 10, 2, ' ', 0)
-  fmt.Fprintf(w,"%sAddress\tType\tUptime\tTasks\tCPU-A\tCPU-R\tMEM-A\t-MEM-R%s\n", titleColor, resetColor)
-  w.Flush()  
+  fmt.Fprintf(w,"%sPublic Address\tAgent\tUptime\tTasks\tCPU-A\tCPU-R\tMEM-A\tMEM-R\tARN%s\n", titleColor, resetColor)
+  for arn, ci := range cimap {
+    ec2I := imap[*ci.Instance.Ec2InstanceId]
+    i := ci.Instance
+    uptime := "<none>"
+    if ec2I.LaunchTime != nil {
+      uptime = awslib.ShortDurationString(time.Since(*ec2I.LaunchTime))
+    }
+    tasks := *i.RunningTasksCount + *i.PendingTasksCount
+    fmt.Fprintf(w,"%s%s\t%t\t%s\t%d\t%s\t%s\t%s\t%s\t%s%s\n", nullColor,
+      *ec2I.PublicIpAddress, *i.AgentConnected, uptime, tasks, 
+      ci.RemainingResources().StringFor(awslib.CPU), ci.RegisteredResources().StringFor(awslib.CPU),
+      ci.RemainingResources().StringFor(awslib.MEMORY), ci.RegisteredResources().StringFor(awslib.MEMORY),
+      awslib.ShortArnString(&arn), resetColor)
+  }
+  w.Flush()
 
+  fmt.Printf("%s\nEC2 Instance Stats:%s\n", titleColor, resetColor)
+  w = tabwriter.NewWriter(os.Stdout, 4, 10, 2, ' ', 0)
+  fmt.Fprintf(w,"%sInstance ID\tType\tImage Arch\tImageID\tPublic IP\tPrivate IP\tVPC\tSubnet\tIAM Profile\tKeyName%s\n", titleColor, resetColor)
+  for ec2id, ec2I := range imap {
+    iamProfile  := awslib.ShortArnString(ec2I.IamInstanceProfile.Arn)
+    fmt.Fprintf(w, "%s%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s%s\n", nullColor,
+      ec2id, *ec2I.InstanceType, *ec2I.Architecture, *ec2I.ImageId, 
+      *ec2I.PublicIpAddress, *ec2I.PrivateIpAddress, *ec2I.VpcId, 
+      *ec2I.SubnetId, iamProfile, *ec2I.KeyName, resetColor)
+  }
+  w.Flush()
 
+  fmt.Printf("%s\nEC2 Instance Security Groups:%s\n", titleColor, resetColor)  
+  for ec2id, ec2I := range imap {
+    fmt.Printf("%s\nInstance: %s: %s%s\n", titleColor, ec2id, *ec2I.PublicIpAddress, resetColor)
+      for _, sgId := range ec2I.SecurityGroups {
+        sg, err := awslib.DescribeSecurityGroup(*sgId.GroupId, sess)
+        if err != nil {
+          fmt.Printf("Error getting security group: %s", err)
+          break
+        }
+        w = tabwriter.NewWriter(os.Stdout, 4, 10, 2, ' ', 0)
+        fmt.Fprintf(w,"%sGroup ID\tGroup Name\tDescription\tVpcId%s\n",titleColor, resetColor)
+        fmt.Fprintf(w, "%s%s\t%s\t%s\t%s%s\n", nullColor, *sg.GroupId, *sg.GroupName, *sg.Description, *sg.VpcId, resetColor)
+        w.Flush()
 
-  // clusters, err := awslib.DescribeCluster(currentCluster, svc)
-  // if err == nil  {
-  //   if len(clusters) <= 0 {
-  //     fmt.Printf("Couldn't get any clusters for %s.\n", currentCluster)
-  //   } else {
-  //     printCluster(clusters[0])
-  //   }
-  // }
+        fmt.Printf("%sInbound Permisions%s\n", titleColor, resetColor)
+        w = tabwriter.NewWriter(os.Stdout, 4, 10, 2, ' ', 0)
+        fmt.Fprintf(w, "%sProto\tPorts\tRanges\tSGroups\tPrefixes%s\n", titleColor, resetColor)
+        for _, ipp := range sg.IpPermissions {
+          proto, ports, sGroups, ipRanges, prefixes := awslib.IpPermissionStrings(ipp)
+          fmt.Fprintf(w,"%s%s\t%s\t%s\t%s\t%s%s\n", nullColor,
+            proto, ports, ipRanges, sGroups, prefixes, resetColor)
+        }
+        w.Flush()        
+
+        fmt.Printf("%sOutbound Permisions%s\n", titleColor, resetColor)
+        w = tabwriter.NewWriter(os.Stdout, 4, 10, 2, ' ', 0)
+        fmt.Fprintf(w, "%sProto\tPorts\tRanges\tSGroups\tPrefixes%s\n", titleColor, resetColor)
+        for _, ipp := range sg.IpPermissionsEgress {
+          proto, ports, sGroups, ipRanges, prefixes := awslib.IpPermissionStrings(ipp)
+          fmt.Fprintf(w,"%s%s\t%s\t%s\t%s\t%s%s\n", nullColor, 
+            proto, ports, ipRanges, sGroups, prefixes, resetColor)
+        }
+        w.Flush()
+      }
+  }
+
   return err
 }
 
