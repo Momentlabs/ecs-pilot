@@ -15,40 +15,10 @@ import (
   "github.com/jdrivas/awslib"
 )
 
-type ClusterCache map[string]bool
-
-var cCache = make(ClusterCache,0)
-
-func (cc *ClusterCache) update(sess *session.Session) (error) {
-  clusterArns, err := awslib.GetClusters(sess)
-  if err != nil { return err }
-
-  cc.empty()
-  for _, a := range clusterArns {
-    n := awslib.ShortArnString(a)
-    (*cc)[n] = true
-  }
-  return err
-}
-
-func (cc *ClusterCache) empty() {
-  for k, _ := range *cc {
-    delete(*cc,k)
-  }
-}
-
-func (cc *ClusterCache) contains(v string, sess *session.Session) (contains bool, err error) {
-  if (*cc)[v] { return true, nil }
-
-  err = cc.update(sess)
-  if err != nil { return false, err }
-
-  if (*cc)[v] { return true, nil }
-  return false, nil
-}
+var cCache = make(awslib.ClusterCache,0)
 
 func doCreateCluster(sess *session.Session) (error) {
-  dup, err := cCache.contains(currentCluster, sess);
+  dup, err := cCache.Contains(currentCluster, sess);
   if err != nil { return err }
   if !dup {
     return fmt.Errorf("Duplicate cluster: %s already exists.", currentCluster)
@@ -56,7 +26,7 @@ func doCreateCluster(sess *session.Session) (error) {
 
   cluster, err := awslib.CreateCluster(currentCluster, sess)
   if err == nil {
-    cCache.update(sess)
+    cCache.Update(sess)
     printCluster(cluster)
   }
   return err
@@ -65,7 +35,7 @@ func doCreateCluster(sess *session.Session) (error) {
 func doDeleteCluster(sess *session.Session) (error) {
   cluster, err := awslib.DeleteCluster(currentCluster, sess)
   if err == nil {
-    cCache.update(sess)
+    cCache.Update(sess)
     printCluster(cluster)
   }
   return err

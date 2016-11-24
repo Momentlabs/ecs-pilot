@@ -81,17 +81,28 @@ var (
   interCreateContainerInstance *kingpin.CmdClause
   interTerminateContainerInstance *kingpin.CmdClause
 
-  // interClusterName string
   clusterNameArg string
   interContainerArn string
+
+  // Services
+  serviceCmd *kingpin.CmdClause
+  listServicesCmd *kingpin.CmdClause
+  describeServiceCmd *kingpin.CmdClause
+  createServiceCmd *kingpin.CmdClause
+  restartServiceCmd *kingpin.CmdClause
+  updateServiceDesiredCountCmd *kingpin.CmdClause
+  deleteServiceCmd *kingpin.CmdClause
+  serviceNameArg string
+  instanceCountArg int64
 
   // Tasks
   interTask *kingpin.CmdClause
   interListTasks *kingpin.CmdClause
+  statusTasks *kingpin.CmdClause
   interDescribeAllTasks *kingpin.CmdClause
   interDescribeTask *kingpin.CmdClause
   interRunTask *kingpin.CmdClause
-  interTaskDefinitionArn string
+  taskDefinitionArnArg string
   interStopTask *kingpin.CmdClause
   interTaskArn string
   taskEnv map[string]string
@@ -158,9 +169,13 @@ func init() {
   interTerminateContainerInstance.Arg("cluster-name", "Short name of cluster for instance to stop").Required().Action(setCurrent).StringVar(&clusterNameArg)
 
 
+  // Task Commands
   interTask = interApp.Command("task", "the context for task commands.")
   interListTasks = interTask.Command("list", "the context for listing tasks")
   interListTasks.Arg("cluster-name", "Short name of cluster with tasks to list.").Default(defaultCluster).Action(setCurrent).StringVar(&clusterNameArg)
+
+  statusTasks = interTask.Command("status", "the context for listing tasks")
+  statusTasks.Arg("cluster-name", "Short name of cluster with tasks to list.").Default(defaultCluster).Action(setCurrent).StringVar(&clusterNameArg)
 
   interDescribeTask = interTask.Command("describe", "Details assocaited with a running task.")
   interDescribeTask.Arg("task-arn", "Arn for the task to describe.").Required().StringVar(&interTaskArn)
@@ -170,7 +185,7 @@ func init() {
   interDescribeAllTasks.Arg("cluster-name", "Short name of the cluster with tasks to describe").Default(defaultCluster).Action(setCurrent).StringVar(&clusterNameArg)
 
   interRunTask = interTask.Command("run", "Run a new task.")
-  interRunTask.Arg("task-definition", "The definition of the task to run.").Required().StringVar(&interTaskDefinitionArn)
+  interRunTask.Arg("task-definition", "The definition of the task to run.").Required().StringVar(&taskDefinitionArnArg)
   interRunTask.Arg("cluster-name", "short name of the cluster to run the task on.").Default(defaultCluster).Action(setCurrent).StringVar(&clusterNameArg)
   interRunTask.Arg("environment", "Key values for the container environment.").StringMapVar(&taskEnv)
 
@@ -178,12 +193,41 @@ func init() {
   interStopTask.Arg("task-arn", "ARN of the task to stop (from task list)").Required().StringVar(&interTaskArn)
   interStopTask.Arg("clusnter-name", "short name of the cluster the task is running on.").Default(defaultCluster).Action(setCurrent).StringVar(&clusterNameArg)
 
+  // Service Commands
+  serviceCmd = interApp.Command("service", "the context for service commands.")
+
+  listServicesCmd = serviceCmd.Command("list", "list the services on the cluster.")
+  listServicesCmd.Arg("cluster-name", "Cluster where we'll find the services.").Default(defaultCluster).Action(setCurrent).StringVar(&clusterNameArg)
+
+  describeServiceCmd = serviceCmd.Command("describe", "Print details about a service.")
+  describeServiceCmd.Arg("service-name", "Name of service to describe.").Required().StringVar(&serviceNameArg)
+  describeServiceCmd.Arg("cluster-name", "Cluster for the service.").Default(defaultCluster).Action(setCurrent).StringVar(&clusterNameArg)
+
+  createServiceCmd = serviceCmd.Command("create", "Create a new service.")
+  createServiceCmd.Arg("service-name", "Name of new service.").Required().StringVar(&serviceNameArg)
+  createServiceCmd.Arg("task-definition", "Task definition for new service.").Required().StringVar(&taskDefinitionArnArg)
+  createServiceCmd.Arg("instance-count", "Number of instances of task definition to run in new service.").Required().Int64Var(&instanceCountArg)
+  createServiceCmd.Arg("cluster-name", "Cluster for the new service.").Default(defaultCluster).Action(setCurrent).StringVar(&clusterNameArg)
+
+  restartServiceCmd = serviceCmd.Command("restart", "Restart the service.")
+  restartServiceCmd.Arg("service-name", "Name of service to restart.").Required().StringVar(&serviceNameArg)
+  restartServiceCmd.Arg("cluster-name", "Cluster for the service.").Default(defaultCluster).Action(setCurrent).StringVar(&clusterNameArg)
+
+  updateServiceDesiredCountCmd = serviceCmd.Command("update-count", "Update the desired instance count for the service.")
+  updateServiceDesiredCountCmd.Arg("service-name", "Name of service to update.").Required().StringVar(&serviceNameArg)
+  updateServiceDesiredCountCmd.Arg("instance-count", "Number of instances of task definition to run in updated service.").Required().Int64Var(&instanceCountArg)
+  updateServiceDesiredCountCmd.Arg("cluster-name", "Cluster for the update service.").Default(defaultCluster).Action(setCurrent).StringVar(&clusterNameArg)
+
+  deleteServiceCmd = serviceCmd.Command("delete", "Delete a service.")
+  deleteServiceCmd.Arg("service-name", "Name of service to delete.").Required().StringVar(&serviceNameArg)
+  deleteServiceCmd.Arg("cluster-name", "Cluster for the service.").Default(defaultCluster).Action(setCurrent).StringVar(&clusterNameArg)
+
   // Task Definition.
   interTaskDefinition = interApp.Command("task-definition", "the context for task definitions.")
   interListTaskDefinitions = interTaskDefinition.Command("list", "list the existing task definntions.")
 
   interDescribeTaskDefinition = interTaskDefinition.Command("describe", "Describe all the registered task definitions.")
-  interDescribeTaskDefinition.Arg("task-definition-arn", "arn of task definition to describe.").Required().StringVar(&interTaskDefinitionArn)
+  interDescribeTaskDefinition.Arg("task-definition-arn", "arn of task definition to describe.").Required().StringVar(&taskDefinitionArnArg)
 
   registerTaskDefinition = interTaskDefinition.Command("register", "Register a task definition.") 
   registerTaskDefinition.Arg("config", "Configuration desecription for task definition.").Required().StringVar(&taskConfigFileName)
@@ -224,10 +268,18 @@ func doICommand(line string, ecsSvc *ecs.ECS, ec2Svc *ec2.EC2, awsConfig *aws.Co
       case interDescribeCluster.FullCommand(): err = doDescribeCluster(sess)
 
       case interListTasks.FullCommand(): err = doListTasks(sess)
+      case statusTasks.FullCommand(): err = doStatusTasks(clusterNameArg, sess)
       case interDescribeTask.FullCommand(): err = doDescribeTask(sess)
       case interDescribeAllTasks.FullCommand(): err = doDescribeAllTasks(sess)
       case interRunTask.FullCommand(): err = doRunTask(sess)
       case interStopTask.FullCommand(): err = doStopTask(sess)
+
+      case listServicesCmd.FullCommand(): err = doListServices(currentCluster, sess)
+      case describeServiceCmd.FullCommand(): err = doDescribeService(serviceNameArg, currentCluster, sess)
+      case createServiceCmd.FullCommand(): err = doCreateService(serviceNameArg, taskDefinitionArnArg, currentCluster, instanceCountArg, sess)
+      case restartServiceCmd.FullCommand(): err = doRestartService(serviceNameArg, currentCluster, sess)
+      case updateServiceDesiredCountCmd.FullCommand(): err = doUpdateServiceDesiredCount(serviceNameArg, currentCluster, instanceCountArg, sess)
+      case deleteServiceCmd.FullCommand(): err = doDeleteService(serviceNameArg, currentCluster, sess)
 
       case interListContainerInstances.FullCommand(): err = doListContainerInstances(sess)
       case interDescribeContainerInstance.FullCommand(): err = doDescribeContainerInstance(sess)
@@ -260,7 +312,7 @@ func setCurrent(pc *kingpin.ParseContext) (error) {
       fc := c.(*kingpin.ArgClause)
       if fc.Model().Name == "cluster-name" {
         nc := *pe.Value
-        there, err := cCache.contains(nc, currentSession)
+        there, err := cCache.Contains(nc, currentSession)
         if there {
           currentCluster = nc
         } else {
@@ -353,7 +405,6 @@ func promptLoop(process func(string) (error)) (err error) {
   }
   return nil
 }
-
 
 // This gets called from the main program, presumably from the 'interactive' command on main's command line.
 func DoInteractive(sess *session.Session, defaultConfig *aws.Config) {

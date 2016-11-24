@@ -15,24 +15,24 @@ func TestClusterCache(t *testing.T) {
   cn := fmt.Sprintf("UNIT-TEST-CLUSTER-%d", rand.Intn(1000))
 
   sess := testSession(t)
-  cCache.update(sess)
-  there, err := cCache.contains(cn, sess)
+  cCache.Update(sess)
+  there, err := cCache.Contains(cn, sess)
   if assert.Nil(t, err, "Error checking cache.") {
     assert.False(t, there, "Unexpectedly found cluster name in cache \"%s\"", cn)
   }
 
   _, err = awslib.CreateCluster(cn, sess)
   if assert.Nil(t, err, "Error creating cluster \"%s\"", cn) {
-    there, err = cCache.contains(cn, sess)
+    there, err = cCache.Contains(cn, sess)
     if assert.Nil(t, err, "Error checking for name in cache.") {
       assert.True(t, there, "Failed to find new cluster name in cache \"%s\"", cn)
     }
 
     _, err = awslib.DeleteCluster(cn, sess)
     // NOTE: Note the line below implements the expecged behavior of DoDeleteCache in the app.
-    cCache.update(sess) 
+    cCache.Update(sess) 
     if assert.Nil(t, err, "Error deleting cluster \"%s\"", cn)  {
-      there, err = cCache.contains(cn, sess)
+      there, err = cCache.Contains(cn, sess)
       if assert.Nil(t, err, "Error checking for name in cache.") {
         assert.False(t, there, "Found deleted cluster still in cache: \"%s\"", cn)
       }

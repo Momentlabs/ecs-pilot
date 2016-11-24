@@ -26,16 +26,16 @@ func doListContainerInstances(sess *session.Session) (error) {
   fmt.Printf("%s%s %s: %d %s.%s\n", 
     emphColor, time.Now().Local().Format(humanTimeFormat), currentCluster, len(ciMap), instanceNoun, resetColor)
   w := tabwriter.NewWriter(os.Stdout, 4, 2, 2, ' ', 0)
-  // fmt.Fprintf(w, "%sAddress\tType\tStatus\tA-CPU\t%sR-CPU%s\tA-Memory\t%sR-Memory%s\tEC2ID\tARN%s\n", 
-  //   emphColor, defaultColor, defaultColor, defaultColor, defaultColor, resetColor)
-  fmt.Fprintf(w, "%sAddress\tType\tActive\tUptime\tA-CPU\tR-CPU\tA-Mem\tR-Mem\tEC2ID\tARN%s\n", 
+  fmt.Fprintf(w, "%sPublic Address\tInteral Address\tType\tActive\tUptime\tA-CPU\tR-CPU\tA-Mem\tR-Mem\tEC2ID\tARN%s\n", 
     titleColor, resetColor)
   for ciArn, awslibCi := range ciMap {
     ci := awslibCi.Instance
     ecI := ecMap[*ci.Ec2InstanceId]
     if ecI == nil {return fmt.Errorf("Got a nil address for the EC2 Instance.\n")}
     addr := "unassigned"
-    if ecI.PublicIpAddress != nil {addr = *ecI.PublicIpAddress}
+    if ecI.PublicIpAddress != nil { addr = *ecI.PublicIpAddress }
+    iaddr := "unassigned"
+    if ecI.PrivateIpAddress != nil { iaddr = *ecI.PrivateIpAddress }
     iType := "unknown"
     aCpu := getCpu(ci.RegisteredResources)
     rCpu := getCpu(ci.RemainingResources)
@@ -44,8 +44,6 @@ func doListContainerInstances(sess *session.Session) (error) {
     uptime := shortDurationString(time.Since(*ecI.LaunchTime))
 
     eColor := nullColor
-    // cColor := defaultColor
-    // mColor := defaultColor
     if *ci.Status == "INACTIVE" {
       eColor = failColor
     } else {
@@ -53,19 +51,11 @@ func doListContainerInstances(sess *session.Session) (error) {
       if rMem < 512 {eColor = warnColor}
     }
     if ecI.InstanceType != nil {iType = *ecI.InstanceType}
-    // fmt.Fprintf(w, "%s%s\t%s\t%s\t%d\t%s%d%s\t%d\t%s%d%s\t%s\t%s%s\n", eColor,
-    fmt.Fprintf(w, "%s%s\t%s\t%s\t%s\t%d\t%d\t%d\t%d\t%s\t%s%s\n", eColor,
-      // addr, iType, *ci.Status, aCpu, cColor, rCpu, resetColor, aMem, mColor, rMem, resetColor, 
-      addr, iType, *ci.Status, uptime, aCpu, rCpu, aMem, rMem, 
+    fmt.Fprintf(w, "%s%s\t%s\t%s\t%s\t%s\t%d\t%d\t%d\t%d\t%s\t%s%s\n", eColor,
+      addr, iaddr, iType, *ci.Status, uptime, aCpu, rCpu, aMem, rMem, 
       *ci.Ec2InstanceId, awslib.ShortArnString(&ciArn),resetColor) 
   }
   w.Flush()
-
-
-  // fmt.Printf("%d instances for cluster \"%s\"\n", len(instanceArns), currentCluster)
-  // for i, instance := range instanceArns {
-  //   fmt.Printf("%d: %s\n", i+1, *instance)
-  // }
 
   return nil
 }
@@ -359,10 +349,11 @@ func shortInstanceString(inst *ec2.Instance) (s string) {
 
 func doTerminateContainerInstance(sess *session.Session) (error) {
 
-  resp, err := awslib.TerminateContainerInstance(currentCluster, interContainerArn, sess)
-  if err != nil {
-    return err
-  }
+  ciArn, err := awslib.LongArnString(interContainerArn, awslib.ContainerInstanceType, sess)
+  if err != nil { return err }
+  resp, err := awslib.TerminateContainerInstance(currentCluster, ciArn, sess)
+  if err != nil { return err }
+
   termInstances := resp.TerminatingInstances
   if len(termInstances) > 1 {
     fmt.Printf("%sGot (%d) instances terminating, expecting only 1.%s\nn", 

@@ -2,8 +2,11 @@ package interactive
 
 import(
   "fmt"
+  "os"
   "strings"
+  "text/tabwriter"
   "time"
+  "github.com/aws/aws-sdk-go/service/ecs"
 )
 func collectStringPointers(strs []*string) (string) {
   cs := "["
@@ -30,4 +33,21 @@ func shortDurationString(d time.Duration) (s string) {
   } 
 
   return fmt.Sprintf("%dd %dh %dm", days, hours, minutes)
+}
+
+func printFailures(failures []*ecs.Failure) {
+  w := tabwriter.NewWriter(os.Stdout, 4, 8, 3, ' ', 0)
+  fmt.Fprintf(w, "%sARN\tReason%s\n", titleColor, resetColor)
+  for _, f := range failures {
+    reason := *f.Reason
+    if strings.Compare("MISSING", *f.Reason) == 0 {
+      reason += " service is likely not defined as spelled."
+    }
+    fmt.Fprintf(w, "%s%s\t%s%s\n", nullColor, *f.Arn, reason, resetColor)
+  }
+  w.Flush()
+}
+
+func nowString() (string) {
+  return fmt.Sprintf("[%s] ", time.Now().Local().Format(time.RFC1123))
 }
