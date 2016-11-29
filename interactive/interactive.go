@@ -9,7 +9,6 @@ import (
   "github.com/aws/aws-sdk-go/aws/session"
   "github.com/aws/aws-sdk-go/service/ecs"
   "github.com/aws/aws-sdk-go/service/ec2"
-  // "github.com/bobappleyard/readline"
   "github.com/chzyer/readline"
   "github.com/jdrivas/sl"
   "github.com/mgutz/ansi"
@@ -392,7 +391,7 @@ func promptLoop(process func(string) (error)) (err error) {
     if err == io.EOF {
       moreCommands = false
     } else if err != nil {
-      fmt.Printf("%sError! %s%s\n", failColor, err, resetColor)
+      fmt.Printf("%sReadline Error: %s%s\n", failColor, err, resetColor)
     } else {
       readline.AddHistory(line)
       err = process(line)
@@ -411,8 +410,9 @@ func DoInteractive(sess *session.Session, defaultConfig *aws.Config) {
   currentSession = sess
   ecs_svc := ecs.New(sess)
   ec2_svc := ec2.New(sess)
+  readline.SetHistoryPath("./.ecs-pilot_history")
   xICommand := func(line string) (err error) {return doICommand(line, ecs_svc, ec2_svc, defaultConfig, sess)}
   err := promptLoop(xICommand)
-  if err != nil {fmt.Printf("%sError! %s.%s\n", failColor, err, resetColor)}
+  if err != nil {fmt.Printf("%sError exiting prompter: %s%s\n", failColor, err, resetColor)}
 }
 
