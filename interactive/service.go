@@ -5,7 +5,9 @@ import(
   "fmt"
   "github.com/aws/aws-sdk-go/aws/session"
   "github.com/aws/aws-sdk-go/service/ecs"
+  // "io"
   "os"
+  
   // "strings"
   "text/tabwriter"
   "time"
@@ -26,11 +28,7 @@ func doListServices(clusterName string, sess *session.Session) (err error) {
     if len(services) == 0 {
       fmt.Printf("%sThere are no services on this cluster.%s\n", warnColor, resetColor)
     } else {
-      w := tabwriter.NewWriter(os.Stdout, 4, 8, 3, ' ', 0)
-      for _, s := range services {
-        printServiceShort(s)
-      }
-      w.Flush()
+      printShortServices(services);
     }
   }
 
@@ -106,7 +104,7 @@ func doRestartService(serviceName, clusterName string, sess *session.Session) (e
           s, failures, err :=  awslib.DescribeService(serviceName, clusterName, sess)
           if len(failures) > 0 { printFailures(failures) }
           if err == nil { 
-            printServiceShort(s)
+            printShortService(s)
           } else {
             fmt.Printf("%sFailure to get updated Service Description: %s%s\n", failColor, err, resetColor)
           }
@@ -152,21 +150,34 @@ func doDeleteService(serviceName, clusterName string, sess *session.Session) (er
 }
 
 
-func printService(s *ecs.Service) { doPrintService(s, false) }
-func printServiceShort(s *ecs.Service) { doPrintService(s, true) }
-
-func doPrintService(s *ecs.Service, shortPrint bool) {
-  w := tabwriter.NewWriter(os.Stdout, 4, 8, 3, ' ', 0)
+func doPrintShortServiceHeader() (w *tabwriter.Writer) {
+  w = tabwriter.NewWriter(os.Stdout, 4, 8, 3, ' ', 0)
   fmt.Fprintf(w, "%sName\tCluster\tTaskDefinition\tRole\tStatus\tCreated\tDesired\tRunning\tPending\tMax%%\tMin%%%s\n", titleColor, resetColor)
+  return w
+}
+
+func doPrintShortService(w *tabwriter.Writer, s *ecs.Service) {
   fmt.Fprintf(w, "%s%s\t%s\t%s\t%s\t%s\t%s\t%d\t%d\t%d\t%d\t%d%s\n", nullColor,
     *s.ServiceName, awslib.ShortArnString(s.ClusterArn), awslib.ShortArnString(s.TaskDefinition), 
     awslib.ShortArnString(s.RoleArn), *s.Status, s.CreatedAt.Local().Format(time.RFC1123), 
     *s.DesiredCount, *s.RunningCount, *s.PendingCount, 
     *s.DeploymentConfiguration.MaximumPercent, *s.DeploymentConfiguration.MinimumHealthyPercent,
     resetColor)
-  w.Flush()
+}
 
-  if shortPrint {return}
+
+func printShortService(s *ecs.Service) {  printShortServices([]*ecs.Service{s}) }
+func printShortServices(services []*ecs.Service) {
+  w := doPrintShortServiceHeader()
+  for _, s := range services {
+    doPrintShortService(w, s)
+  }
+  w.Flush()
+}
+func printService(s *ecs.Service) {
+  w := doPrintShortServiceHeader()
+  doPrintShortService(w, s)
+  w.Flush()
 
   // Load Balancers
   fmt.Printf("\n%sLoad Balancers (%d)%s\n", titleColor, len(s.LoadBalancers), resetColor)
