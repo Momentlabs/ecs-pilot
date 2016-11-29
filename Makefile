@@ -8,12 +8,26 @@ darwin_target := $(release_dir)/$(prog)_darwin_amd64
 linux_target := $(release_dir)/$(prog)_linux_amd64 
 
 help:
+	@echo make check \# Looks for imports in source files for the local version of mclib, awslib.
 	@echo make release-build \# Creates the binaries: $(binaries)
 	@echo make new-release version=v0.0.2 description="This is an early release." \# creates a release on github.
 	@echo make release-publish version=v0.0.2 \# pushes the binaries to the github release.
 
 clean:
 	rm -rf release
+
+check:
+	@ if grep -e '^[[:space:]]*\"awslib\"' *go interactive/*.go ; then \
+		echo "Fix the awslib library refrence."; \
+		exit -1; \
+	else echo "awlib checked o.k."; \
+	fi
+	@ if grep -e '^[[:space:]]*\"mclib\"' *go interactive/*.go; then \
+		echo "Fix the mclib library refrence."; \
+		exit -1; \
+	else echo "mclib hecked o.k."; \
+	fi
+
 
 # Only define these variables for the release build.
 $(darwin_target) $(linux_target) : now := $(shell date +%s)
