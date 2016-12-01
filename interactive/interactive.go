@@ -190,7 +190,7 @@ func init() {
 
   interStopTask = interTask.Command("stop", "Stop a task.")
   interStopTask.Arg("task-arn", "ARN of the task to stop (from task list)").Required().StringVar(&interTaskArn)
-  interStopTask.Arg("clusnter-name", "short name of the cluster the task is running on.").Default(defaultCluster).Action(setCurrent).StringVar(&clusterNameArg)
+  interStopTask.Arg("cluster-name", "short name of the cluster the task is running on.").Default(defaultCluster).Action(setCurrent).StringVar(&clusterNameArg)
 
   // Service Commands
   serviceCmd = interApp.Command("service", "the context for service commands.")
