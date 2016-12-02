@@ -23,7 +23,7 @@ func doListTasks(clusterName string, sess *session.Session) (error) {
   if len(dtl) > 0 {
     w := tabwriter.NewWriter(os.Stdout, 4, 10, 2, ' ', 0)
     fmt.Fprintf(w, "%sPublic\tTask ARN\tTask Definition\tContainers\tBindings%s\n", titleColor, resetColor)
-    sort.Sort(sort.Reverse(awslib.ByUptime(dtl)))
+    sort.Sort(awslib.ByStartedAt(dtl))
     for _, dt := range dtl {
       t := dt.Task
       fmt.Fprintf(w, "%s%s\t%s\t%s\t%s\t%s%s\n", nullColor, 
@@ -46,7 +46,7 @@ func doStatusTasks(clusterName string, sess *session.Session) (error) {
   if len(dtl) > 0 {
     w := tabwriter.NewWriter(os.Stdout, 4, 10, 2, ' ', 0)
     fmt.Fprintf(w, "%sPublic\tPrivate\tContainers\tUptime\tTTS\tStatus\tTask Definition%s\n", titleColor, resetColor)
-    sort.Sort(sort.Reverse(awslib.ByUptime(dtl)))
+    sort.Sort(awslib.ByStartedAt(dtl))
     for _, dt := range dtl {
       t := dt.Task
       fmt.Fprintf(w, "%s%s\t%s\t%s\t%s\t%s\t%s\t%s%s\n", nullColor, 
