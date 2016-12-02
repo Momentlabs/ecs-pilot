@@ -16,60 +16,46 @@ import (
 
 )
 
-func doListTasks(sess *session.Session) (error) {
-  dtm,  err:= awslib.GetDeepTasks(currentCluster, sess)
+func doListTasks(clusterName string, sess *session.Session) (error) {
+  dtl, err := awslib.GetDeepTaskList(currentCluster, sess)
   if err != nil { return err }
-  // TODO: research into inflectors for go.
-  if err == nil {
-    fmt.Printf("%sCluster: %s%s\n", titleColor, currentCluster, resetColor)
-    if len(dtm) > 0 {
-      w := tabwriter.NewWriter(os.Stdout, 4, 10, 2, ' ', 0)
-      // fmt.Fprintf(w, "%sInstance\tBindings\tContainers\tUptime\tTTS\tStatus\tTask Definition\tTask ARN%s\n", titleColor, resetColor)
-      fmt.Fprintf(w, "%sPublic\tTask ARN\tTask Definition\tContainers\tBindings%s\n", titleColor, resetColor)
-      for arn, dt := range dtm {
-        t := dt.Task
-        // fmt.Fprintf(w, "%s%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s%s\n", nullColor, 
-        //   dt.PublicIpAddress(), awslib.CollectBindings(t), awslib.CollectContainerNames(t.Containers), dt.UptimeString(), dt.TimeToStartString(),
-        //   *t.LastStatus, awslib.ShortArnString(t.TaskDefinitionArn), awslib.ShortArnString(&arn), resetColor)
-        fmt.Fprintf(w, "%s%s\t%s\t%s\t%s\t%s%s\n", nullColor, 
-          dt.PublicIpAddress(), awslib.ShortArnString(&arn),
-          awslib.ShortArnString(t.TaskDefinitionArn),  awslib.CollectContainerNames(t.Containers), 
-          awslib.CollectBindings(t), 
-          resetColor)
-      }
-      w.Flush()
-    } else {
-      fmt.Printf("%sNo tasks in this cluster.%s\n", warnColor, resetColor)
+  fmt.Printf("%sCluster: %s%s\n", titleColor, currentCluster, resetColor)
+  if len(dtl) > 0 {
+    w := tabwriter.NewWriter(os.Stdout, 4, 10, 2, ' ', 0)
+    fmt.Fprintf(w, "%sPublic\tTask ARN\tTask Definition\tContainers\tBindings%s\n", titleColor, resetColor)
+    sort.Sort(sort.Reverse(awslib.ByUptime(dtl)))
+    for _, dt := range dtl {
+      t := dt.Task
+      fmt.Fprintf(w, "%s%s\t%s\t%s\t%s\t%s%s\n", nullColor, 
+        dt.PublicIpAddress(), awslib.ShortArnString(dt.Task.TaskArn),
+        awslib.ShortArnString(t.TaskDefinitionArn),  awslib.CollectContainerNames(t.Containers), 
+        awslib.CollectBindings(t), 
+        resetColor)
     }
+    w.Flush()
+  } else {
+    fmt.Printf("%sNo tasks in this cluster.%s\n", warnColor, resetColor)
   }
   return err
 }
 
 func doStatusTasks(clusterName string, sess *session.Session) (error) {
- dtm,  err:= awslib.GetDeepTasks(currentCluster, sess)
+  dtl,  err:= awslib.GetDeepTaskList(currentCluster, sess)
   if err != nil { return err }
-  // TODO: research into inflectors for go.
-  if err == nil {
-    fmt.Printf("%sCluster: %s%s\n", titleColor, currentCluster, resetColor)
-    if len(dtm) > 0 {
-      w := tabwriter.NewWriter(os.Stdout, 4, 10, 2, ' ', 0)
-      fmt.Fprintf(w, "%sPublic\tPrivate\tContainers\tUptime\tTTS\tStatus\tTask Definition%s\n", titleColor, resetColor)
-      // fmt.Fprintf(w, "%sInstance\tTask ARN\tStatus\tTask Definition\tContainers\tBindings%s\n", titleColor, resetColor)
-      for _, dt := range dtm {
-        t := dt.Task
-        fmt.Fprintf(w, "%s%s\t%s\t%s\t%s\t%s\t%s\t%s%s\n", nullColor, 
-          dt.PublicIpAddress(), dt.PrivateIpAddress(), awslib.CollectContainerNames(t.Containers), dt.UptimeString(), dt.TimeToStartString(),
-          *t.LastStatus, awslib.ShortArnString(t.TaskDefinitionArn), resetColor)
-      //   fmt.Fprintf(w, "%s%s\t%s\t%s\t%s\t%s\t%s%s\n", nullColor, 
-      //     dt.PublicIpAddress(), awslib.ShortArnString(&arn), *t.LastStatus, 
-      //     awslib.ShortArnString(t.TaskDefinitionArn),  awslib.CollectContainerNames(t.Containers), 
-      //     awslib.CollectBindings(t), 
-      //     resetColor)
-      }
-      w.Flush()
-    } else {
-      fmt.Printf("%sNo tasks in this cluster.%s\n", warnColor, resetColor)
+  fmt.Printf("%sCluster: %s%s\n", titleColor, currentCluster, resetColor)
+  if len(dtl) > 0 {
+    w := tabwriter.NewWriter(os.Stdout, 4, 10, 2, ' ', 0)
+    fmt.Fprintf(w, "%sPublic\tPrivate\tContainers\tUptime\tTTS\tStatus\tTask Definition%s\n", titleColor, resetColor)
+    sort.Sort(sort.Reverse(awslib.ByUptime(dtl)))
+    for _, dt := range dtl {
+      t := dt.Task
+      fmt.Fprintf(w, "%s%s\t%s\t%s\t%s\t%s\t%s\t%s%s\n", nullColor, 
+        dt.PublicIpAddress(), dt.PrivateIpAddress(), awslib.CollectContainerNames(t.Containers), dt.UptimeString(), dt.TimeToStartString(),
+        *t.LastStatus, awslib.ShortArnString(t.TaskDefinitionArn), resetColor)
     }
+    w.Flush()
+  } else {
+    fmt.Printf("%sNo tasks in this cluster.%s\n", warnColor, resetColor)
   }
   return nil
 }
@@ -83,13 +69,14 @@ func doDescribeTask(sess *session.Session) (error) {
 }
 
 func doDescribeAllTasks(sess *session.Session) (error) {
-  dtm, err := awslib.GetDeepTasks(currentCluster, sess)
+  dtl, err := awslib.GetDeepTaskList(currentCluster, sess)
   if err == nil {
-    if len(dtm) <= 0 {
+    if len(dtl) <= 0 {
       fmt.Printf("No tasks for %s.\n", currentCluster)
     } else {
-      for k, dt := range dtm {
-        fmt.Printf("\n%sTask: %s%s\n", infoColor, k, resetColor)
+      sort.Sort(sort.Reverse(awslib.ByUptime(dtl)))
+      for _, dt := range dtl {
+        fmt.Printf("\n%sTask: %s%s\n", infoColor, *dt.Task.TaskArn, resetColor)
         printDeepTask(dt)
       }
     }
@@ -97,23 +84,38 @@ func doDescribeAllTasks(sess *session.Session) (error) {
   return err
 }
 
-
 // yes, yes. Cut this up into smaller fuctions ....
 func printDeepTask(dt *awslib.DeepTask) {
 
-  // Task details
-  fmt.Printf("\n%sTask%s\n", titleColor, resetColor)
+  // Task description
+  fmt.Printf("\n")
+  // fmt.Printf("%sDescription%s\n", titleColor, resetColor)
   w := tabwriter.NewWriter(os.Stdout, 4, 8, 3, ' ', 0)
-  fmt.Fprintf(w, "%sTaskDefinintion\tARN\tInstnanceID\tTaskRole\tPublicIP\tPrivateIP\tNetwork Mode\tStatus%s\n", titleColor, resetColor) 
+  fmt.Fprintf(w, "%sCluster\tTaskDefinintion\tARN\tInstnanceID\tTaskRole\tPublicIP\tPrivateIP\tNetwork Mode%s\n", titleColor, resetColor) 
   roleArn := "<none>"
   if dt.TaskDefinition.TaskRoleArn != nil { roleArn = *dt.TaskDefinition.TaskRoleArn }
   fmt.Fprintf(w,"%s%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s%s\n", nullColor,
-    awslib.ShortArnString(dt.TaskDefinition.TaskDefinitionArn), awslib.ShortArnString(dt.Task.TaskArn), *dt.GetInstanceID(), roleArn, dt.PublicIpAddress(), dt.PrivateIpAddress(), 
-    *dt.TaskDefinition.NetworkMode, dt.LastStatus(), resetColor)
+    dt.ClusterName(), awslib.ShortArnString(dt.TaskDefinition.TaskDefinitionArn), awslib.ShortArnString(dt.Task.TaskArn), 
+    *dt.GetInstanceID(), roleArn, dt.PublicIpAddress(), dt.PrivateIpAddress(), 
+    *dt.TaskDefinition.NetworkMode, resetColor)
+  w.Flush()
+
+  // Status
+  fmt.Printf("\n")
+  // fmt.Printf("%s\nStatus%s\n", titleColor, resetColor)
+  w = tabwriter.NewWriter(os.Stdout, 4, 10, 2, ' ', 0)
+  fmt.Fprintf(w, "%sStatus\tContainers\tUptime\tTTS\tTask Definition%s\n", titleColor, resetColor)
+  t := dt.Task
+  lineColor := nullColor
+  if strings.Compare(dt.LastStatus(), "RUNNING") != 0 { lineColor = failColor }
+  fmt.Fprintf(w, "%s%s\t%s\t%s\t%s\t%s\t%s%s\n", lineColor, 
+    dt.LastStatus(), awslib.CollectContainerNames(t.Containers), dt.UptimeString(), dt.TimeToStartString(),
+    awslib.ShortArnString(t.TaskDefinitionArn), resetColor)
   w.Flush()
 
   // Volumes
-  fmt.Printf("%s\nVolumes%s\n", titleColor, resetColor)
+  fmt.Printf("\n")
+  // fmt.Printf("%s\nVolumes%s\n", titleColor, resetColor)
   if len(dt.TaskDefinition.Volumes) > 0 {
     w = tabwriter.NewWriter(os.Stdout, 4, 8, 3, ' ', 0)
     fmt.Fprintf(w, "%sName\tHost Source Path%s\n", titleColor, resetColor)
@@ -129,8 +131,7 @@ func printDeepTask(dt *awslib.DeepTask) {
   // Containers
   //
 
-  // Basic status
-  envs := make(map[string]map[string]string)
+  // Description
   fmt.Printf("\n%sContainers%s\n", titleColor, resetColor)
   w = tabwriter.NewWriter(os.Stdout, 4, 8, 3, ' ', 0)
   fmt.Fprintf(w, "%sName\tEssential\tPrivelaged\tStatus\tReason%s\n", titleColor, resetColor)
@@ -267,6 +268,14 @@ func printDeepTask(dt *awslib.DeepTask) {
   w.Flush()
 
   // Environments
+  // This whole mess probably wants to be in awslib near to deeptask.
+  // (e.g. the map of envs by container, the construction function, and
+  // even the sorting interface.
+  envs := make(map[string]map[string]string)
+  for _, c := range dt.Task.Containers {
+    env, _ := dt.GetEnvironment(*c.Name)
+    envs[*c.Name] = env
+  }
   tel := mergeEnvs(envs)
   fmt.Printf("%s\nConatiner Environments:%s\n", titleColor, resetColor)
   if len(tel) > 0 {
@@ -319,6 +328,8 @@ func ByKeyGroupedByContainer(tl []*taskEnvEntry) (taskEnvSort) {
   }
 }
 
+// Takes a map[containerName]environmet, where environment is map[key]value
+// containerName, key, value all strings
 func mergeEnvs(envs map[string]map[string]string) (el []*taskEnvEntry) {
   el = make([]*taskEnvEntry,0)
   for cName, env := range envs {
