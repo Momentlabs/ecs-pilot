@@ -114,6 +114,15 @@ var (
   taskConfigFileName string
   // interTaskDefinitionArn string
 
+  // Images
+  repoCmd *kingpin.CmdClause
+  listRepoCmd *kingpin.CmdClause
+  repoStatusCmd *kingpin.CmdClause
+
+  imageCmd *kingpin.CmdClause
+  listImageCmd *kingpin.CmdClause
+  imageRepositoryArg string
+
   log = sl.New()
 
 )
@@ -231,6 +240,16 @@ func init() {
   registerTaskDefinition = interTaskDefinition.Command("register", "Register a task definition.") 
   registerTaskDefinition.Arg("config", "Configuration desecription for task definition.").Required().StringVar(&taskConfigFileName)
 
+  // Repos
+  repoCmd = interApp.Command("repo", "Commands for repositories")
+  listRepoCmd = repoCmd.Command("list", "List the repos we have.")
+  repoStatusCmd = repoCmd.Command("status", "Get status data on all the repos.")
+
+  // Image
+  imageCmd = interApp.Command("image", "the context for image commands.")
+  listImageCmd = imageCmd.Command("list", "list the images for the give repository.")
+  listImageCmd.Arg("repository", "Image repository to find list of images.").Required().StringVar(&imageRepositoryArg)
+
 }
 
 
@@ -289,6 +308,12 @@ func doICommand(line string, ecsSvc *ecs.ECS, ec2Svc *ec2.EC2, awsConfig *aws.Co
       case interListTaskDefinitions.FullCommand(): err = doListTaskDefinitions(sess)
       case interDescribeTaskDefinition.FullCommand(): err = doDescribeTaskDefinition(sess)
       case registerTaskDefinition.FullCommand(): err = doRegisterTaskDefinition(sess)
+
+      case listRepoCmd.FullCommand(): err = doListRepositories(sess)
+      case repoStatusCmd.FullCommand(): err = doRepositoryStatus(sess)
+
+      case listImageCmd.FullCommand(): err = doListImages(imageRepositoryArg, sess)
+
     }
   }
   return err
