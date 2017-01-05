@@ -3,3 +3,4 @@ release
 compose-files
 *.json
 .instance_credentials
+npm-debug.log
