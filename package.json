@@ -1,0 +1,33 @@
+{
+  "name": "ecs-pilot",
+  "version": "0.0.5",
+  "description": "Interactive Command Line with web client for managing AWS ECS clusters.",
+  "main": "gulpfile.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "chalk": "^1.1.3",
+    "console-stream": "^0.1.1",
+    "gulp": "^3.9.1",
+    "gulp-run": "^1.7.1",
+    "gulp-prompt": "^0.2.0",
+    "gulp-util": "^3.0.7",
+    "synchro-prompt": "^1.1.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "gulper watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Momentlabs/ecs-pilot.git"
+  },
+  "author": "David Rivas",
+  "license": "ALL RIGHT EXPRESSLY RESERVED BY AUTHOR; no implicit license.",
+  "bugs": {
+    "url": "https://github.com/Momentlabs/ecs-pilot/issues"
+  },
+  "homepage": "https://github.com/Momentlabs/ecs-pilot#README"
+}
