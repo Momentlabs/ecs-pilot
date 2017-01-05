@@ -63,9 +63,13 @@ var (
   debug bool
   interTestString []string
 
-  useClusterCmd *kingpin.CmdClause
+  // Command flags
+  sortByCreatedAt bool
+  sortByLastUpdate bool
 
   // Clusters
+  useClusterCmd *kingpin.CmdClause
+
   interCluster *kingpin.CmdClause
   createCluster *kingpin.CmdClause
   deleteCluster *kingpin.CmdClause
@@ -117,7 +121,7 @@ var (
   // Images
   repoCmd *kingpin.CmdClause
   listRepoCmd *kingpin.CmdClause
-  repoStatusCmd *kingpin.CmdClause
+  // repoStatusCmd *kingpin.CmdClause
 
   imageCmd *kingpin.CmdClause
   listImageCmd *kingpin.CmdClause
@@ -243,7 +247,10 @@ func init() {
   // Repos
   repoCmd = interApp.Command("repo", "Commands for repositories")
   listRepoCmd = repoCmd.Command("list", "List the repos we have.")
-  repoStatusCmd = repoCmd.Command("status", "Get status data on all the repos.")
+  listRepoCmd.Flag("creation-date", "Sort repo by creation date").Short('c').BoolVar(&sortByCreatedAt)
+  // listRepoCmd.Flag("updated-date", "Sort repo by last updated date").Short('u').BoolVar(&sortByLastUpdate)
+  
+  // repoStatusCmd = repoCmd.Command("status", "Get status data on all the repos.")
 
   // Image
   imageCmd = interApp.Command("image", "the context for image commands.")
@@ -259,6 +266,8 @@ func doICommand(line string, ecsSvc *ecs.ECS, ec2Svc *ec2.EC2, awsConfig *aws.Co
   // through doICommand. So we reset them here.
   interTestString = []string{}
   taskEnv = make(map[string]string)
+  sortByLastUpdate = false
+  sortByCreatedAt = false
 
   // Prepare a line for parsing
   line = strings.TrimRight(line, "\n")
@@ -310,7 +319,7 @@ func doICommand(line string, ecsSvc *ecs.ECS, ec2Svc *ec2.EC2, awsConfig *aws.Co
       case registerTaskDefinition.FullCommand(): err = doRegisterTaskDefinition(sess)
 
       case listRepoCmd.FullCommand(): err = doListRepositories(sess)
-      case repoStatusCmd.FullCommand(): err = doRepositoryStatus(sess)
+      // case repoStatusCmd.FullCommand(): err = doRepositoryStatus(sess)
 
       case listImageCmd.FullCommand(): err = doListImages(imageRepositoryArg, sess)
 

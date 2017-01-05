@@ -14,26 +14,8 @@ import(
   // "github.com/jdrivas/awslib"
 )
 
+
 func doListRepositories(sess *session.Session) (error) {
-
-  repos, err := awslib.GetRepositories(sess)
-  if err == nil {
-    fmt.Printf("%sRepositories%s\n", titleColor, resetColor)
-    w := tabwriter.NewWriter(os.Stdout, 4, 10, 2, ' ', 0)
-    fmt.Fprintf(w, "%sName\tCreatedAt\tURI\tARN%s\n", titleColor, resetColor)
-    sort.Sort(awslib.ByRepoName(repos))
-    for _, r := range repos {
-      fmt.Fprintf(w, "%s%s\t%s\t%s\t%s%s\n", nullColor, 
-        *r.RepositoryName, r.CreatedAt.Local().Format(time.RFC1123), *r.RepositoryUri, awslib.ShortArnString(r.RepositoryArn),
-        resetColor)
-
-    }
-    w.Flush()
-  }
-  return err
-}
-
-func doRepositoryStatus(sess *session.Session) (error) {
   repos, err := awslib.GetRepositories(sess)
   if err == nil {
     imageMap, err := awslib.GetAllImages(sess)    
@@ -41,11 +23,18 @@ func doRepositoryStatus(sess *session.Session) (error) {
       fmt.Printf("%sRepositories%s\n", titleColor, resetColor)
       w := tabwriter.NewWriter(os.Stdout, 4, 10, 2, ' ', 0)
       fmt.Fprintf(w, "%sName\tImages\tCreatedAt\tLatest Update\tURI%s\n", titleColor, resetColor)
-      sort.Sort(awslib.ByRepoName(repos))
+      // TODO: create a bit array that can be manipulated by these bools in the UI
+      // and passed in as an argument to this function as an arg an evaluated by 
+      // a different sort of switch state.
+      switch {
+        case sortByCreatedAt && sortByLastUpdate: return fmt.Errorf("Can't sort by both LastUpdte and CreatedAt.")
+        case sortByCreatedAt: sort.Sort(awslib.ByRepoCreatedAt(repos))
+        // case sortByLastUpdate: sort.Sort(awslib.ByRepoLastUpdate(repos))
+        default: sort.Sort(awslib.ByRepoName(repos))
+      }
       for _, r := range repos {
         il := imageMap[*r.RepositoryName]
-        sort.Sort(sort.Reverse(awslib.ByPushedAt(il)))
-        latestImage := il[0]
+        latestImage := il[0] // This is pre-sorted by GetAllImages.
         fmt.Fprintf(w, "%s%s\t%d\t%s\t%s\t%s%s\n", nullColor, 
           *r.RepositoryName, len(il), r.CreatedAt.Local().Format(time.RFC1123), 
           latestImage.ImagePushedAt.Local().Format(time.RFC1123), *r.RepositoryUri, 
