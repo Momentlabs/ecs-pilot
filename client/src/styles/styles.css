@@ -1,0 +1,9 @@
+html {
+  /* Specifying the font familiy throughout is required to get the FontIcon to work properly. */
+  font-family: 'Roboto', sans-serif;
+}
+
+body {
+  font-size: 13px;
+  line-height: 20px;
+}
