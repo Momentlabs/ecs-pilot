@@ -4,3 +4,4 @@ compose-files
 .instance_credentials
 npm-debug.log
 test-files/
+**/.ecs-pilot_history
