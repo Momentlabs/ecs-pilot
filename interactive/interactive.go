@@ -4,6 +4,7 @@ import (
   "fmt"
   "io"
   "time"
+  "ecs-pilot/server"
   "github.com/alecthomas/kingpin"
   "github.com/aws/aws-sdk-go/aws"
   "github.com/aws/aws-sdk-go/aws/session"
@@ -126,6 +127,9 @@ var (
   imageCmd *kingpin.CmdClause
   listImageCmd *kingpin.CmdClause
   imageRepositoryArg string
+
+  serverCmd *kingpin.CmdClause
+  serverAddressArg string
 
   log = sl.New()
 
@@ -257,8 +261,10 @@ func init() {
   listImageCmd = imageCmd.Command("list", "list the images for the give repository.")
   listImageCmd.Arg("repository", "Image repository to find list of images.").Required().StringVar(&imageRepositoryArg)
 
+  // Serer
+  serverCmd = interApp.Command("server", "Run a server front end.")
+  serverCmd.Arg("address", "Address to listen for HTTP connections.").Default("127.0.0.1:8080").StringVar(&serverAddressArg)
 }
-
 
 func doICommand(line string, ecsSvc *ecs.ECS, ec2Svc *ec2.EC2, awsConfig *aws.Config, sess *session.Session) (err error) {
 
@@ -322,6 +328,8 @@ func doICommand(line string, ecsSvc *ecs.ECS, ec2Svc *ec2.EC2, awsConfig *aws.Co
       // case repoStatusCmd.FullCommand(): err = doRepositoryStatus(sess)
 
       case listImageCmd.FullCommand(): err = doListImages(imageRepositoryArg, sess)
+
+      case serverCmd.FullCommand(): err = server.DoServe(serverAddressArg)
 
     }
   }
