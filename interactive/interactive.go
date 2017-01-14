@@ -4,7 +4,7 @@ import (
   "fmt"
   "io"
   "time"
-  "ecs-pilot/server"
+  // "ecs-pilot/server"
   "github.com/alecthomas/kingpin"
   "github.com/aws/aws-sdk-go/aws"
   "github.com/aws/aws-sdk-go/aws/session"
@@ -329,7 +329,7 @@ func doICommand(line string, ecsSvc *ecs.ECS, ec2Svc *ec2.EC2, awsConfig *aws.Co
 
       case listImageCmd.FullCommand(): err = doListImages(imageRepositoryArg, sess)
 
-      case serverCmd.FullCommand(): err = server.DoServe(serverAddressArg)
+      case serverCmd.FullCommand(): err = doServer(serverAddressArg, sess)
 
     }
   }

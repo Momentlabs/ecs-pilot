@@ -1,5 +1,7 @@
 
 import delay from './delay';
+import ECSPilot from './connection';
+
 export const CLUSTER_ACTIVE = "ACTIVE";
 export const CLUSTER_INACTIVE = "INACTIVE";
 
@@ -46,14 +48,18 @@ const clusters = [
   }
 ];
 
-
 export default class Cluster {
-  static getClusters() {
+
+  static getTestClusters() {
     return new Promise((resolve) => {
       setTimeout( () => {
         resolve(Object.assign([], clusters));
       }, delay);
     });
+  }
+
+  static getClusters() {
+    return ECSPilot.get('/clusters');
   }
 
   static byName(clusters) {

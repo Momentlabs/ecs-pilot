@@ -23,6 +23,7 @@ browserSync({
     baseDir: 'src',
 
     middleware: [
+
       historyApiFallback(),
 
       webpackDevMiddleware(bundler, {

@@ -1,10 +1,18 @@
 import React, { PropTypes } from 'react';
 import { Table, TableBody, TableHeader, TableHeaderColumn, TableRow, TableRowColumn } from 'material-ui/Table';
-import Cluster, { CLUSTER_ACTIVE } from '../ecs/cluster';
+import Cluster from '../ecs/cluster';
 import * as colors from '../styles/colors';
 
-const clusterRowFormat = ({status}) => {
-  return (status === CLUSTER_ACTIVE) ? {background: colors.stableBG} : {};
+const clusterRowFormat = ({registeredContainerInstancesCount}) => {
+  return (registeredContainerInstancesCount > 0) ? {background: colors.stableBG} : {};
+};
+
+const onRowHover = (row) => {
+  // console.log("rowHover row:", row);
+};
+
+const onRowSelection = (selectedRows) => {
+  // console.log("rowClick there were ", sselections: ", selectedRows);
 };
 
 // import {Link} from 'react-router';
@@ -13,10 +21,10 @@ const clusterItems = (clusters) => {
   return clusters.map((cluster) => {
     return (
       <TableRow key={cluster.clusterName} displayBorder={false} style={clusterRowFormat(cluster)}>
-        <TableRowColumn >{cluster.clusterName}</TableRowColumn>
+        <TableRowColumn>{cluster.clusterName}</TableRowColumn>
         <TableRowColumn>{cluster.status}</TableRowColumn>
-        <TableRowColumn>{cluster.registeredContainerInstanceCount}</TableRowColumn>
-        <TableRowColumn>{cluster.activeServiceCount}</TableRowColumn>
+        <TableRowColumn>{cluster.registeredContainerInstancesCount}</TableRowColumn>
+        <TableRowColumn>{cluster.activeServicesCount}</TableRowColumn>
         <TableRowColumn>{cluster.pendingTasksCount}</TableRowColumn>
         <TableRowColumn>{cluster.runningTasksCount}</TableRowColumn>
       </TableRow>
@@ -27,7 +35,7 @@ const clusterItems = (clusters) => {
 // Since this component is simple and static, there's no parent container for it.
 const ClusterList = ({clusters, onCellClick}) => {
   return (
-    <Table onCellClick={onCellClick} selectable={true} >
+    <Table onCellClick={onCellClick} onRowSelection={onRowSelection} selectable={true} onRowHover={onRowHover} >
       <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
         <TableRow>
           <TableHeaderColumn tooltip="Cluster Name">Name</TableHeaderColumn>

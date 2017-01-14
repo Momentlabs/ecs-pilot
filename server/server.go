@@ -1,8 +1,10 @@
 package server
 
 import (
+  "fmt"
   "time"
   "net/http"
+  "github.com/aws/aws-sdk-go/aws/session"
   "github.com/gorilla/context"
   "github.com/gorilla/mux"
   "github.com/jdrivas/sl"
@@ -13,14 +15,28 @@ func init() {
   configureLogs()
 }
 
+
+// LOG CONSTANTS
 const (
   SERVER_STARTING = "server_starting"
 )
-
 const ServerName = "ecs-pilot"
 
-func DoServe(address string) error {
-  // TODO: This doesn't stop ....
+// VAR KEY CONSTANTS
+const (
+  CLUSTER_NAME_VAR = "clusterName"
+)
+
+// This is essentially a constant set up at the top by DoServe
+var awsSession *session.Session
+
+func DoServe(address string, sess *session.Session) error {
+  // TODO: This doesn't have a way to stop from the outside ....
+  if sess == nil {
+    return fmt.Errorf("AWS session  must be non-nil")
+  }
+  awsSession = sess
+
   go func() {
     serve(address)
   }()
@@ -40,9 +56,11 @@ func serve(address string) (err error) {
 
   // REST API
   r.HandleFunc("/clusters", ClusterController)
+  r.HandleFunc(fmt.Sprintf("/deepTasks/{%s}", CLUSTER_NAME_VAR), DeepTaskController)
+  r.HandleFunc(fmt.Sprintf("/instances/{%s}", CLUSTER_NAME_VAR), InstancesController)
 
   // Middleware
-  handlerChain := context.ClearHandler(LogHandler(r))
+  handlerChain := context.ClearHandler(LogHandler(CorsHandler(r)))
 
   // Server it up.
   err = http.ListenAndServe(address, handlerChain)
@@ -53,6 +71,22 @@ func serve(address string) (err error) {
 
 func IndexController(w http.ResponseWriter, r *http.Request) {
   http.ServeFile(w, r, "./static/index.html")
+}
+
+// TODO: For the moment I'm really only using this for DEV to seperate development on client and server.
+// I don't expect that I'll necessarily want to actually enable this
+// so some solution for proper production use needs to be determined once I decide how this will really be 
+// deployed.
+// To be clear: this is badness and should not surivice a production release.
+func CorsHandler(handler http.Handler) http.Handler {
+  return http.HandlerFunc( func (w http.ResponseWriter, r * http.Request) {
+    log.Info(nil, "Setting CORS header.")
+    w.Header().Set("Access-Control-Allow-Origin", "*")
+    w.Header().Set("Access-Contorl-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+    w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
+    handler.ServeHTTP(w,r)
+  })
+
 }
 
 func LogHandler(handler http.Handler) http.Handler {
