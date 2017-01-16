@@ -4,6 +4,7 @@ import (
   "fmt"
   "io"
   "time"
+  "ecs-pilot/server"
   // "ecs-pilot/server"
   "github.com/alecthomas/kingpin"
   "github.com/aws/aws-sdk-go/aws"
@@ -410,13 +411,16 @@ func configureLogs() {
   formatter := new(sl.TextFormatter)
   formatter.FullTimestamp = true
   log.SetFormatter(formatter)
+  l := logrus.InfoLevel
   if debug || verbose {
-    log.SetLevel(logrus.DebugLevel)
-    awslib.SetLogLevel(logrus.DebugLevel)
+    l = logrus.DebugLevel
   } else {
-    log.SetLevel(logrus.InfoLevel)
-    awslib.SetLogLevel(logrus.InfoLevel)
+    l = logrus.InfoLevel
   }
+
+  log.SetLevel(l)
+  awslib.SetLogLevel(l)
+  server.SetLogLevel(l)
 }
 
 func doQuit(sess *session.Session) (error) {

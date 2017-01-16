@@ -111,6 +111,13 @@ const RechartGauge = (props, context) => { // eslint-disable-line react/no-multi
 RechartGauge.contextTypes = {
   muiTheme: PropTypes.object.isRequired
 };
+RechartGauge.defaultProps ={
+  cx: undefined,
+  cy: undefined,
+  rightOffset: undefined,
+  leftOffset: undefined,
+  title: "",
+};
 
 RechartGauge.propTypes = {
   size: PropTypes.number.isRequired,

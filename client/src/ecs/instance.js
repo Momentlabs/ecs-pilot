@@ -1,14 +1,24 @@
 import ECSPilot from './connection';
 
-export default class Instance {
 
+//
+// Remote access.
+//
+
+// Returns a promise.
+export default class Instance {
   static getInstances(clusterName) {
     console.log("Instance():getInstances() Requesting instances for cluster:", clusterName);
     return ECSPilot.get("/instances/" + clusterName);
   }
 }
 
-// Values
+//
+// Access and helper functions.
+//
+
+//
+// Container Instance Values
 export const remainingCpuValue = (ci) => remainingCpu(ci).integerValue;
 export const registeredCpuValue = (ci) => registeredCpu(ci).integerValue;
 export const usedCpuValue = (ci) => registeredCpu(ci).integerValue - remainingCpu(ci).integerValue;
@@ -20,6 +30,9 @@ export const registeredMemoryValue = (ci) => registeredMemory(ci).integerValue;
 export const usedMemoryValue = (ci) => registeredMemory(ci).integerValue - remainingMemory(ci).integerValue;
 export const percentUsedMemoryValue = (ci) => ((usedMemoryValue(ci) / registeredMemoryValue(ci))*100).toFixed(0);
 export const percentRemainingMemoryValue = (ci) => ((remainingMemoryValue(ci) / registeredMemoryValue(ci))*100).toFixed(0);
+
+export const registeredTcpPortsValue = (ci) => registeredPorts(ci).stringSetValue;
+export const registeredUdpPortsValue = (ci) => registeredUdpPorts(ci).stringSetValue;
 
 // Objects
 export const registeredCpu = (ci) => registeredResource(ci, "CPU");
@@ -40,3 +53,7 @@ export const remainingUdpPorts = (ci) => remainingResource(ci, "PORTS_UDP");
 export const remainingResource = (ci, rName) => {
   return ci.remainingResources.find( (r) =>  r.name === rName );
 };
+
+
+// EC2 Values
+export const securityGroups = (ec2) => ec2.groupSet; // returns an array of {groupId: string, groupName: string}

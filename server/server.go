@@ -36,7 +36,7 @@ func DoServe(address string, sess *session.Session) error {
     return fmt.Errorf("AWS session  must be non-nil")
   }
   awsSession = sess
-
+  log.Debug(logrus.Fields{"serverName": ServerName, "action:": SERVER_STARTING,}, "Call server Go routine")
   go func() {
     serve(address)
   }()
@@ -44,7 +44,7 @@ func DoServe(address string, sess *session.Session) error {
 }
 
 func serve(address string) (err error) {
-  fields := logrus.Fields{"serverAddress": address, "serverName": ServerName}
+  fields := logrus.Fields{"serverAddress": address, "serverName": ServerName, "action": SERVER_STARTING}
   log.Info(fields, "Starting server.")
 
   // Routes
@@ -58,6 +58,7 @@ func serve(address string) (err error) {
   r.HandleFunc("/clusters", ClusterController)
   r.HandleFunc(fmt.Sprintf("/deepTasks/{%s}", CLUSTER_NAME_VAR), DeepTaskController)
   r.HandleFunc(fmt.Sprintf("/instances/{%s}", CLUSTER_NAME_VAR), InstancesController)
+  r.HandleFunc(fmt.Sprintf("/security_groups"), SecurityGroupsController)
 
   // Middleware
   handlerChain := context.ClearHandler(LogHandler(CorsHandler(r)))
