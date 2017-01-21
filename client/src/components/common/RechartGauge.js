@@ -33,8 +33,8 @@ const renderLabel = (o) => { // eslint-disable-line react/no-multi-comp
   }
 };
 
-
-  // TODO: Fix the tool-tips on this. They look horrible.
+// TODO: This whole thing needs to be rewritten to leverage a flexbox containing it.
+// TODO: Fix the tool-tips on this. They look horrible.
 const RechartGauge = (props, context) => { // eslint-disable-line react/no-multi-comp
   // console.log("RechartGauge() - props", props);
   const {size, colors, amount, total, outerRadius, innerRadius, title, cx, cy, rightOffset, leftOffset}  = props;
@@ -79,7 +79,7 @@ const RechartGauge = (props, context) => { // eslint-disable-line react/no-multi
       marginLeft: 0,
       overflow: "visible", 
       position: "absolute",
-      left: lOffset-xOffset,
+      // left: lOffset-xOffset,
       outline: '0px solid red',
     }
   };

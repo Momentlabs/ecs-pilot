@@ -57,3 +57,10 @@ export const remainingResource = (ci, rName) => {
 
 // EC2 Values
 export const securityGroups = (ec2) => ec2.groupSet; // returns an array of {groupId: string, groupName: string}
+
+export const securityGroupIds = (instances) => {
+  const groups = instances.map( (i) => securityGroups(i.ec2Instance));
+  const flatGroups = [].concat.apply([], groups);
+  return flatGroups.map( (g) => g.groupId );
+};
+

@@ -1,32 +1,28 @@
 import React, { Component, PropTypes } from 'react';
-// import { Link, IndexLink } from 'react-router';
-import moment from 'moment';
+import  * as instanceActions from '../actions/instance';
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';import moment from 'moment';
 
 import { shortArn } from '../helpers/aws';
+import { KeyGenerator } from '../helpers/ui';
 import { uptimeString } from '../helpers/time';
 import * as c from '../styles/colors';
 
-import Instance, { 
-          usedCpuValue, usedMemoryValue, 
+// import Instance from '../ecs/instance';
+import {  usedCpuValue, usedMemoryValue, 
           registeredCpuValue,registeredMemoryValue,
           remainingCpuValue, remainingMemoryValue, 
-          registeredTcpPortsValue, registeredUdpPortsValue,
-          securityGroups
-      } from '../ecs/instance';
-
-import SecurityGroup from '../ecs/securityGroup';
+          registeredTcpPortsValue, registeredUdpPortsValue
+        } from '../ecs/instance';
 
 //
 // React Components
 //
 import { Card, CardTitle } from 'material-ui/Card';
-// import { Table, TableBody, TableHeader, TableHeaderColumn, TableRow, TableRowColumn } from 'material-ui/Table';
 import Divider from 'material-ui/Divider';
 import Paper from 'material-ui/Paper';
-// import { List, ListItem } from 'material-ui/List';
 import { ListItem } from 'material-ui/List';
 import Subheader from 'material-ui/Subheader';
-// import FloatingActionButton from 'material-ui/FloatingActionButton';
 
 import FlexContainer from '../components/common/FlexContainer';
 import RechartGauge from '../components/common/RechartGauge';
@@ -35,28 +31,35 @@ import DetailCard from '../components/common/DetailCard';
 import ItemPair from '../components/common/ItemPair';
 
 
-export default class InstancesCard extends Component {
+class InstancesCard extends Component {
 
   static contextTypes  = {
     muiTheme: PropTypes.object.isRequired
   }
 
+  static defaultProps = {
+    instances: [],
+    securityGroups: [],
+
+  }
+
+  static propTypes = {
+    actions: PropTypes.object,
+    instances: PropTypes.array,
+    securityGroups: PropTypes.array,
+    clusterName: PropTypes.string.isRequired,
+  };
+
   constructor(props, context) {
 
     super(props, context);
-    // console.log("InstancesCard:constructor - props", props);
-    // this.state = {instanceResponse: props.instanceResponse};
     this.state = {
-      instancesResponse: undefined,
-      instances: [],
-      securityGroups: [],
       cpuPopupOpen: false
     };
 
     this.componentWillMount = this.componentWillMount.bind(this);
-
     this.handleExpandedChange = this.handleExpandedChange.bind(this);
-    this.renderInstance = this.renderInstance.bind(this);
+    this.renderInstanceDetals = this.renderInstanceDetails.bind(this);
     this.renderDetailCards = this.renderDetailCards.bind(this);
     this.renderGauges = this.renderGauges.bind(this);
     this.renderResources = this.renderResources.bind(this);
@@ -64,43 +67,8 @@ export default class InstancesCard extends Component {
     this.renderSecurityGroup = this.renderSecurityGroup.bind(this);
   } 
 
-
   componentWillMount() {
-    // this.setState({
-    //   // instancesResponse: undefined,
-    // });
-
-    Instance.getInstances(this.props.clusterName)
-    .then( (instancesResponse) => {
-      const responseData = instancesResponse.data;
-      const instances = responseData.instances;
-      this.setState({
-        instancesResponse: responseData,
-        instances: instances,
-        securityGroups: []
-      });
-      console.log("InstanceCard:componentWillMount - promise success: response: ", instancesResponse);
-      const groups = instances.map( (i) => securityGroups(i.ec2Instance) );
-      const flatGroups = [].concat.apply([], groups);
-      const ids = flatGroups.map( (g) => g.groupId );
-      console.log("InstanceCard:componentWillMount - promise success, groups:", groups, "ids", ids);
-      SecurityGroup.getGroups(ids)
-      .then( (groupsResponse) => {
-        this.setState({
-          securityGroups: groupsResponse.data
-        });
-        console.log("InstanceCard:componentWillMount - 2nd promise success: Got new securityGroup result: ", groupsResponse);
-      })
-      .catch( (error) => {
-        throw(error);
-      });
-
-    })
-    .catch( (error) => {
-      // console.log("ClusterCard:componentWillMount(getInstances():PromiseResolution: Error", error);
-      throw(error);
-    });
-
+    this.props.actions.requestInstances(this.props.clusterName);
   }
 
   handleExpandedChange(expanded) {
@@ -215,13 +183,14 @@ export default class InstancesCard extends Component {
   }
 
   renderNetworkItems(ci, ec2) {
+    let kg = new KeyGenerator;
     let items = [];
     items.push(this.itemHeader("Public Network"));
-    items.push(<Divider />);
+    items.push(<Divider key={kg.nextKey()} />);
     items.push(this.itemHeaderPair("Public IP", ec2.ipAddress));
 
     items.push(this.itemHeader("Virtual Private Network"));
-    items.push(<Divider />);
+    items.push(<Divider key={kg.nextKey()} />);
     items.push(this.itemHeaderPair("Private IP", ec2.privateIpAddress));
     items.push(this.itemHeaderPair("VPC ID", ec2.vpcId));
     items.push(this.itemHeaderPair("SubNet", ec2.subnetId));
@@ -231,13 +200,14 @@ export default class InstancesCard extends Component {
       items.push(this.itemHeader("No security groups"));
     } else {
       items.push(this.itemHeader("Security Groups"));
-      items.push(<Divider />);
+      items.push(<Divider key={kg.nextKey()} />);
       sg.map((g) => items.push(this.itemHeaderPair(g.groupName, g.groupId)));
     }
     return(items);
   }
 
   renderInstanceDetails(ci, ec2) {
+    let kg = new KeyGenerator;
     let items = [];
     items.push(this.itemHeaderPair("Launch Time", moment.unix(ec2.launchTime).toISOString()));
     items.push(this.itemHeaderPair("Uptime", uptimeString(ec2.launchTime)));
@@ -245,12 +215,12 @@ export default class InstancesCard extends Component {
     items.push(this.itemHeaderPair("Container ARN", shortArn(ci.containerInstanceArn)));
 
     items.push(this.itemHeader("AMI"));
-    items.push(<Divider />);
+    items.push(<Divider key={kg.nextKey()}/>);
     items.push(this.itemHeaderPair("AMI ID", ec2.imageId));
     items.push(this.itemHeaderPair("Image Arch", ec2.architecture));
 
     items.push(this.itemHeader("IAM"));
-    items.push(<Divider />);
+    items.push(<Divider key={kg.nextKey()}/>);
     items.push(this.itemHeaderPair("Profile", shortArn(ec2.iamInstanceProfile.arn)));
     items.push(this.itemHeaderPair("Key", ec2.keyName));
     return(items);
@@ -293,7 +263,7 @@ export default class InstancesCard extends Component {
 
           // Display port/cidr pairs, only displaying the port once on the left,
           // the first cidr on immediate right of the port, remaining related cidrs
-          // on the right with no port on the left:
+          // on the right with no port on the left:``
           // e.g.
           // 22                 0.0.0.0/0
           // 20514        172.31.48.00/22
@@ -315,21 +285,23 @@ export default class InstancesCard extends Component {
     };
 
     // Render
+    let kg = new KeyGenerator;
     items.push(this.itemHeaderPair("Owner Id", g.ownerId));
     items.push(this.itemHeaderPair("VPC Id", g.vpcId));
 
     items.push(this.itemHeader("Ingress"));
-    items.push(<Divider />);
+    items.push(<Divider key={kg.nextKey()}/>);
     renderPermissions(g.ipPermissions);
 
     items.push(this.itemHeader("Egress"));
-    items.push(<Divider />);
+    items.push(<Divider key={kg.nextKey()} />);
     renderPermissions(g.ipPermissionsEgress);
 
     return(items);
   }
 
   renderDetailCards(instance, securityGroups) {
+    let kg = new KeyGenerator;
     console.log("InstancesCard:renderDetailCards - instance", instance, "groups", securityGroups);
     let ci = instance.containerInstance;
     let ec2 = instance.ec2Instance;
@@ -337,26 +309,28 @@ export default class InstancesCard extends Component {
     return(
       <div >
         <FlexContainer alignItems="stretch">
-          <DetailCard width={Math.ceil(3*cardWidth)} title="Container Instance" subtitle={`${ec2.instanceType} in ${ec2.placement.availabilityZone}`}>
+          <DetailCard key={kg.nextKey()} width={Math.ceil(3*cardWidth)} title="Container Instance" subtitle={`${ec2.instanceType} in ${ec2.placement.availabilityZone}`}>
             {this.renderInstanceDetails(ci, ec2)}
           </DetailCard>
-          <DetailCard width={2*cardWidth} title="Network" >
+          <DetailCard key={kg.nextKey()} width={2*cardWidth} title="Network" >
             {this.renderNetworkItems(ci, ec2)}
           </DetailCard>
-          {securityGroups.map( (sg) => <DetailCard width={1.5*cardWidth} title="Security Group" subtitle={sg.groupName} >{this.renderSecurityGroup(sg)}</DetailCard>)}
-          <DetailCard width={cardWidth} title="Resources" subtitle="Registered with instance">
+          {securityGroups.map( (sg) => <DetailCard key={kg.nextKey()} width={1.5*cardWidth} title="Security Group" subtitle={sg.groupName} >{this.renderSecurityGroup(sg)}</DetailCard>)}
+          <DetailCard key={kg.nextKey()} width={cardWidth} title="Resources" subtitle="Registered with instance">
             {this.renderResources(registeredTcpPortsValue(ci), registeredUdpPortsValue(ci), registeredCpuValue(ci), registeredMemoryValue(ci))}
           </DetailCard>
-          <DetailCard width={cardWidth} title="Resources" subtitle="Remaining on instance">
+          <DetailCard key={kg.nextKey()} width={cardWidth} title="Resources" subtitle="Remaining on instance">
             {this.renderResources(registeredTcpPortsValue(ci), registeredUdpPortsValue(ci), remainingCpuValue(ci), remainingMemoryValue(ci))}
           </DetailCard>
         </FlexContainer>
       </div>
     );
   }
+
   render() {
-    console.log("InstancesCard:render - state", this.state);
-    const {instances, securityGroups } = this.state;
+    console.log("InstancesCard:render()", "state:", this.state, "props:", this.props);
+    // const {securityGroups } = this.pr;
+    const { instances, securityGroups } = this.props;
     return (
       <Paper >
         {instances.map( (instance) => this.renderInstanceBar(instance, securityGroups) )}
@@ -365,8 +339,19 @@ export default class InstancesCard extends Component {
   }
 }
 
-InstancesCard.propTypes = {
-  clusterName: PropTypes.string.isRequired,
-  instancesResponse: PropTypes.object
+
+const mapStateToProps = (state) => { 
+  console.log("InstancesCard#mapStateToProps - state", state);
+  return ({
+    instances: state.instances,
+    securityGroups: state.securityGroups
+  }); 
 };
+const mapDispatchToProps = (dispatch, ownProps) => { 
+  console.log("InstancesCard#mapDispatchToProps - ownProps", ownProps);
+  return ({actions: bindActionCreators(instanceActions, dispatch)}); 
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(InstancesCard);
+
 

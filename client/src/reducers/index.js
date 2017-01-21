@@ -1,3 +1,6 @@
-// Set up your root reducer here...
- import { combineReducers } from 'redux';
- export default combineReducers;
+import { combineReducers } from 'redux';
+
+import { clusters, instances, securityGroups } from './serverData';
+
+export default combineReducers({instances, clusters, securityGroups});
+

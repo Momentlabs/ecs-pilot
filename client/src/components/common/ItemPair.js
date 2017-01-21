@@ -39,7 +39,7 @@ ItemPair.defaultProps = {
 };
 
 ItemPair.propTypes = {
-  itemOne: PropTypes.string.isRequired,
+  itemOne: PropTypes.oneOfType([PropTypes.number,PropTypes.string]).isRequired,
   itemTwo: PropTypes.oneOfType([PropTypes.number,PropTypes.string]).isRequired,
   firstItemHeader: PropTypes.bool
 };

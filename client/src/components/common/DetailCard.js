@@ -11,7 +11,7 @@ const DetailCard = ({title, subtitle, width, children}) => {
       height: "auto",
       // padding: '1em',
       margin: '1em',
-      // alignSelf: 'flex-start',
+      // alignSelf: 'flex-start', 
       // right: anchor - offset,
       // backgroundColor: c.metricBackground,
       // height: boxSize, 
@@ -33,7 +33,7 @@ const DetailCard = ({title, subtitle, width, children}) => {
   return (
     <Card style={styles.container}>
       <CardTitle title={title} subtitle={subtitle} />
-      <List disabled style={styles.list}>
+      <List style={styles.list}>
         {children}
       </List>
 
@@ -50,7 +50,7 @@ DetailCard.propTypes = {
   title: PropTypes.string.isRequired,
   subtitle: PropTypes.string,
   width: PropTypes.number,
-  children: PropTypes.element
+  children: PropTypes.oneOfType([PropTypes.element, PropTypes.array])
 };
 
 export default DetailCard;

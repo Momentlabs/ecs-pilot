@@ -5,8 +5,8 @@ import React, {PropTypes } from 'react';
 const FlexContainer = ({alignItems, children}) => {
   const styles = {
     container: {
-      display: "-webkit-box",
-      display: "-webkit-flex",
+      display: "WebkitBox",
+      display: "WebkitFlex",
       display: 'flex',
       "-webkit-flex-flow": "row wrap",
       flexDirection: "row",
@@ -30,7 +30,7 @@ FlexContainer.defaultProps = {
 
 FlexContainer.propTypes = {
   alignItems: PropTypes.string,
-  children: PropTypes.element
+  children: PropTypes.oneOfType([PropTypes.element, PropTypes.array])
 };
 
 export default FlexContainer;
