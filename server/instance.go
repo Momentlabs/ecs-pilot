@@ -11,8 +11,8 @@ import (
   "github.com/Sirupsen/logrus"
   "net/http"
 
-  "awslib"
-  // "github.com/jdrivas/awslib"
+  // "awslib"
+  "github.com/jdrivas/awslib"
 )
 
 // TODO: Put this into AWSlib?
@@ -35,6 +35,7 @@ func InstancesController(w http.ResponseWriter, req *http.Request) {
   if err != nil {
     log.Error(f, "Failed to obtain Container Instance Descriptions from AWS.", err)
     http.Error(w, fmt.Sprintf("Failed to obtain instances from AWS: %s", err), http.StatusFailedDependency)
+    return
   }
 
   instances := make([]InstancePair, 0)
@@ -57,10 +58,12 @@ func InstancesController(w http.ResponseWriter, req *http.Request) {
     Instances: instances,
     ContainerInstanceFailures: failures,
   }
+
   response, err  := jsonutil.BuildJSON(ir)
   if err != nil {
     log.Error(f, "Failed to marshall JSON on clusters.", err)
     http.Error(w, "Failed to marshall JSON for response.", http.StatusInternalServerError)
+    return
   }
 
 

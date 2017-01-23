@@ -2,11 +2,8 @@ package server
 
 import (
   "fmt"
-  // "encoding/json"
-  // "github.com/aws/aws-sdk-go/aws"
-  // "github.com/aws/aws-sdk-go/service/ecs"
   "github.com/aws/aws-sdk-go/private/protocol/json/jsonutil"
-  "github.com/gorilla/mux";
+  "github.com/gorilla/mux"
   "github.com/Sirupsen/logrus"
   "net/http"
 
@@ -25,6 +22,7 @@ func DeepTaskController(w http.ResponseWriter, req *http.Request) {
   if err != nil {
     log.Error(f, "Failed to obtain DeepTasks from AWS.", err)
     http.Error(w, fmt.Sprintf("Failed to obtain DeepTasks from AWS: %s", err), http.StatusFailedDependency)
+    return
   }
   f["numberOfDeepTasks"] = len(deepTasks)
   log.Debug(f, "Got deepTasks from AWS.")
@@ -33,10 +31,8 @@ func DeepTaskController(w http.ResponseWriter, req *http.Request) {
   if err != nil {
     log.Error(f, "Failed to marshall JSON on clusters.", err)
     http.Error(w, "Failed to marshall JSON for response.", http.StatusInternalServerError)
+    return
   }
-
-  // responseText := "SUCCESS IN READING DEEPTASKS."
-  // response = []byte(responseText)
 
   _, err = w.Write(response)
   if err != nil {

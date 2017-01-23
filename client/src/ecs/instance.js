@@ -61,6 +61,11 @@ export const securityGroups = (ec2) => ec2.groupSet; // returns an array of {gro
 export const securityGroupIds = (instances) => {
   const groups = instances.map( (i) => securityGroups(i.ec2Instance));
   const flatGroups = [].concat.apply([], groups);
-  return flatGroups.map( (g) => g.groupId );
+  return flatGroups.reduce( (accum, g) => {
+    if (!accum.includes(g.groupId)) { // keep the list to unique values.
+      accum.push(g.groupId);
+    }
+    return accum
+  }, []);
 };
 

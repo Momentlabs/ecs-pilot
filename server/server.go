@@ -58,6 +58,7 @@ func serve(address string) (err error) {
   r.HandleFunc("/clusters", ClusterController)
   r.HandleFunc(fmt.Sprintf("/deepTasks/{%s}", CLUSTER_NAME_VAR), DeepTaskController)
   r.HandleFunc(fmt.Sprintf("/instances/{%s}", CLUSTER_NAME_VAR), InstancesController)
+  r.HandleFunc(fmt.Sprintf("/tasks/{%s}", CLUSTER_NAME_VAR), TasksController)
   r.HandleFunc(fmt.Sprintf("/security_groups"), SecurityGroupsController)
 
   // Middleware

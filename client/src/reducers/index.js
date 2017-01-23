@@ -1,6 +1,12 @@
 import { combineReducers } from 'redux';
 
-import { clusters, instances, securityGroups } from './serverData';
+import { clusters, instances, securityGroups, tasksMap, deepTasks } from './serverData';
 
-export default combineReducers({instances, clusters, securityGroups});
+export default combineReducers({
+  instances, 
+  clusters, 
+  securityGroups, 
+  // tasksMap,
+  deepTasks
+});
 

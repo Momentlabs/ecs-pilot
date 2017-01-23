@@ -1,7 +1,11 @@
 import React, { Component, PropTypes } from 'react';
 import  * as instanceActions from '../actions/instance';
 import { bindActionCreators } from 'redux';
-import { connect } from 'react-redux';import moment from 'moment';
+import { connect } from 'react-redux';
+
+import { securityGroupIds } from '../ecs/instance';
+import moment from 'moment';
+
 
 import { shortArn } from '../helpers/aws';
 import { KeyGenerator } from '../helpers/ui';
@@ -24,13 +28,13 @@ import Paper from 'material-ui/Paper';
 import { ListItem } from 'material-ui/List';
 import Subheader from 'material-ui/Subheader';
 
+import DetailCard from '../components/common/DetailCard';
 import FlexContainer from '../components/common/FlexContainer';
 import RechartGauge from '../components/common/RechartGauge';
 import MetricBox from '../components/common/MetricBox';
-import DetailCard from '../components/common/DetailCard';
 import ItemPair from '../components/common/ItemPair';
 
-
+// TODO: Add a disk detail card. (e.g. root device data, and blockDeviceMapping data.)
 class InstancesCard extends Component {
 
   static contextTypes  = {
@@ -40,7 +44,6 @@ class InstancesCard extends Component {
   static defaultProps = {
     instances: [],
     securityGroups: [],
-
   }
 
   static propTypes = {
@@ -94,7 +97,7 @@ class InstancesCard extends Component {
     const ci = instance.containerInstance;
     const ec2 = instance.ec2Instance;
     return(
-        <Card key={ci.containerInstanceArn} style={{marginBottom: "0em"}} expanded={this.state.expanded} onExpandChange={this.handleExpandChange} >
+        <Card key={ci.containerInstanceArn} style={{marginBottom: "1em"}} expanded={this.state.expanded} onExpandChange={this.handleExpandChange} >
           <CardTitle actAsExpander showExpandableButton 
             title={ec2.privateIpAddress} 
             subtitle={`Public IP: ${ec2.ipAddress}`}
@@ -129,7 +132,7 @@ class InstancesCard extends Component {
     const styles={
       container: {
         height: 14,
-        outline: "0px solid blue"
+        // outline: "1px solid blue"
       }
     };
     return(
@@ -339,13 +342,27 @@ class InstancesCard extends Component {
   }
 }
 
+const mapStateToProps = (state, ownProps) => { 
+  console.log("InstancesCard#mapStateToProps - entry", "state:", state, "ownProps:", ownProps);
+  const {clusterName} = ownProps;
+  const instances = state.instances[clusterName] ? state.instances[clusterName] : [];
+  const securityGroups = securityGroupIds(instances).reduce( (accum, sgId) => {
+    console.log("InstancesCard#mapStateToProps - Looking for security groups:", "accum:", accum, "sgId:", sgId);
+    const sg = state.securityGroups[sgId];
+    if (sg) {
+      console.log("InstancesCard#mapStateToProps - found one:", "sgId:", sgId, "sg:", sg);
+      accum.push(sg);
+    }
+    return (accum);
+  },[]);
 
-const mapStateToProps = (state) => { 
-  console.log("InstancesCard#mapStateToProps - state", state);
+  console.log("InstancesCard#mapStateToProps() - exit", "instances:", instances, "securityGroups:", securityGroups);
+
   return ({
-    instances: state.instances,
-    securityGroups: state.securityGroups
-  }); 
+    instances: instances,
+    securityGroups: securityGroups
+  });
+
 };
 const mapDispatchToProps = (dispatch, ownProps) => { 
   console.log("InstancesCard#mapDispatchToProps - ownProps", ownProps);

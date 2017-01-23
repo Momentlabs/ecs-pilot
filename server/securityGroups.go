@@ -11,8 +11,8 @@ import (
   "github.com/Sirupsen/logrus"
   "net/http"
 
-  "awslib"
-  // "github.com/jdrivas/awslib"
+  // "awslib"
+  "github.com/jdrivas/awslib"
 )
 
 const SECURITY_GROUP_ID_KEY = "sgIds"
@@ -24,7 +24,7 @@ func SecurityGroupsController(w http.ResponseWriter, req *http.Request) {
   }
   log.Debug(f, "Controller Enter")
 
-  // TOD:
+  // TODO:
   // THIS seems wrong. Why am I getting an array back with only one element.
   // Either I'd expect a single string, or an array with as many elements as
   // comma separated strings?

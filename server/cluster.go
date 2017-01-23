@@ -47,6 +47,7 @@ func ClusterController(w http.ResponseWriter, req *http.Request) {
   if err != nil {
     log.Error(f, "Failed to get current set of clusters from AWS", err)
     http.Error(w, fmt.Sprintf("Failed to obtain clusters from AWS: %s", err), http.StatusFailedDependency)
+    return
   }
   f["numberOfClusters"] = len(clusters)
   log.Debug(f, "Got clusters from Amazon")
@@ -55,6 +56,7 @@ func ClusterController(w http.ResponseWriter, req *http.Request) {
   if err != nil {
     log.Error(f, "Failed to marshall JSON on clusters.", err)
     http.Error(w, "Failed to marshall JSON for response.", http.StatusInternalServerError)
+    return
   }
 
   _, err = w.Write(clusterJson)
