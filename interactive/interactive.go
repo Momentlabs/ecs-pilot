@@ -411,6 +411,7 @@ func configureLogs() {
   formatter := new(sl.TextFormatter)
   formatter.FullTimestamp = true
   log.SetFormatter(formatter)
+
   l := logrus.InfoLevel
   if debug || verbose {
     l = logrus.DebugLevel
