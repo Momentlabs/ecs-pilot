@@ -29,13 +29,13 @@ class Tasklist extends React.Component {
   }
 
   componentWillMount() {
-    console.log("Tasklist:componentWillMount", "state:", this.state, "props:", this.props);
+    // console.log("Tasklist:componentWillMount", "state:", this.state, "props:", this.props);
     // this.props.actions.requestTasks(this.props.clusterName);
-    this.props.actions.requestDeepTasks(this.props.clusterName);
+    // this.props.actions.requestDeepTasks(this.props.clusterName);
   }
 
   render() {
-    console.log("TaskList#render", "state:", this.state, "props:", this.props);
+    // console.log("TaskList#render", "state:", this.state, "props:", this.props);
     const {deepTasks, clusterName} = this.props;
     return (
       <Tasks deepTasks={deepTasks} clusterName={clusterName} />
@@ -56,7 +56,7 @@ const mapStateToProps = (state, ownProps) => {
 };
 
 const mapDispatchToProps = (dispatch, ownProps) => { 
-  console.log("Tasklist#mapDispatchToProps - ownProps", ownProps);
+  // console.log("Tasklist#mapDispatchToProps - ownProps", ownProps);
   return ({actions: bindActionCreators(deepTaskActions, dispatch)}); 
 };
 

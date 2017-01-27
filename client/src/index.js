@@ -16,12 +16,12 @@ import reducers from './reducers';
 
 
 
-console.log("Application - setup including redux, and sagas.");
+console.log("Application:/src/index.js - setup including redux, and sagas.");
 injectTapEventPlugin();
 const sagaMiddleware = createSagaMiddleware();
 const store = createStore(reducers, applyMiddleware(sagaMiddleware));
 sagaMiddleware.run(rootSaga);
-console.log("Applicaiton - calling render.");
+console.log("Applicaiton:/src/index.js - calling render.");
 
 render(
   <Provider store={store}>

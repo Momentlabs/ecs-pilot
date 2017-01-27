@@ -4,7 +4,9 @@ import React, {PropTypes } from 'react';
 // Since this component is simple and static, there's no parent component for it.
 const FlexContainer = (props) => {
   console.log("FlexContainer:render()", "props:", props);
-  const {alignItems, children, right, top, bottom, left, width} = props;
+  const {
+    children, width,  justifyContent, alignItems, alignContent
+  } = props;
 
   const styles = {
     container: {
@@ -19,8 +21,9 @@ const FlexContainer = (props) => {
       display: 'inline-flex',
       "WebkitFlexFlow": "row wrap",
       flexDirection: "row",
-      justifyContent: 'center',
+      justifyContent: justifyContent,
       alignItems: alignItems,
+      alignContent: alignContent,
       // alignContent: 'space-between',
       // outline: "1px dashed black"
     }
@@ -35,12 +38,16 @@ const FlexContainer = (props) => {
 
 FlexContainer.defaultProps = {
   width: "inherit",
-  alignItems: "flex-start"
+  justifyContent: "flex-start",
+  alignItems: "stretch",
+  alignContent: "stretch"
 };
 
 FlexContainer.propTypes = {
   width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  justifyContent: PropTypes.string,
   alignItems: PropTypes.string,
+  alignContent: PropTypes.string,
   children: PropTypes.oneOfType([PropTypes.element, PropTypes.array, PropTypes.string])
 };
 

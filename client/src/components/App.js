@@ -1,6 +1,9 @@
 import React, { PropTypes } from 'react';
 import { browserHistory } from 'react-router';
-// import { Link, IndexLink } from 'react-router';
+import { bindActionCreators} from 'redux';
+import { connect } from 'react-redux';
+
+import * as errorActions from '../actions/error';
 
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
@@ -14,16 +17,13 @@ import MenuItem from 'material-ui/MenuItem';
 // import Paper from 'material-ui/Paper';
 import RaisedButton from 'material-ui/RaisedButton';
 import {Toolbar, ToolbarGroup, ToolbarSeparator } from 'material-ui/Toolbar';
+import Snackbar from 'material-ui/Snackbar';
 
 // import NavigationExpandMoreIcon from 'material-ui/svg-icons/navigation/expand-more';
 
 import ToolbarTextLogo from './common/ToolbarTextLogo';
 
-
-// Top Level Menu Definition
-// Defined here and then built out 
-// into useMenu in the constructor.
-// Value is the order of display, values have to be unique.
+// Menu item definition, used in constructor to build out the menu.
 const  defineMenu = [
   {value: 0, name: "Home", path: "/"},
   {value: 1, name: "About", path: "/about" },
@@ -33,12 +33,27 @@ let useMenu = [];
 // This value will look selected the first time the menu comes up.
 const FIRST_MENU_VALUE=0; // Home menu defined above.
 
-class App extends React.Component {
+export default class App extends React.Component {
+
+  static defaultProps = {
+    error: undefined
+  }
+
+  static propTypes = {
+    openSnackbar: PropTypes.bool,
+    // error: PropTypes.object,
+    handleUpdate: PropTypes.func.isRequired,
+    children: PropTypes.object.isRequired
+  }
 
   constructor(props, context) {
     super(props, context);
     this.state = {
-      value: FIRST_MENU_VALUE
+      sbMessage: "",
+      sbOpen:false,
+      pendingErrors: [],
+      error: undefined,
+      value: FIRST_MENU_VALUE,
     };
 
     // Take the definied menu items and put then in an array keyed on thier item values.
@@ -48,6 +63,37 @@ class App extends React.Component {
     // Bind the handlers.
     this.handleMenuChange = this.handleMenuChange.bind(this);
     this.renderMenuItems = this.renderMenuItems.bind(this);
+    this.closeSnackbar = this.closeSnackbar.bind(this);
+    this.checkForErrors = this.checkForErrors.bind(this);
+  }
+
+  componentWillReceiveProps(newProps) {
+    console.log("App:componentWillRecceiveProps()", "state:", this.state, "newProps:", newProps);
+    const { error } = newProps;
+    this.checkForErrors(error, this.state.pendingErrors);
+  }
+
+  // Need to queue new errors.
+  checkForErrors(error, pendingErrors) {
+    console.log("App:CheckForErrors()", "error:", error, "pendingErrors:", pendingErrors);
+    let newErrors = pendingErrors;
+    if (error) {
+      newErrors = pendingErrors.concat([error]);
+    }
+    const {sbo, sbm} = (newErrors.length > 0) ? {sbo: true, sbm: newErrors[0].message} : {sbo: false, sbm: ""};
+    console.log("App:checkForErrors()", "sbOpen:", sbo, "sbMessage:", sbm, "pendingErrors:", newErrors);
+    this.setState({
+      pendingErrors: newErrors,
+      sbOpen: sbo,
+      sbMessage: sbm
+    });
+  }
+
+  closeSnackbar() {
+    console.log("App:closeSnackbar()");
+    let { pendingErrors } = this.state;
+    pendingErrors.pop();
+    this.checkForErrors(undefined, pendingErrors);
   }
 
   handleMenuChange(event, value) {
@@ -62,9 +108,15 @@ class App extends React.Component {
   }
 
   render() {
+    console.log("App:render()", "state:", this.state, "props:", this.props);
+    const { value, sbOpen, sbMessage } = this.state;
+    const { handleUpdate } = this.props;
+    // const {sbOpen, sbMessage} = (error === undefined) ? {sbOpen: false, sbMessage: ""} : {sbOpen: true, sbMessage: error.message};
+    console.log("App:render()", "sbOpen:", sbOpen, "sbMessage:", sbMessage);
     return (
       <MuiThemeProvider muiTheme={getMuiTheme(darkBaseTheme)}>
         <div>
+          <div>
           <Toolbar>
             <ToolbarGroup firstChild={true}>
               <ToolbarTextLogo logoValue="ECS Pilot" />
@@ -72,27 +124,21 @@ class App extends React.Component {
             <ToolbarGroup>
               <FontIcon className="material-icons">home</FontIcon>
               <ToolbarSeparator/>
-              <RaisedButton label="Update" primary={true} />
+              <RaisedButton label="Update" primary={true} onClick={handleUpdate}/>
               <IconMenu 
                 iconButtonElement={<IconButton><FontIcon className="material-icons">menu</FontIcon></IconButton>}
                 anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
                 targetOrigin={{horizontal: 'left', vertical: 'top'}}
                 onChange={this.handleMenuChange}
                 children={this.renderMenuItems()}
-                value={this.state.value}/>
+                value={value}/>
             </ToolbarGroup>
           </Toolbar>
           {this.props.children}
+          </div>
+          <Snackbar  open={sbOpen} message={sbMessage} action="Ok" onActionTouchTap={this.closeSnackbar} onRequestClose={this.closeSnackbar}/>
         </div>
       </MuiThemeProvider>
     );
   }
 }
-
-App.propTypes = {
-  children: PropTypes.object.isRequired,
-  value: PropTypes.number
-};
-
-export default App;
-  

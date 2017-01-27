@@ -7,33 +7,42 @@ import Instances, { securityGroupIds }from '../ecs/instance';
 import * as instanceActions from '../actions/instance';
 import SecurityGroup from '../ecs/securityGroup';
 import * as securityGroupActions from '../actions/securityGroup';
-import Task from '../ecs/task';
-import * as taskActions from '../actions/task';
+// import Task from '../ecs/task';
+// import * as taskActions from '../actions/task';
 import DeepTask from '../ecs/deepTask';
 import * as deepTaskActions from '../actions/deepTask';
+import * as errorActions from '../actions/error';
 
-// TODO: There is a lot of ceremony here. Refactor to make this
-// easier to add data.
-// With this in mind, we can probably reduce this to a single watcher
-// by changing the action protocol to something like:
-//     REQUEST_INITIATE_<DATA_TYPE> (e.g. REQUEST_INITIATE_CLUSTERS =)
-//     REQUEST_SUCCESS_<DATA_TYPE>
-//     REQUEST_FAILURE_<DATA_TYPE>
-//  (note that if I'd just followed the redux recommendation 
-//       LOAD_<DATA_TYPE>_{REQUEST, SUCCESS, FAILURE}
-//  I would already be there).
-// In the watch function we can switch on the action.type implementing
-// the call to get data and responses are eseentially the same for each result.
+
+// Currently this is the only entry into server interaction
+// from the UI. Everything below is generated indirectly
+// through this call.
+export function* selectCluster(action) {
+  // console.log("saga:selectCluster - start", "action:", action);
+  try {
+    const clusterName = action.clusterName;
+    yield [
+      put(instanceActions.requestInstances(clusterName)),
+      put(deepTaskActions.requestDeepTasks(clusterName))
+    ];
+  } catch(error) {
+      yield put({type: types.SELECT_CLUSTER_FAILURE, error});
+  }
+}
+
+export function* watchSelectCluster() {
+  console.log("saga:watchSelectCluster");
+  yield takeEvery(types.SELECT_CLUSTER, selectCluster);
+}
+
 export function* requestClusters(action) {
   console.log("saga:requestCluster - start", "action:", action);
   try {
     const response = yield Clusters.getClusters();
     console.log("saga:requestCluster - Returned with clusters response - ", response);
-    yield put(clusterActions.requestClustersSuccess(response.data));
-    // console.log("saga:requestCluster - next action: ", actionReturn);
-    // yield put(actionReturn);
+    yield put(clusterActions.loadedClusters(response.data));
   } catch(error) {
-    yield put({type: types.REQUEST_CLUSTERS_FAILURE, error});
+    yield put(clusterActions.loadedClusters(error));
   }
 }
 
@@ -48,7 +57,7 @@ export function*  watchRequestClusters() {
 function* requestInstances(action) {
   console.log("saga:requestInstances", "action:", action);
   try {
-    const {clusterName} = action;
+    const clusterName = action.payload;
     const instancesResponse = yield Instances.getInstances(clusterName);
     console.log("saga:requestInstances - yeild after getInstance()", "response:", instancesResponse);
     // TODO: the instanceResponse.data object has the shape: {failures: [], instances[]}
@@ -57,15 +66,12 @@ function* requestInstances(action) {
     const instances = instancesResponse.data.instances;
     const groupIds = securityGroupIds(instances);
     yield [
-            put(instanceActions.requestInstancesSuccess(clusterName, instances)),
+            put(instanceActions.loadedInstances(clusterName, instances)),
             put(securityGroupActions.requestSecurityGroups(groupIds))
     ];
 
-    // Now get associated security groups.
-    // yield put(securityGroupActions.requestSecurityGroups(groupIds));
-
   } catch(error) {
-    yield put(instanceActions.requestInstancesFailure(error));
+    yield put(instanceActions.loadedInstances(error));
   }
 }
 
@@ -78,10 +84,10 @@ export function* watchRequestInstances() {
 function* requestSecurityGroups(action) {
   console.log("saga:requestSecurityGroups", "action:", action);
   try {
-    const response = yield SecurityGroup.getGroups(action.groupIds);
-    yield put(securityGroupActions.requestSecurityGroupsSuccess(response.data));
+    const response = yield SecurityGroup.getGroups(action.payload);
+    yield put(securityGroupActions.loadedSecurityGroups(response.data));
   } catch(error) {
-    yield put(securityGroupActions.requestSecurityGroupsFailure(error));
+    yield put(securityGroupActions.loadedSecurityGroups(error));
   }
 }
 
@@ -91,23 +97,23 @@ export function* watchRequestSecurityGroups() {
 
 }
 
-function* requestTasks(action) {
-  console.log("saga:requestTasks()", "action:", action);
-  try {
-    const response = yield Task.getTasks(action.clusterName);
-    const tasksMap = response.data;
-    yield [
-      put(taskActions.requestTasksSuccess(tasksMap))
-    ];
-  } catch(error) {
-    yield put(taskActions.requestTasksFailure(error));
-  }
-}
+// function* requestTasks(action) {
+//   console.log("saga:requestTasks()", "action:", action);
+//   try {
+//     const response = yield Task.getTasks(action.clusterName);
+//     const tasksMap = response.data;
+//     yield [
+//       put(taskActions.requestTasksSuccess(tasksMap))
+//     ];
+//   } catch(error) {
+//     yield put(taskActions.requestTasksFailure(error));
+//   }
+// }
 
-export function* watchRequestTasks() {
-  console.log("saga: watchRequestTasks - start");
-  yield takeEvery(types.REQUEST_TASKS, requestTasks);
-}
+// export function* watchRequestTasks() {
+//   console.log("saga: watchRequestTasks - start");
+//   yield takeEvery(types.REQUEST_TASKS, requestTasks);
+// }
 
 // TODO: This will take about 2 seconds to complete in the best of circumstances,
 // as opposed to parallel calls to get the same information but separately.
@@ -124,18 +130,47 @@ export function* watchRequestTasks() {
 // case and actual perceived performance.
 function* requestDeepTasks(action) {
   console.log("saga:requestDeepTasks()", "action:", action);
-  const clusterName = action.clusterName;
+  const clusterName = action.payload;
   try {
     const response = yield DeepTask.getDeepTasks(clusterName);
-    yield [
-      put(deepTaskActions.requestDeepTasksSuccess(clusterName, response.data))
-    ];
+    console.log("saga:requestDeepTasks() - response yield", "reponse:", response);
+    yield put(deepTaskActions.loadedDeepTasks(clusterName, response.data));
   } catch(error) {
-    yield put(deepTaskActions.requestDeepTasksFailure(error));
+    console.log("saga:requestDeepTasks() - error yield", "reponse:", error);
+    yield put(deepTaskActions.loadedDeepTasks(error));
   }
 }
 
 export function* watchRequestDeepTasks() {
   console.log("saga: watchDeepRequestTasks - start");
   yield takeEvery(types.REQUEST_DEEP_TASKS, requestDeepTasks);
+}
+
+
+// TODO: Not sure if this is the best way to handle failures.
+// This does centralize these failures .....
+function* failureHandler(action) {
+  const error = action.error;
+  console.log("saga:failureHandler()", "action:", action);
+  yield put(errorActions.reportError(error));
+  // throw(action.error);
+}
+
+export function* watchRequestFailiure() {
+  console.log("saga:watchRequestFailure - start");
+  yield takeEvery(types.matchErrorActions, failureHandler);
+}
+
+function* errorHandler(action) {
+  console.log("saga:errorHandler()", "action:", action);
+  if (action.error) {
+    console.log("saga:errorHandler() - firing error.", "action:", action);
+    yield put(errorActions.reportError(action.payload));
+  }
+}
+
+// These will see all actions ....
+export function* watchLoaded() {
+  console.log("saga:watchLoaded - start");
+  yield takeEvery("*", errorHandler);
 }

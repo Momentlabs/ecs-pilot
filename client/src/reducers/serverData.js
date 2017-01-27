@@ -28,10 +28,8 @@ export const clusters = (state = [], action) => {
   // console.log("Reducer#clusters - entry", "state", state, "action", action);
   let newState = state;
   switch (action.type) {
-    case types.REQUEST_CLUSTERS_SUCCESS:
-      // let clustersCopy  = Object.assign([], state, { clusters: action.clusters });
-      // console.log("Reducer#clusters: type: ", action.type, "clustersCopy:", clustersCopy);
-      newState = Object.assign([], action.clusters);
+    case types.LOADED_CLUSTERS:
+      newState = Object.assign([], action.payload);
       break;
   }
   // console.log("Reducer#clusters() - exit", "state:", state, "newState", newState, "action:", action);
@@ -43,13 +41,14 @@ export const instances = (state = {}, action) => {
   // console.log("Reducer#instances() - entry", "state", state, "action", action);
   let newState = state;
   switch (action.type) {
-    case types.REQUEST_INSTANCES_SUCCESS:
+    case types.LOADED_INSTANCES:
       let newInstances = Object.assign({}, state);
-      newInstances[action.clusterName] = action.instances;
+      newInstances[action.payload.clusterName] = action.payload.instances;
       newState = Object.assign({}, newInstances);
       break;
   }
   // console.log("Reducer#instances() - exit", "state:", state, "newState", newState, "action:", action);
+  // console.log("Reducer#instances() - exit", "state:", JSON.stringify(state), "newState", JSON.stringify(newState), "action:", JSON.stringify(action));
   return newState;
 };
 
@@ -57,9 +56,9 @@ export const securityGroups = (state = {}, action) => {
   // console.log("Reducer#securityGroups - entry", "state", state, "action", action);
   let newState = state;
   switch (action.type)  {
-    case types.REQUEST_SECURITY_GROUPS_SUCCESS:
+    case types.LOADED_SECURITY_GROUPS:
       let newSgs = Object.assign({}, state);
-      action.securityGroups.forEach( (sg) => {
+      action.payload.forEach( (sg) => {
         newSgs[sg.groupId] = sg;
       });
       newState = Object.assign({}, newSgs);
@@ -69,24 +68,28 @@ export const securityGroups = (state = {}, action) => {
   return newState;
 };
 
-export const tasksMap = (state = {}, action) => {
-  // console.log("Reducer#tasks WHAT!!!!", "state:", state, "action:", action);
-  // switch(action.type) {
-  //   case types.REQUEST_TASKS_SUCCESS:
+// export const tasksMap = (state = {}, action) => {
+//   // console.log("Reducer#tasks WHAT!!!!", "state:", state, "action:", action);
+//   // switch(action.type) {
+//   //   case types.REQUEST_TASKS_SUCCESS:
 
-  //     return Object.assign({}, action.tasksMap);
-  // }
-  return state;
-};
+//   //     return Object.assign({}, action.tasksMap);
+//   // }
+//   return state;
+// };
+
 export const deepTasks = (state = {}, action) => {
   // console.log("Redecuer#deepTasks - entry", "state:", state, "action:", action);
   let newState = state;
   let newDTs = {};
   switch(action.type) {
-    case types.REQUEST_DEEP_TASKS_SUCCESS:
-      newDTs = Object.assign({}, state);
-      newDTs[action.clusterName] = action.deepTasks;
-      newState = Object.assign({}, newDTs);
+    case types.LOADED_DEEP_TASKS:
+      if (!action.payload.error) {
+        newDTs = Object.assign({}, state);
+        newDTs[action.payload.clusterName] = action.payload.deepTasks;
+        newState = Object.assign({}, newDTs);
+        // console.log("Reducer#deepTasks, processed LOADED_DEEP_TASKS", "newState:", newState, "newDTs:", newDTs);
+      } 
       break;
   }
   // console.log("Reducer#deepTasks() - exit", "state:", state, "newState", newState, "action:", action);

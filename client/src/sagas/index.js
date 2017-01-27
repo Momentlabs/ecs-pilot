@@ -1,8 +1,11 @@
 import { 
+  watchLoaded,
+  watchRequestFailiure,
+  watchSelectCluster,
   watchRequestClusters, 
   watchRequestInstances, 
   watchRequestSecurityGroups,
-  watchRequestTasks,
+  // watchRequestTasks,
   watchRequestDeepTasks,
 } from '../sagas/serverData';
 
@@ -13,10 +16,13 @@ function*  startUp() {
 export default function* rootSaga() {
   yield [ 
     startUp(), 
+    watchLoaded(),
+    watchRequestFailiure(),
+    watchSelectCluster(),
     watchRequestClusters(), 
     watchRequestInstances(), 
     watchRequestSecurityGroups(),
-    watchRequestTasks(),
+    // watchRequestTasks(),
     watchRequestDeepTasks()
   ];
 }

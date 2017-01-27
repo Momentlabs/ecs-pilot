@@ -4,7 +4,7 @@ class ECSPilot {
   static new() {
     return axios.create({
       baseURL: 'http://localhost:8080/',
-      timeout: 3000,
+      timeout: 4000, // there is one particularly long request for DeepTasks.
     });
   }
 }

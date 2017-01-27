@@ -2,98 +2,137 @@ import React, {PropTypes } from 'react';
 import * as c from '../styles/colors';
 import { shortArn } from '../helpers/aws';
 import moment from 'moment';
+import { KeyGenerator } from '../helpers/ui';
 
+import * as colors from 'material-ui/styles/colors';
 import { Card, CardTitle, CardText, CardExpandable } from 'material-ui/Card';
-import KeyboardArrowUp from 'material-ui/svg-icons/hardware/keyboard-arrow-up'
-import KeyboardArrowDown from 'material-ui/svg-icons/hardware/keyboard-arrow-down'
+// import KeyboardArrowUp from 'material-ui/svg-icons/hardware/keyboard-arrow-up'
+// import KeyboardArrowDown from 'material-ui/svg-icons/hardware/keyboard-arrow-down'
 
-import MetricBar from '../components/common/MetricBar';
 import FlexContainer from '../components/common/FlexContainer';
+import DetailCard from '../components/common/DetailCard';
+import MetricBar from '../components/common/MetricBar';
 import FlowedMetric from '../components/common/FlowedMetric';
+import TaskCard from '../components/TaskCard';
+import TaskDefinitionCard from '../components/TaskDefinitionCard';
+import ContainerCard from '../components/ContainerCard';
+import ItemPair from '../components/common/ItemPair';
 
-const toggleExpand = (event) => {
-  console.log("Task#toggleExpand()", "event:", event);
-};
 
 
-// Since this component is simple and static, there's no parent component for it.
-const Task = ({deepTask}) => {
-  console.log("Task:render()", "deepTask:", deepTask);
+export default class Task extends React.Component {
 
-  const styles = {
-    container: {
-      marginTop: "1em",
-      // outline: "1px solid black"
-    },
-    barContainer: {
-      // marginLeft: 200,
-      // marginRight: 100,
-      width: 'inherit',
-      display: "WebkitBox",
-      display: "WebkitFlex",
-      display: 'flex',
-      "WebkitFlexFlow": "row wrap",
-      flexDirection: "row",
-      justifyContent: 'space-between',
-      // outline: "1px dotted blue"
-    },
-    metricBarTitleContainer: {
-      // width: 100,
-      padding: "1em",
-      diplsay: "inline-block",
-      // outline: "2px solid red"
-    },
-    metricBarTitle: {
-      paddingBottom: ".5em",
-      fontSize: "x-large",
-      // outline: "1px solid black"
-    },
-    metricBarSubtitle: {
-      // paddingTop: 0,
-      fontSize: "larger",
-      color: c.subtitle
-      // outline: "1px solid black"
-    }
+  // static contextTypes = {
+  //   muiTheme: PropTypes.object.isRequired
+  // };
+
+  // static defaultProps = {
+  //   aProp: "Remove me"
+  // };
+
+  static propTypes = {
+    deepTask: PropTypes.object.isRequired
   };
 
-  const task = deepTask.task;
-  const ec2 = deepTask.ec2Instance;
-  const ci = deepTask.containerInstance;
-  const td = deepTask.taskDefinition;
+  constructor(props, context) {
+    super(props,context);
 
-  const ncTitle = task.containers.length <= 1 ? "Container" : "Containers";
-  let uptime = moment.unix(ec2.launchTime).fromNow(true);
+    this.handleExpanded = this.handleExpanded.bind(this);
 
-  return (
-    <Card style={styles.container}>
-      <div style={styles.barContainer}>
-        <div style={styles.metricBarTitleContainer}>
-          <div style={styles.metricBarTitle}>{shortArn(task.taskDefinitionArn)}</div>
-          <div style={styles.metricBarSubtitle}>{`Private IP: ${ec2.privateIpAddress}`}</div>
+    this.state = {
+      expanded: false
+    };
+  }
+
+  handleExpanded(newExpanded) {
+    console.log("Taksk#handleExpanded()", "newExpanded:", newExpanded);
+    this.setState({
+      expanded: newExpanded
+    });
+  }
+
+  // Since this component is simple and static, there's no parent component for it.
+  render() {
+    const {deepTask} = this.props;
+    const {expanded} = this.state;
+    console.log("Task:render()", "deepTask:", deepTask);
+
+    // TODO: Change the outline color based on health.
+    const outlineColor = colors.blueGrey200;
+    // const outlineColor = colors.red500;
+    const styles = {
+      container: {
+        boxShadow: "unset",
+        marginTop: "1em",
+        outline: `2px solid ${outlineColor}`
+      },
+      barContainer: {
+        // marginLeft: 200,
+        // marginRight: 100,
+        width: 'inherit',
+        display: "WebkitBox",
+        display: "WebkitFlex",
+        display: 'flex',
+        "WebkitFlexFlow": "row wrap",
+        flexFlow: "row wrap",
+        // jc: flex-start, flex-end, center, space-between, space-around
+        justifyContent: 'space-between',
+        // ai: flex-start, flex-end, center, stretch, baseline
+        // alignItems: "stretch",
+        // outline: "1px dotted blue"
+      },
+      metricBarTitleContainer: {
+        // width: 100,
+        padding: "1em",
+        diplsay: "inline-block",
+        // outline: "2px solid red"
+      },
+      metricBarTitle: {
+        paddingBottom: ".5em",
+        fontSize: "x-large",
+        // outline: "1px solid black"
+      },
+      metricBarSubtitle: {
+        // paddingTop: 0,
+        fontSize: "larger",
+        color: c.subtitle
+        // outline: "1px solid black"
+      }
+    };
+
+    const task = deepTask.task;
+    const ec2 = deepTask.ec2Instance;
+    const ci = deepTask.containerInstance;
+    const td = deepTask.taskDefinition;
+
+    const ncTitle = task.containers.length <= 1 ? "Container" : "Containers";
+    const status = task.lastStatus[0] + task.lastStatus.toLowerCase().slice(1);
+    let uptime = moment.unix(task.createdAt).fromNow(true);
+    let kg = new KeyGenerator;
+    return (
+      <Card expanded={expanded} style={styles.container}>
+        <div style={styles.barContainer}>
+          <div style={styles.metricBarTitleContainer}>
+            <div style={styles.metricBarTitle}>{shortArn(task.taskDefinitionArn)}</div>
+            <div style={styles.metricBarSubtitle}>{`Instance Private IP: ${ec2.privateIpAddress}`}</div>
+          </div>
+          <MetricBar onExpandChange={this.handleExpanded} showExpandableButton >
+            <FlowedMetric width={"6em"} title="Status" value={status} valueFontSize="large" key={kg.nextKey()} />
+            <FlowedMetric width={"6em"} title={ncTitle}  value={task.containers.length} key={kg.nextKey()}/>
+            <FlowedMetric width={"6em"} valueFontSize="large" title="Uptime" value={uptime} key={kg.nextKey()}/>
+            <FlowedMetric width={"11em"} valueFontSize="large"  title="Public IP" value={ec2.ipAddress} key={kg.nextKey()}/>
+          </MetricBar>
         </div>
-        <MetricBar >
-          <FlowedMetric key="metric-1" title={ncTitle} value={task.containers.length}/>
-          <FlowedMetric key="metric-2" width={"6em"} valueFontSize="large" title="Uptime" value={uptime} />
-          <FlowedMetric key="metric-3" width={"11em"} valueFontSize="large"  title="Public IP" value={ec2.ipAddress} />
-        </MetricBar>
-      </div>
-      <Card expandable>
-        <CardText title="Details" subtitle={`${task.containers.length} containers`}/>
+        <Card expandable>
+          <FlexContainer alignItems="stretch" justifyContent="flex-start" >
+            <TaskCard task={task} width={"20em"}/>
+            <TaskDefinitionCard taskDefinition={td} />
+            {task.containers.map( (c) => <ContainerCard key={kg.nextKey()} ecsContainer={c} />)}
+          </FlexContainer>
+        </Card>
       </Card>
-    </Card>
-  );
-};
+    );
+  }
+}
 
-// Task.contextTypes = {
-//   muiTheme: PropTypes.object.isRequired
-// };
 
-// Task.defaultProps = {
-//   aProp: "Remove me"
-// };
-
-Task.propTypes = {
-  deepTask: PropTypes.object.isRequired
-};
-
-export default Task;

@@ -1,11 +1,10 @@
 import React, { Component, PropTypes } from 'react';
-import  * as instanceActions from '../actions/instance';
+// import  * as instanceActions from '../actions/instance';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 
 import { securityGroupIds } from '../ecs/instance';
 import moment from 'moment';
-
 
 import { shortArn } from '../helpers/aws';
 import { KeyGenerator } from '../helpers/ui';
@@ -71,7 +70,7 @@ class InstancesCard extends Component {
   } 
 
   componentWillMount() {
-    this.props.actions.requestInstances(this.props.clusterName);
+    // this.props.actions.requestInstances(this.props.clusterName);
   }
 
   handleExpandedChange(expanded) {
@@ -305,7 +304,7 @@ class InstancesCard extends Component {
 
   renderDetailCards(instance, securityGroups) {
     let kg = new KeyGenerator;
-    console.log("InstancesCard:renderDetailCards - instance", instance, "groups", securityGroups);
+    // console.log("InstancesCard:renderDetailCards - instance", instance, "groups", securityGroups);
     let ci = instance.containerInstance;
     let ec2 = instance.ec2Instance;
     const cardWidth = 200;
@@ -331,7 +330,7 @@ class InstancesCard extends Component {
   }
 
   render() {
-    console.log("InstancesCard:render()", "state:", this.state, "props:", this.props);
+    // console.log("InstancesCard:render()", "state:", this.state, "props:", this.props);
     // const {securityGroups } = this.pr;
     const { instances, securityGroups } = this.props;
     return (
@@ -343,20 +342,20 @@ class InstancesCard extends Component {
 }
 
 const mapStateToProps = (state, ownProps) => { 
-  console.log("InstancesCard#mapStateToProps - entry", "state:", state, "ownProps:", ownProps);
+  // console.log("InstancesCard#mapStateToProps - entry", "state:", state, "ownProps:", ownProps);
   const {clusterName} = ownProps;
   const instances = state.instances[clusterName] ? state.instances[clusterName] : [];
   const securityGroups = securityGroupIds(instances).reduce( (accum, sgId) => {
-    console.log("InstancesCard#mapStateToProps - Looking for security groups:", "accum:", accum, "sgId:", sgId);
+    // console.log("InstancesCard#mapStateToProps - Looking for security groups:", "accum:", accum, "sgId:", sgId);
     const sg = state.securityGroups[sgId];
     if (sg) {
-      console.log("InstancesCard#mapStateToProps - found one:", "sgId:", sgId, "sg:", sg);
+      // console.log("InstancesCard#mapStateToProps - found one:", "sgId:", sgId, "sg:", sg);
       accum.push(sg);
     }
     return (accum);
   },[]);
 
-  console.log("InstancesCard#mapStateToProps() - exit", "instances:", instances, "securityGroups:", securityGroups);
+  // console.log("InstancesCard#mapStateToProps() - exit", "instances:", instances, "securityGroups:", securityGroups);
 
   return ({
     instances: instances,
@@ -364,11 +363,12 @@ const mapStateToProps = (state, ownProps) => {
   });
 
 };
-const mapDispatchToProps = (dispatch, ownProps) => { 
-  console.log("InstancesCard#mapDispatchToProps - ownProps", ownProps);
-  return ({actions: bindActionCreators(instanceActions, dispatch)}); 
-};
+// const mapDispatchToProps = (dispatch, ownProps) => { 
+//   console.log("InstancesCard#mapDispatchToProps - ownProps", ownProps);
+//   return ({actions: bindActionCreators(instanceActions, dispatch)}); 
+// };
 
-export default connect(mapStateToProps, mapDispatchToProps)(InstancesCard);
+// export default connect(mapStateToProps, mapDispatchToProps)(InstancesCard);
+export default connect(mapStateToProps)(InstancesCard);
 
 

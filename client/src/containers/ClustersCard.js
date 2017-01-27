@@ -44,7 +44,7 @@ class ClustersCard extends React.Component {
   // }
 
   componentWillMount() {
-    console.log("ClustersCard:willMount()", "State:", this.state, "Props:", this.props);
+    // console.log("ClustersCard:willMount()", "State:", this.state, "Props:", this.props);
     this.props.actions.requestClusters();
   }
 
@@ -56,6 +56,7 @@ class ClustersCard extends React.Component {
     let cluster = this.props.clusters[rowNumber];
     // console.log("ClustersCard:onCellClick - row column", rowNumber, columnId, ", cluster:", cluster.clusterName);
     this.state.clusterTabNames.add(cluster.clusterName);
+    this.props.actions.selectCluster(cluster.clusterName);
     this.setState({value: cluster.clusterName});
   }
 
@@ -114,7 +115,7 @@ class ClustersCard extends React.Component {
   }
 
   render() {
-    console.log("ClustersCard:render()", "State:", this.state, "Props:", this.props);
+    // console.log("ClustersCard:render()", "State:", this.state, "Props:", this.props);
     return (
       <Tabs label="Clusters" onChange={this.handleTabChange} value={this.state.value} >
         {this.tabs()}
@@ -125,11 +126,11 @@ class ClustersCard extends React.Component {
 
 
 const mapStateToProps = (state) => { 
-  console.log("ClustersCard#mapStateToProps - state", state);
+  // console.log("ClustersCard#mapStateToProps - state", state);
   return ({clusters: state.clusters}); 
 };
 const mapDispatchToProps = (dispatch, ownProps) => { 
-  console.log("ClustersCard#mapDispatchToProps - ownProps", ownProps);
+  // console.log("ClustersCard#mapDispatchToProps - ownProps", ownProps);
   return ({actions: bindActionCreators(clusterActions, dispatch)}); 
 };
 

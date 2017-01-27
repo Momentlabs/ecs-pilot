@@ -13,10 +13,14 @@ export default class MetricBar extends React.Component {
 
    
   static defaultProps = {
+    showExpandableButton: false,
+    onExpandChange: undefined,
     children: []
   }
 
   static propTypes = {
+    showExpandableButton: PropTypes.bool,
+    onExpandChange: PropTypes.func,
     children: PropTypes.oneOfType([PropTypes.element, PropTypes.array])
   }
 
@@ -37,6 +41,14 @@ export default class MetricBar extends React.Component {
     console.log("MetricBar:constructor() - exit", "state:", this.state, "props:", props, "context:", context);
   }
 
+
+  componentWillMount() {
+    console.log("MetricBar:componentWillMount()", "state:", this.state, "props:", this.props);
+    this.setState({
+      expandIcon: this.expandIcon(this.state.expanded)
+     });
+  }
+
   expandIcon(expanded) {
 
     const styles = {
@@ -46,36 +58,37 @@ export default class MetricBar extends React.Component {
       }
     };
 
-    const expandIcon = expanded ? 
-      <KeyboardArrowUp onClick={this.handleClick} style={styles.expandIcon} /> :
-      <KeyboardArrowDown onClick={this.handleClick} style={styles.expandIcon} />;
-
-  }
-
-  componentWillMount() {
-    console.log("MetricBar:componentWillMount()", "state:", this.state, "props:", this.props);
-    this.setState({
-      expandIcon: this.expandIcon(this.state.expanded)
-     });
+    return (
+      (expanded) ?
+        <KeyboardArrowUp onClick={this.handleClick} style={styles.expandIcon} /> :
+        <KeyboardArrowDown onClick={this.handleClick} style={styles.expandIcon} />
+      );
   }
 
   handleClick(event) {
     console.log("MetricBar:handleClick()", "event:", event);
-    const expanded = !this.state.expanded;
+    const {expanded } = this.state;
+    const {onExpandChange} = this.props;
+
+    const newExpanded = !expanded;
+    if (onExpandChange) {
+      onExpandChange(newExpanded);
+    }
+
     this.setState({
-      expandIcon: this.expandIcon(expanded),
-      expanded: expanded
+      expandIcon: this.expandIcon(newExpanded),
+      expanded: newExpanded,
     });
   }
 
   render() {
     console.log("MetricBar:render()", "state:", this.state, "props:", this.props);
     const {expandIcon} = this.state;
-    const {children} = this.props;
+    const {children, showExpandableButton} = this.props;
     return (
       <FlexContainer alignItems="flow-start">
         {children}
-        {expandIcon}
+        {showExpandableButton ? expandIcon : []}
       </FlexContainer>
     );
   }

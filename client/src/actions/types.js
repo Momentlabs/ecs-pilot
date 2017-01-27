@@ -1,20 +1,39 @@
+/*
+ * There are two elements to the protocol that the UI currently needs
+ *
+ * REQUEST_CLUSTERS
+ * Causes a list of clusters to get loaded into the databse from
+ * the server.
+ *
+ * SELECT_CLUSTER
+ * Loads the rest of the data assocaited with the selected cluster.
+ *
+ *  The remaining protocol elements are used by sagas to 
+ * generate the rest of the calls for the data to come along.
+ * 
+*/
+
+// It may be a good idea to actually change the protocol
+// to put error in the name.
+export const matchErrorActions = (action) => {
+  const failRE  = /.*FAILURE/
+  return failRE.test(action.type);
+};
+
+export const REPORT_ERROR = "RECIEVED_ERROR";
+
+export const SELECT_CLUSTER = "SELECT_CLUSTER";
+export const SELECT_CLUSTER_FAILURE = "SELECT_CLUSTER_FAILURE";
+
 export const REQUEST_CLUSTERS = "REQUEST_CLUSTERS";
-export const REQUEST_CLUSTERS_SUCCESS = "REQUEST_CLUSTERS_SUCCESS";
-export const REQUEST_CLUSTERS_FAILURE = "REQUEST_CLUSTERS_FAILURE";
+export const LOADED_CLUSTERS = "LOADED_CLUSTERS";
 
 export const REQUEST_INSTANCES = "REQUEST_INSTANCES";
-export const REQUEST_INSTANCES_SUCCESS = "REQUEST_INSTANCES_SUCCESS";
-export const REQUEST_INSTANCES_FAILURE = "REQUEST_INSTANCES_FAILURE";
+export const LOADED_INSTANCES = "LOADED_INSTANCES";
 
 export const REQUEST_SECURITY_GROUPS = "REQUEST_SECURITY_GROUPS";
-export const REQUEST_SECURITY_GROUPS_SUCCESS = "REQUEST_SECURITY_GROUPS_SUCCESS";
-export const REQUEST_SECURITY_GROUPS_FAILURE = "REQUEST_SECURITY_GROUPS_FAILURE";
-
-export const REQUEST_TASKS = "REQUEST_TASKS";
-export const REQUEST_TASKS_SUCCESS = "REQUEST_TASKS_SUCCESS";
-export const REQUEST_TASKS_FAILURE = "REQUEST_TASKS_FAILURE";
+export const LOADED_SECURITY_GROUPS = "LOADED_SECURITY_GROUPS";
 
 export const REQUEST_DEEP_TASKS = "REQUEST_DEEP_TASKS";
-export const REQUEST_DEEP_TASKS_SUCCESS = "REQUEST_DEEP_TASKS_SUCCESS";
-export const REQUEST_DEEP_TASKS_FAILURE = "REQUEST_DEEP_TASKS_FAILURE";
+export const LOADED_DEEP_TASKS = "LOADED_DEEP_TASKS";
 

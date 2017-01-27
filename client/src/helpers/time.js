@@ -9,15 +9,27 @@ export const uptimeString = (unixTime) => {
   const h = upDur.hours();
   const mn = upDur.minutes();
   const s = upDur.seconds();
+
+  const ys = (y ===1 ) ? "year" : "years";
+  const ms = (m === 1) ? "month" : "months";
+  const ds = (d === 1) ? "day" : "days";
+  const hs = (h === 1) ? "hour" : "hours";
+  const mns = (mn === 1) ? "minute" : "minutes";
+  const ss = (s === 1) ? "second" : "seconds";
+
   if (y > 0) {
-    return `${y} years, ${m} months, ${d} days and ${h} hours`;
+    return `${y} ${ys} ${m} ${ms} ${d} ${ds} and ${h} ${hs}`;
   } else if (m > 0) {
-    return `${m} months, ${d} days, ${h} hours and ${s} seconds`;
+    return `${m} ${ms} ${d} ${ds} ${h} ${hs} ${mn} ${mns} and ${s} ${ss}`;
   } else if (d > 0) {
-    return `${d} days ${h} hours ${mn} minutes and ${s} seconds`;
+    return `${d} ${ds} ${h} ${hs} ${mn} ${mns} and ${s} ${ss}`;
   } else if (h > 0) {
-    return `${h} hours ${mn} minutes and ${s} seconds`;
+    return `${h} ${hs} ${mn} ${mns} and ${s} ${ss}`;
   } else {
     return `${mn} minutes and ${s} seconds`;
   }
 };
+
+// export const displayTime = (unixTime) => moment.unix(unixTime).format('dddd MMMM Do YYYY, h:mm:ss a');
+export const displayTime = (unixTime) => moment.unix(unixTime).format('LLLL');
+export const isoDisplayTime = (unixTime) => moment.unix(unixTime).format();
