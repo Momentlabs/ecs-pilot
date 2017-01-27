@@ -2,6 +2,8 @@ import webpack from 'webpack';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import autoprefixer from 'autoprefixer';
 import path from 'path';
+import DashboardPlugin from 'webpack-dashboard/plugin';
+
 
 export default {
   resolve: {
@@ -28,6 +30,7 @@ export default {
       __DEV__: true
     }),
     new webpack.OldWatchingPlugin(),
+    new DashboardPlugin(),
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoErrorsPlugin(),
     new HtmlWebpackPlugin({     // Create HTML file that includes references to bundled CSS and JS.
