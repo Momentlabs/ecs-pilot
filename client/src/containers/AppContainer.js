@@ -31,7 +31,9 @@ class AppContainer extends React.Component {
 
   handleUpdate(event) {
     console.log("Clicked!", "event:", event, "state:", this.state);
-    this.props.actions.receivedError(new Error("Testing the error mechanism"));
+    let err = new Error("Testing the error mechanism.");
+    err.displayMessage = "New Error: " + err.message;
+    this.props.actions.reportError(err);
   }
 
   render() {

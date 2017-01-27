@@ -73,14 +73,17 @@ export default class App extends React.Component {
     this.checkForErrors(error, this.state.pendingErrors);
   }
 
+  // TODO: Generalize this as a generic message update.
+  // add some kind of tiered type: update/info, warning, error.
   // Need to queue new errors.
+  // TODO: Also, this handling needs to brought up to the parent app container
   checkForErrors(error, pendingErrors) {
     console.log("App:CheckForErrors()", "error:", error, "pendingErrors:", pendingErrors);
     let newErrors = pendingErrors;
     if (error) {
       newErrors = pendingErrors.concat([error]);
     }
-    const {sbo, sbm} = (newErrors.length > 0) ? {sbo: true, sbm: newErrors[0].message} : {sbo: false, sbm: ""};
+    const {sbo, sbm} = (newErrors.length > 0) ? {sbo: true, sbm: newErrors[0].displayMessage} : {sbo: false, sbm: ""};
     console.log("App:checkForErrors()", "sbOpen:", sbo, "sbMessage:", sbm, "pendingErrors:", newErrors);
     this.setState({
       pendingErrors: newErrors,
@@ -90,7 +93,7 @@ export default class App extends React.Component {
   }
 
   closeSnackbar() {
-    console.log("App:closeSnackbar()");
+    console.log("App:closeSnackbar()", "state:", this.state);
     let { pendingErrors } = this.state;
     pendingErrors.pop();
     this.checkForErrors(undefined, pendingErrors);

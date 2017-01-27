@@ -6,9 +6,9 @@ export const error = (state = {}, action) => {
   switch (action.type) {
     case types.REPORT_ERROR:
       // let clustersCopy  = Object.assign([], state, { clusters: action.clusters });
-      console.log("Reducer#error processing", "type:", action.type, "error:", action.error);
-      newState = Object.assign({}, {error: action.error});
-      console.log("Reducer#error copied", "action.error:", action.error, "newState:", newState);
+      console.log("Reducer#error processing", "type:", action.type, "error:", action.payload);
+      newState = Object.assign({}, {error: action.payload});
+      console.log("Reducer#error copied", "action.payload", action.payload, "newState:", newState);
       break;
   }
   console.log("Reducer#error() - exit", "state:", state, "newState", newState, "action:", action);

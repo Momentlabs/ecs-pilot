@@ -137,6 +137,7 @@ function* requestDeepTasks(action) {
     yield put(deepTaskActions.loadedDeepTasks(clusterName, response.data));
   } catch(error) {
     console.log("saga:requestDeepTasks() - error yield", "reponse:", error);
+    error.displayMessage = "Failed to load tasks: " + error.message;
     yield put(deepTaskActions.loadedDeepTasks(error));
   }
 }
@@ -163,7 +164,9 @@ export function* watchRequestFailiure() {
 
 function* errorHandler(action) {
   console.log("saga:errorHandler()", "action:", action);
-  if (action.error) {
+  if (action.type === types.REPORT_ERROR) {
+    return;
+  } else if (action.error) {
     console.log("saga:errorHandler() - firing error.", "action:", action);
     yield put(errorActions.reportError(action.payload));
   }
