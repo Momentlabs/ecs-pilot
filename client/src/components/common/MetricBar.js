@@ -27,7 +27,7 @@ export default class MetricBar extends React.Component {
   constructor(props, context) {
     super(props, context);
 
-    console.log("MetricBar:constructor() - entrance", "state:", this.state, "props:", props, "context:", context);
+    // console.log("MetricBar:constructor() - entrance", "state:", this.state, "props:", props, "context:", context);
 
     this.componentWillMount = this.componentWillMount.bind(this);
     this.expandIcon = this.expandIcon.bind(this);
@@ -38,12 +38,11 @@ export default class MetricBar extends React.Component {
       expanded: false
     };
 
-    console.log("MetricBar:constructor() - exit", "state:", this.state, "props:", props, "context:", context);
+    // console.log("MetricBar:constructor() - exit", "state:", this.state, "props:", props, "context:", context);
   }
 
-
   componentWillMount() {
-    console.log("MetricBar:componentWillMount()", "state:", this.state, "props:", this.props);
+    // console.log("MetricBar:componentWillMount()", "state:", this.state, "props:", this.props);
     this.setState({
       expandIcon: this.expandIcon(this.state.expanded)
      });
@@ -66,7 +65,7 @@ export default class MetricBar extends React.Component {
   }
 
   handleClick(event) {
-    console.log("MetricBar:handleClick()", "event:", event);
+    // console.log("MetricBar:handleClick()", "event:", event);
     const {expanded } = this.state;
     const {onExpandChange} = this.props;
 
@@ -82,7 +81,7 @@ export default class MetricBar extends React.Component {
   }
 
   render() {
-    console.log("MetricBar:render()", "state:", this.state, "props:", this.props);
+    // console.log("MetricBar:render()", "state:", this.state, "props:", this.props);
     const {expandIcon} = this.state;
     const {children, showExpandableButton} = this.props;
     return (

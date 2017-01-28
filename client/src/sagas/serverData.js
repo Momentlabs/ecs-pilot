@@ -12,6 +12,7 @@ import * as securityGroupActions from '../actions/securityGroup';
 import DeepTask from '../ecs/deepTask';
 import * as deepTaskActions from '../actions/deepTask';
 import * as errorActions from '../actions/error';
+import * as loadActions from '../actions/load';
 
 
 // Currently this is the only entry into server interaction
@@ -35,13 +36,29 @@ export function* watchSelectCluster() {
   yield takeEvery(types.SELECT_CLUSTER, selectCluster);
 }
 
+
+// TODO: I'm worried that I've created a problem with the load indicator:
+// I'm not sure what the guarantees are wrt local variables and function*.
+// what happens when 
+// - requestClusers is called and an id is created (call the value id1);
+// - then it goes off and yeilds to the Clusters.getClusters() call.
+// - then another requestClusters call is made prior to the complettion of the
+//   first. It will create and id with value id2. 
+// * What is the value of id when the first yield returns: is it id1 or id2?
+// Practically in this app for requestClusters, this won't happen. But that 
+// is not the case for the rest of the request calls.
 export function* requestClusters(action) {
   console.log("saga:requestCluster - start", "action:", action);
+  const id = "clusters-" + Date.now();
   try {
+    yield put(loadActions.startLoading("clusters", id));
     const response = yield Clusters.getClusters();
-    console.log("saga:requestCluster - Returned with clusters response - ", response);
+    yield put(loadActions.completeLoading(id));
+    // console.log("saga:requestCluster - Returned with clusters response - ", response);
     yield put(clusterActions.loadedClusters(response.data));
   } catch(error) {
+    error.displayMessage = "Failed to load clusters: " + error.message;
+    yield put(loadActions.completeLoading(id));
     yield put(clusterActions.loadedClusters(error));
   }
 }
@@ -56,9 +73,12 @@ export function*  watchRequestClusters() {
 // not to mention handle errors.
 function* requestInstances(action) {
   console.log("saga:requestInstances", "action:", action);
+  const id = "instances-" + Date.now();
   try {
     const clusterName = action.payload;
+    yield put(loadActions.startLoading("instances", id));
     const instancesResponse = yield Instances.getInstances(clusterName);
+    yield put(loadActions.completeLoading(id));
     console.log("saga:requestInstances - yeild after getInstance()", "response:", instancesResponse);
     // TODO: the instanceResponse.data object has the shape: {failures: [], instances[]}
     // We need to generate some mechanism for displaying the failures.
@@ -71,6 +91,8 @@ function* requestInstances(action) {
     ];
 
   } catch(error) {
+    error.displayMessage = "Failed to load instances: " + error.message;
+    yield put(loadActions.completeLoading(id));
     yield put(instanceActions.loadedInstances(error));
   }
 }
@@ -83,10 +105,16 @@ export function* watchRequestInstances() {
 
 function* requestSecurityGroups(action) {
   console.log("saga:requestSecurityGroups", "action:", action);
+  const id = "securityGroups-" + Date.now();
   try {
+    const id = "securityGroups-" + Date.now();
+    yield put(loadActions.startLoading("securityGroups", id));
     const response = yield SecurityGroup.getGroups(action.payload);
+    yield put(loadActions.completeLoading(id));
     yield put(securityGroupActions.loadedSecurityGroups(response.data));
-  } catch(error) {
+} catch(error) {
+    error.displayMessage = "Failed to load securityGroups: " + error.message;
+    yield put(loadActions.completeLoading(id));
     yield put(securityGroupActions.loadedSecurityGroups(error));
   }
 }
@@ -131,13 +159,17 @@ export function* watchRequestSecurityGroups() {
 function* requestDeepTasks(action) {
   console.log("saga:requestDeepTasks()", "action:", action);
   const clusterName = action.payload;
+  const id = "deepTasks-" + Date.now();
   try {
+    yield put(loadActions.startLoading("deepTasks", id));
     const response = yield DeepTask.getDeepTasks(clusterName);
+    yield put(loadActions.completeLoading(id));
     console.log("saga:requestDeepTasks() - response yield", "reponse:", response);
     yield put(deepTaskActions.loadedDeepTasks(clusterName, response.data));
   } catch(error) {
     console.log("saga:requestDeepTasks() - error yield", "reponse:", error);
     error.displayMessage = "Failed to load tasks: " + error.message;
+    yield put(loadActions.completeLoading(id));
     yield put(deepTaskActions.loadedDeepTasks(error));
   }
 }

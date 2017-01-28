@@ -21,7 +21,7 @@ injectTapEventPlugin();
 const sagaMiddleware = createSagaMiddleware();
 const store = createStore(reducers, applyMiddleware(sagaMiddleware));
 sagaMiddleware.run(rootSaga);
-console.log("Applicaiton:/src/index.js - calling render.");
+console.log("Applicaiton:/src/index.js calling render.");
 
 render(
   <Provider store={store}>

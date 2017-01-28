@@ -3,7 +3,7 @@ import React, {PropTypes } from 'react';
 
 // Since this component is simple and static, there's no parent component for it.
 const FlexContainer = (props) => {
-  console.log("FlexContainer:render()", "props:", props);
+  // console.log("FlexContainer:render()", "props:", props);
   const {
     children, width,  justifyContent, alignItems, alignContent
   } = props;

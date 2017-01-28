@@ -13,6 +13,7 @@ import darkBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
 import FontIcon from 'material-ui/FontIcon';
 import IconMenu from 'material-ui/IconMenu';
 import IconButton from 'material-ui/IconButton';
+import RefreshIndicator from 'material-ui/RefreshIndicator';
 import MenuItem from 'material-ui/MenuItem';
 // import Paper from 'material-ui/Paper';
 import RaisedButton from 'material-ui/RaisedButton';
@@ -36,23 +37,27 @@ const FIRST_MENU_VALUE=0; // Home menu defined above.
 export default class App extends React.Component {
 
   static defaultProps = {
-    error: undefined
+    error: undefined,
+    sbOpen: false,
+    sbMessage: "",
+    handleSBClose: undefined,
+    handleRefresh: undefined,
+    handleUpdate: undefined
   }
 
   static propTypes = {
-    openSnackbar: PropTypes.bool,
-    // error: PropTypes.object,
-    handleUpdate: PropTypes.func.isRequired,
+    sbOpen: PropTypes.bool,
+    sbMessage: PropTypes.string,
+    loadingStatus: PropTypes.string.isRequired,
+    handleSBClose: PropTypes.func,
+    handleUpdate: PropTypes.func,
+    handleRefresh: PropTypes.func,
     children: PropTypes.object.isRequired
   }
 
   constructor(props, context) {
     super(props, context);
     this.state = {
-      sbMessage: "",
-      sbOpen:false,
-      pendingErrors: [],
-      error: undefined,
       value: FIRST_MENU_VALUE,
     };
 
@@ -63,41 +68,45 @@ export default class App extends React.Component {
     // Bind the handlers.
     this.handleMenuChange = this.handleMenuChange.bind(this);
     this.renderMenuItems = this.renderMenuItems.bind(this);
-    this.closeSnackbar = this.closeSnackbar.bind(this);
-    this.checkForErrors = this.checkForErrors.bind(this);
+    // this.checkForErrors = this.checkForErrors.bind(this);
   }
 
   componentWillReceiveProps(newProps) {
     console.log("App:componentWillRecceiveProps()", "state:", this.state, "newProps:", newProps);
-    const { error } = newProps;
-    this.checkForErrors(error, this.state.pendingErrors);
+
+    // const { error, loading } = newProps;
+    // const updateState = this.checkForErrors(error, this.state.pendingErrors);
+    // this.setState(updateState);
   }
 
-  // TODO: Generalize this as a generic message update.
+  // TODO: Generalize the error as a generic message update.
   // add some kind of tiered type: update/info, warning, error.
   // Need to queue new errors.
   // TODO: Also, this handling needs to brought up to the parent app container
-  checkForErrors(error, pendingErrors) {
-    console.log("App:CheckForErrors()", "error:", error, "pendingErrors:", pendingErrors);
-    let newErrors = pendingErrors;
-    if (error) {
-      newErrors = pendingErrors.concat([error]);
-    }
-    const {sbo, sbm} = (newErrors.length > 0) ? {sbo: true, sbm: newErrors[0].displayMessage} : {sbo: false, sbm: ""};
-    console.log("App:checkForErrors()", "sbOpen:", sbo, "sbMessage:", sbm, "pendingErrors:", newErrors);
-    this.setState({
-      pendingErrors: newErrors,
-      sbOpen: sbo,
-      sbMessage: sbm
-    });
-  }
+  // checkForErrors(error, pendingErrors) {
 
-  closeSnackbar() {
-    console.log("App:closeSnackbar()", "state:", this.state);
-    let { pendingErrors } = this.state;
-    pendingErrors.pop();
-    this.checkForErrors(undefined, pendingErrors);
-  }
+  //   console.log("App:CheckForErrors()", "error:", error, "pendingErrors:", pendingErrors);
+  //   let newErrors = pendingErrors;
+  //   if (error) {
+  //     newErrors = pendingErrors.concat([error]);
+  //   }
+  //   const {sbo, sbm} = (newErrors.length > 0) ? {sbo: true, sbm: newErrors[0].displayMessage} : {sbo: false, sbm: ""};
+  //   console.log("App:checkForErrors()", "sbOpen:", sbo, "sbMessage:", sbm, "pendingErrors:", newErrors);
+
+  //   return ({
+  //     pendingErrors: newErrors,
+  //     sbOpen: sbo,
+  //     sbMessage: sbm
+  //   });
+  // }
+
+  // closeSnackbar() {
+  //   console.log("App:closeSnackbar()", "state:", this.state);
+  //   let { pendingErrors } = this.state;
+  //   pendingErrors.pop();
+  //   const updateState = this.checkForErrors(undefined, pendingErrors);
+  //   this.setState(updateState);
+  // }
 
   handleMenuChange(event, value) {
     let newPath = useMenu[(value)].path;
@@ -112,8 +121,8 @@ export default class App extends React.Component {
 
   render() {
     console.log("App:render()", "state:", this.state, "props:", this.props);
-    const { value, sbOpen, sbMessage } = this.state;
-    const { handleUpdate } = this.props;
+    const { value } = this.state;
+    const { handleUpdate, handleSBClose, handleRefresh, loadingStatus, sbOpen, sbMessage, children } = this.props;
     // const {sbOpen, sbMessage} = (error === undefined) ? {sbOpen: false, sbMessage: ""} : {sbOpen: true, sbMessage: error.message};
     console.log("App:render()", "sbOpen:", sbOpen, "sbMessage:", sbMessage);
     return (
@@ -125,7 +134,7 @@ export default class App extends React.Component {
               <ToolbarTextLogo logoValue="ECS Pilot" />
             </ToolbarGroup>
             <ToolbarGroup>
-              <FontIcon className="material-icons">home</FontIcon>
+              <RefreshIndicator onClick={handleRefresh} status={loadingStatus} percentage={100} size={30} left={-20} top={13} />
               <ToolbarSeparator/>
               <RaisedButton label="Update" primary={true} onClick={handleUpdate}/>
               <IconMenu 
@@ -137,9 +146,9 @@ export default class App extends React.Component {
                 value={value}/>
             </ToolbarGroup>
           </Toolbar>
-          {this.props.children}
+          {children}
           </div>
-          <Snackbar  open={sbOpen} message={sbMessage} action="Ok" onActionTouchTap={this.closeSnackbar} onRequestClose={this.closeSnackbar}/>
+          <Snackbar  open={sbOpen} message={sbMessage} action="Ok" onActionTouchTap={handleSBClose} onRequestClose={handleSBClose}/>
         </div>
       </MuiThemeProvider>
     );

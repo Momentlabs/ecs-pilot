@@ -5,18 +5,16 @@ import moment from 'moment';
 import { KeyGenerator } from '../helpers/ui';
 
 import * as colors from 'material-ui/styles/colors';
-import { Card, CardTitle, CardText, CardExpandable } from 'material-ui/Card';
+import { Card } from 'material-ui/Card';
 // import KeyboardArrowUp from 'material-ui/svg-icons/hardware/keyboard-arrow-up'
 // import KeyboardArrowDown from 'material-ui/svg-icons/hardware/keyboard-arrow-down'
 
 import FlexContainer from '../components/common/FlexContainer';
-import DetailCard from '../components/common/DetailCard';
 import MetricBar from '../components/common/MetricBar';
 import FlowedMetric from '../components/common/FlowedMetric';
 import TaskCard from '../components/TaskCard';
 import TaskDefinitionCard from '../components/TaskDefinitionCard';
 import ContainerCard from '../components/ContainerCard';
-import ItemPair from '../components/common/ItemPair';
 
 
 
@@ -45,7 +43,7 @@ export default class Task extends React.Component {
   }
 
   handleExpanded(newExpanded) {
-    console.log("Taksk#handleExpanded()", "newExpanded:", newExpanded);
+    // console.log("Taksk#handleExpanded()", "newExpanded:", newExpanded);
     this.setState({
       expanded: newExpanded
     });
@@ -55,7 +53,7 @@ export default class Task extends React.Component {
   render() {
     const {deepTask} = this.props;
     const {expanded} = this.state;
-    console.log("Task:render()", "deepTask:", deepTask);
+    // console.log("Task:render()", "deepTask:", deepTask);
 
     // TODO: Change the outline color based on health.
     const outlineColor = colors.blueGrey200;

@@ -1,4 +1,26 @@
 import * as types from '../actions/types';
+import Queue from '../helpers/queue';
+
+// state is a queue of loading records. 
+export const loading = (state = new Queue, action) => {
+  console.log("reducers#loading - entry", "action:", action, "state:", state );
+  let newState = state;
+  switch (action.type) {
+    case types.LOADING_STARTED:
+      newState = state.copy()
+      newState.add(action.payload);
+      break;
+    case types.LOADING_COMPLETE: // action has an id of the completed load.
+      if (state.length() > 0) {
+        newState = state.copy();
+        // newState.remove((e) => {console.log("\ninternal:","e", e, "pl:", action.payload); return e.id !== action.payload;});
+        newState.remove((e) => e.id !== action.payload);
+      } // TODO: this is an error if we try to remove from an empty queue.
+      break;
+  }
+  console.log("reducers#loading - exit", "action:", action, "newState:", newState, "state:", state );
+  return newState;
+};
 
 // TODO: This is really designed as a read-only state to be updated from the sever.
 // This means that if we add creation or editing functionality that unless we redesign

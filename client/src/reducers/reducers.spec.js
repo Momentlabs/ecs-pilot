@@ -1,8 +1,9 @@
 import expect from 'expect';
+import Queue from '../helpers/queue';
 import * as types from '../actions/types';
 import * as reducers from '../reducers/serverData';
 
-
+// TODO: Clean this mess up. It works but the cases are not clear.
 // Clusters 
 const initialClusterData = {clusterName: "cluster1", status: "ACTIVE", runningTasksCount: 1, pendingTasksCount: 0};
 const newClustersData= {clusterName: "cluster2", status: "ACTIVE", runningTasksCount: 2, pendingTasksCount: 1};
@@ -93,25 +94,54 @@ let dtPostActionState = {};
 dtPostActionState[initialDTData.clusterName] = initialDTData.deepTasks;
 dtPostActionState[newDTData.clusterName] = newDTData.deepTasks;
 const loadDTAction = {type: types.LOADED_DEEP_TASKS, payload: newDTData};
-const dtTest = {reducerName: "deepTasks", reducer: reducers.deepTasks, initialState: {}, preActionState: dtPreActionState,
-  postActionState: dtPostActionState, firstActionState: dtFirstActionState, action: loadDTAction};
+const dtTest = {reducerName: "deepTasks", reducer: reducers.deepTasks, 
+  initialState: {},  preActionState: dtPreActionState, postActionState: dtPostActionState, 
+  firstActionState: dtFirstActionState, action: loadDTAction};
 
+// Loading
+const initialLDData =  {id: "foo1-1485547556", what: "foo1", when: "1485547556"};
+const newLDData = {id: "foo2-1485547570", what: "foo2", when: "1485547570"};
+const justNewData = new Queue;
+justNewData.add(newLDData);
+const justInitialData = new Queue;
+justInitialData.add(initialLDData);
+const bothData = new Queue;
+bothData.add(initialLDData);
+bothData.add(newLDData);
+const ldStartAction = {type: types.LOADING_STARTED, payload: newLDData};
+const ldStartTest = {reducerName: 'loading-start', reducer: reducers.loading, 
+  initialState: new Queue, preActionState: justInitialData, postActionState: bothData,
+   firstActionState: justNewData, action: ldStartAction};
 
+const ldStopAction = {type: types.LOADING_COMPLETE, payload: newLDData.id };
+const ldStopTest = {reducerName: 'loading-stop', reducer: reducers.loading,
+  initialState: new Queue, preActionState: bothData.copy(),
+  postActionState: justInitialData.copy(),
+  firstActionState: new Queue, action: ldStopAction};
+
+console.log("justInitialData-start", ldStartTest.preActionState, "\njustInitialData-stop", ldStopTest.postActionState);
+console.log("===", ldStartTest.postActionState === ldStopTest.preActionState);
 // TESTS
-const testsData = [clusterTest, instanceTest, sgTest, dtTest];
+const testsData = [clusterTest, instanceTest, sgTest, dtTest, ldStartTest, ldStopTest];
 describe('Testing reducers:', () => {
   testsData.forEach( (test) => {
     const { reducerName, reducer, initialState, preActionState, postActionState, firstActionState, action } = test;
     describe(reducerName, () => {
-      it('should return an empty array as the default state', () => {
+      it('should return initial state as the default state', () => {
         expect(reducer(undefined, {})).toEqual(initialState);
       });
 
-      it('should return state with only data from the <data loaded> action.', () => {
+      it('starting with an empty initial state, should return state with the data from the action.', () => {
         expect(reducer(initialState, action)).toEqual(firstActionState);
       });
 
-      it('should return state either merged state, or just the new state, depending on the type of data actioned', () => {
+      it('starting from an preActionState, should return data from the postActionedState', () => {
+        // console.log("\ntest:", "\npreActionstate: ", preActionState, 
+          // "\npostActionState:", postActionState, "\naction:", action);
+        // console.log("pre === post", preActionState == postActionState);
+        // let r = reducer(preActionState, action);
+        // console.log("\nreducer result:", r, "\n");
+        // expect(r).toEqual(postActionState);
         expect(reducer(preActionState, action)).toEqual(postActionState);
       });
 
