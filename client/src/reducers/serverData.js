@@ -13,9 +13,8 @@ export const loading = (state = new Queue, action) => {
     case types.LOADING_COMPLETE: // action has an id of the completed load.
       if (state.length() > 0) {
         newState = state.copy();
-        // newState.remove((e) => {console.log("\ninternal:","e", e, "pl:", action.payload); return e.id !== action.payload;});
         newState.remove((e) => e.id !== action.payload);
-      } // TODO: this is an error if we try to remove from an empty queue.
+      } // TODO: It's a logic error if we find we're trying to remove from an empty queue.
       break;
   }
   // console.log("reducers#loading - exit", "action:", action, "newState:", newState, "state:", state );

@@ -1,10 +1,10 @@
+import { createActionUUID } from './makeActions';
 import { createAction } from 'redux-actions';
 import * as types from './types';
 
-export const startLoading = createAction(types.LOADING_STARTED,
-  (what, id) => {return {what: what, id: id, when: Date.now()}}
+// TODO: This needs to use the createActionUUID function.
+export const startLoading = createActionUUID(types.LOADING_STARTED,
+  (what, id) => {return {what: what, when: Date.now()}}
 );
 
-export const completeLoading = createAction(types.LOADING_COMPLETE,
-  (id) => id
-);
+export const completeLoading = createAction(types.LOADING_COMPLETE, (id) => id);

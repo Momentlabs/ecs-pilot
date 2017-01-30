@@ -6,10 +6,8 @@ export const error = (state = new Queue, action) => {
   let newState = state;
   switch (action.type) {
     case types.REPORT_ERROR:
-      // console.log("Reducer#error processing", "type:", action.type, "error:", action.payload);
       newState = state.copy();
       newState.add({err: action.payload, id: action.uuid});
-      // newState = Object.assign({}, {err: action.payload, id: action.uuid});
       break;
     case types.REPORTED_ERROR:
       newState = state.copy();
