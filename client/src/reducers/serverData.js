@@ -3,7 +3,7 @@ import Queue from '../helpers/queue';
 
 // state is a queue of loading records. 
 export const loading = (state = new Queue, action) => {
-  console.log("reducers#loading - entry", "action:", action, "state:", state );
+  // console.log("reducers#loading - entry", "action:", action, "state:", state );
   let newState = state;
   switch (action.type) {
     case types.LOADING_STARTED:
@@ -18,7 +18,7 @@ export const loading = (state = new Queue, action) => {
       } // TODO: this is an error if we try to remove from an empty queue.
       break;
   }
-  console.log("reducers#loading - exit", "action:", action, "newState:", newState, "state:", state );
+  // console.log("reducers#loading - exit", "action:", action, "newState:", newState, "state:", state );
   return newState;
 };
 

@@ -72,7 +72,7 @@ export default class App extends React.Component {
   }
 
   componentWillReceiveProps(newProps) {
-    console.log("App:componentWillRecceiveProps()", "state:", this.state, "newProps:", newProps);
+    // console.log("App:componentWillRecceiveProps()", "state:", this.state, "newProps:", newProps);
 
     // const { error, loading } = newProps;
     // const updateState = this.checkForErrors(error, this.state.pendingErrors);
@@ -120,11 +120,11 @@ export default class App extends React.Component {
   }
 
   render() {
-    console.log("App:render()", "state:", this.state, "props:", this.props);
+    // console.log("App:render()", "state:", this.state, "props:", this.props);
     const { value } = this.state;
     const { handleUpdate, handleSBClose, handleRefresh, loadingStatus, sbOpen, sbMessage, children } = this.props;
     // const {sbOpen, sbMessage} = (error === undefined) ? {sbOpen: false, sbMessage: ""} : {sbOpen: true, sbMessage: error.message};
-    console.log("App:render()", "sbOpen:", sbOpen, "sbMessage:", sbMessage);
+    // console.log("App:render()", "sbOpen:", sbOpen, "sbMessage:", sbMessage);
     return (
       <MuiThemeProvider muiTheme={getMuiTheme(darkBaseTheme)}>
         <div>

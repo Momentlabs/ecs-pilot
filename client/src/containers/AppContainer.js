@@ -41,32 +41,36 @@ class AppContainer extends React.Component {
   }
 
   componentWillReceiveProps(newProps) {
-    console.log("AppContainer:componentWillReceiveProps()", "newProps:", newProps);
+    console.log("AppContainer:componentWillReceiveProps()", "newProps:", newProps, "state:", this.state);
     const { error } = newProps;
-    const newMessage = (error) ? error.displayMessage : undefined;
-    const newState = this.updateMessages(newMessage);
+    let newMessage = undefined;
+    if (error && error.err) {
+      newMessage = {message: error.err.displayMessage, id: error.id};
+      this.props.actions.reportedError(error);
+    }
+    const newState = this.updateMessages(newMessage, this.state.pendingMessages);
     this.setState(newState);
   }
 
-  updateMessages(message) {
-    let { pendingMessages } = this.state
-    let newMessages = pendingMessages;
-
-    // Enqueue new message
-    if (message) {
-      newMessages = pendingMessages.concat([{sbMessage: message, sbOpen: true}]);
+  updateMessages(message, pendingMessages) {
+    console.log("AppContainer:updateMessages() - considering adding message:", message, "to:", pendingMessages);
+    if(message) {
+      const found = (pendingMessages.find((e) => e.id === message.id) === undefined) ? false : true;
+      if (!found) {
+        console.log("AppContainer:updateMessages() - adding message:", message);
+        pendingMessages.push(message);
+      }
     }
-
-    return ({
-      pendingMessages: newMessages,
+      return ({
+      pendingMessages: pendingMessages
     });
   }
 
   handleSBClose() {
     console.log("App:handleSBClose", "state:", this.state);
     let { pendingMessages } = this.state;
-    pendingMessages.pop();
-    const newState = this.updateMessages();
+    pendingMessages.shift();
+    const newState = this.updateMessages(undefined, pendingMessages);
     this.setState(newState);
   }
 
@@ -87,7 +91,7 @@ class AppContainer extends React.Component {
     console.log("AppContainer:render()","state:", this.state, "props", this.props);
     const { loadingStatus, children } = this.props;
     const { pendingMessages } = this.state;
-    const {sbOpen, sbMessage} = (pendingMessages[0]) ? pendingMessages[0] : {sbOpen: false, sbMessage: ""}
+    const {sbOpen, sbMessage} = (pendingMessages[0]) ? {sbOpen: true, sbMessage: pendingMessages[0].message} : {sbOpen: false, sbMessage: ""};
     console.log("AppContainer:render()", "sbOpen:", sbOpen, "sbMessage:", sbMessage);
     return (
       <App 
@@ -103,11 +107,13 @@ class AppContainer extends React.Component {
   }
 }
 
-const mapStateToProps = (state) => { 
-  console.log("AppContainer#mapStateToProps", "state:", state);
-  const {error, loading} = state;
-  const err =  (error && error.error) ? error.error : undefined;
+const mapStateToProps = (state, ownProps) => { 
+  console.log("AppContainer#mapStateToProps", "state:", state, "ownProps:", ownProps);
+  const { error, loading } = state;
+
   const loadingStatus = (loading && (loading.length() > 0)) ? load.LOADING : load.READY;
+  const err = error && error.peek() ?  error.peek() : undefined;// get the top of the queue (don't remove!)
+  // const err = error;
   return ({
     error: err,
     loadingStatus: loadingStatus

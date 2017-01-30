@@ -20,7 +20,8 @@ export const matchErrorActions = (action) => {
   return failRE.test(action.type);
 };
 
-export const REPORT_ERROR = "RECIEVED_ERROR";
+export const REPORT_ERROR = "REPORT_ERROR";
+export const REPORTED_ERROR = "REPORTED_ERROR";
 
 export const SELECT_CLUSTER = "SELECT_CLUSTER";
 export const SELECT_CLUSTER_FAILURE = "SELECT_CLUSTER_FAILURE";

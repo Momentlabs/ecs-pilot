@@ -119,8 +119,8 @@ const ldStopTest = {reducerName: 'loading-stop', reducer: reducers.loading,
   postActionState: justInitialData.copy(),
   firstActionState: new Queue, action: ldStopAction};
 
-console.log("justInitialData-start", ldStartTest.preActionState, "\njustInitialData-stop", ldStopTest.postActionState);
-console.log("===", ldStartTest.postActionState === ldStopTest.preActionState);
+// console.log("justInitialData-start", ldStartTest.preActionState, "\njustInitialData-stop", ldStopTest.postActionState);
+// console.log("===", ldStartTest.postActionState === ldStopTest.preActionState);
 // TESTS
 const testsData = [clusterTest, instanceTest, sgTest, dtTest, ldStartTest, ldStopTest];
 describe('Testing reducers:', () => {
