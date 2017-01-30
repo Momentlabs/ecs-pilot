@@ -47,7 +47,7 @@ class Tasklist extends React.Component {
 // Redux
 // 
 const mapStateToProps = (state, ownProps) => { 
-  console.log("Tasklist#mapStateToProps()","state:", state, "openProps:", ownProps);
+  // console.log("Tasklist#mapStateToProps()","state:", state, "openProps:", ownProps);
   const {clusterName} = ownProps
   return ({
     // tasksMap: state.tasksMap,

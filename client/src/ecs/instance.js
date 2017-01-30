@@ -8,7 +8,7 @@ import ECSPilot from './connection';
 // Returns a promise.
 export default class Instance {
   static getInstances(clusterName) {
-    console.log("Instance():getInstances() Requesting instances for cluster:", clusterName);
+    // console.log("Instance():getInstances() Requesting instances for cluster:", clusterName);
     return ECSPilot.get("/instances/" + clusterName);
   }
 }

@@ -89,7 +89,7 @@ const RechartGauge = (props, context) => { // eslint-disable-line react/no-multi
     <div style={styles.container}>
       <PieChart width={(size)} height={size} style={styles.chart}>
         <Pie
-          isAnimationActive={true} 
+          isAnimationActive={false} 
           data={data}
           outerRadius={outerRadius}
           innerRadius={innerRadius}

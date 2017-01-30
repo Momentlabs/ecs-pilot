@@ -41,7 +41,7 @@ class AppContainer extends React.Component {
   }
 
   componentWillReceiveProps(newProps) {
-    console.log("AppContainer:componentWillReceiveProps()", "newProps:", newProps, "state:", this.state);
+    // console.log("AppContainer:componentWillReceiveProps()", "newProps:", newProps, "state:", this.state);
     const { error } = newProps;
     let newMessage = undefined;
     if (error && error.err) {
@@ -53,11 +53,11 @@ class AppContainer extends React.Component {
   }
 
   updateMessages(message, pendingMessages) {
-    console.log("AppContainer:updateMessages() - considering adding message:", message, "to:", pendingMessages);
+    // console.log("AppContainer:updateMessages() - considering adding message:", message, "to:", pendingMessages);
     if(message) {
       const found = (pendingMessages.find((e) => e.id === message.id) === undefined) ? false : true;
       if (!found) {
-        console.log("AppContainer:updateMessages() - adding message:", message);
+        // console.log("AppContainer:updateMessages() - adding message:", message);
         pendingMessages.push(message);
       }
     }
@@ -67,7 +67,7 @@ class AppContainer extends React.Component {
   }
 
   handleSBClose() {
-    console.log("App:handleSBClose", "state:", this.state);
+    // console.log("App:handleSBClose", "state:", this.state);
     let { pendingMessages } = this.state;
     pendingMessages.shift();
     const newState = this.updateMessages(undefined, pendingMessages);
@@ -76,23 +76,25 @@ class AppContainer extends React.Component {
 
   handleRefresh(event) {
     event.preventDefault();
-    console.log("AppContainer#handleRefresh clicked", event);
+    // console.log("AppContainer#handleRefresh clicked", event);
 }
 
   handleUpdate(event) {
     event.preventDefault();
-    console.log("Clicked!", "event:", event, "state:", this.state);
+    // console.log("Clicked!", "event:", event, "state:", this.state);
     let err = new Error("Testing the error mechanism.");
     err.displayMessage = "New Error: " + err.message;
     this.props.actions.reportError(err);
   }
 
   render() {
-    console.log("AppContainer:render()","state:", this.state, "props", this.props);
+    // console.log("AppContainer:render()","state:", this.state, "props", this.props);
     const { loadingStatus, children } = this.props;
     const { pendingMessages } = this.state;
-    const {sbOpen, sbMessage} = (pendingMessages[0]) ? {sbOpen: true, sbMessage: pendingMessages[0].message} : {sbOpen: false, sbMessage: ""};
-    console.log("AppContainer:render()", "sbOpen:", sbOpen, "sbMessage:", sbMessage);
+    const {sbOpen, sbMessage} = (pendingMessages[0]) ? 
+      {sbOpen: true, sbMessage: pendingMessages[0].message} : 
+      {sbOpen: false, sbMessage: ""};
+    // console.log("AppContainer:render()", "loadingStatus:", loadingStatus, "sbOpen:", sbOpen, "sbMessage:", sbMessage);
     return (
       <App 
         loadingStatus={loadingStatus} 
@@ -108,7 +110,7 @@ class AppContainer extends React.Component {
 }
 
 const mapStateToProps = (state, ownProps) => { 
-  console.log("AppContainer#mapStateToProps", "state:", state, "ownProps:", ownProps);
+  // console.log("AppContainer#mapStateToProps", "state:", state, "ownProps:", ownProps);
   const { error, loading } = state;
 
   const loadingStatus = (loading && (loading.length() > 0)) ? load.LOADING : load.READY;
@@ -121,7 +123,7 @@ const mapStateToProps = (state, ownProps) => {
 };
 
 const mapDispatchToProps = (dispatch, ownProps) => { 
-  console.log("AppContainer#mapDispatchToProps", "ownProps:", ownProps);
+  // console.log("AppContainer#mapDispatchToProps", "ownProps:", ownProps);
   return ({actions: bindActionCreators(errorActions, dispatch)}); 
 };
 
