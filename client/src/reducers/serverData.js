@@ -7,13 +7,16 @@ export const loading = (state = new Queue, action) => {
   let newState = state;
   switch (action.type) {
     case types.LOADING_STARTED:
-      newState = state.copy()
+      newState = state.copy();
+      action.payload["id"] = action.uuid; // add the id to the payload to communicate it out.
       newState.add(action.payload);
       break;
-    case types.LOADING_COMPLETE: // action has an id of the completed load.
+    case types.LOADING_COMPLETE: // payload it the id of the competed load.
       if (state.length() > 0) {
         newState = state.copy();
         newState.remove((e) => e.id !== action.payload);
+      } else {
+        throw(`trying to reduce LOADING_COMPLETE  with an empty loadingQueue. action: ${action}`)
       } // TODO: It's a logic error if we find we're trying to remove from an empty queue.
       break;
   }
@@ -23,7 +26,7 @@ export const loading = (state = new Queue, action) => {
 
 // TODO: This is really designed as a read-only state to be updated from the sever.
 // This means that if we add creation or editing functionality that unless we redesign
-// this state model (really normalize it) we'll send updates to the serer and then 
+// this state model (really normalize it) we'll send updates to the server and then 
 // imediately want to do refreshes from the server for current state.
 // There is nothing wrong with this, given that what this is doing is presenting 
 // a view on state that exists in the a set of clusters of docker containers, but
@@ -88,16 +91,6 @@ export const securityGroups = (state = {}, action) => {
   // console.log("Reducer#securityGroups() exit", "state:", state, "newState", newState, "action:", action);
   return newState;
 };
-
-// export const tasksMap = (state = {}, action) => {
-//   // console.log("Reducer#tasks WHAT!!!!", "state:", state, "action:", action);
-//   // switch(action.type) {
-//   //   case types.REQUEST_TASKS_SUCCESS:
-
-//   //     return Object.assign({}, action.tasksMap);
-//   // }
-//   return state;
-// };
 
 export const deepTasks = (state = {}, action) => {
   // console.log("Redecuer#deepTasks - entry", "state:", state, "action:", action);

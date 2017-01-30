@@ -3,7 +3,9 @@ import Queue from '../helpers/queue';
 import * as types from '../actions/types';
 import * as reducers from '../reducers/serverData';
 
-// TODO: Clean this mess up. It works but the cases are not clear.
+// TODO: Clean this mess up. It works but the cases are not very clear.
+// if you do have to work with this, look at the tests first, then go to the data.
+
 // Clusters 
 const initialClusterData = {clusterName: "cluster1", status: "ACTIVE", runningTasksCount: 1, pendingTasksCount: 0};
 const newClustersData= {clusterName: "cluster2", status: "ACTIVE", runningTasksCount: 2, pendingTasksCount: 1};
@@ -98,31 +100,8 @@ const dtTest = {reducerName: "deepTasks", reducer: reducers.deepTasks,
   initialState: {},  preActionState: dtPreActionState, postActionState: dtPostActionState, 
   firstActionState: dtFirstActionState, action: loadDTAction};
 
-// Loading
-const initialLDData =  {id: "foo1-1485547556", what: "foo1", when: "1485547556"};
-const newLDData = {id: "foo2-1485547570", what: "foo2", when: "1485547570"};
-const justNewData = new Queue;
-justNewData.add(newLDData);
-const justInitialData = new Queue;
-justInitialData.add(initialLDData);
-const bothData = new Queue;
-bothData.add(initialLDData);
-bothData.add(newLDData);
-const ldStartAction = {type: types.LOADING_STARTED, payload: newLDData};
-const ldStartTest = {reducerName: 'loading-start', reducer: reducers.loading, 
-  initialState: new Queue, preActionState: justInitialData, postActionState: bothData,
-   firstActionState: justNewData, action: ldStartAction};
-
-const ldStopAction = {type: types.LOADING_COMPLETE, payload: newLDData.id };
-const ldStopTest = {reducerName: 'loading-stop', reducer: reducers.loading,
-  initialState: new Queue, preActionState: bothData.copy(),
-  postActionState: justInitialData.copy(),
-  firstActionState: new Queue, action: ldStopAction};
-
-// console.log("justInitialData-start", ldStartTest.preActionState, "\njustInitialData-stop", ldStopTest.postActionState);
-// console.log("===", ldStartTest.postActionState === ldStopTest.preActionState);
 // TESTS
-const testsData = [clusterTest, instanceTest, sgTest, dtTest, ldStartTest, ldStopTest];
+const testsData = [clusterTest, instanceTest, sgTest, dtTest];
 describe('Testing reducers:', () => {
   testsData.forEach( (test) => {
     const { reducerName, reducer, initialState, preActionState, postActionState, firstActionState, action } = test;
@@ -136,18 +115,12 @@ describe('Testing reducers:', () => {
       });
 
       it('starting from an preActionState, should return data from the postActionedState', () => {
-        // console.log("\ntest:", "\npreActionstate: ", preActionState, 
-          // "\npostActionState:", postActionState, "\naction:", action);
-        // console.log("pre === post", preActionState == postActionState);
-        // let r = reducer(preActionState, action);
-        // console.log("\nreducer result:", r, "\n");
-        // expect(r).toEqual(postActionState);
         expect(reducer(preActionState, action)).toEqual(postActionState);
       });
 
       it('should not change state for other actions.', () => {
         Object.keys(types).filter((k) => k !== action.type).forEach( (t) => {
-          expect(reducer(preActionState, types[t])).toEqual(preActionState);
+          expect(reducer(preActionState, {type: types[t]})).toEqual(preActionState);
         });
       });
     });
