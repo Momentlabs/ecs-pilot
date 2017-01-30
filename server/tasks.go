@@ -7,8 +7,8 @@ import (
   "net/http"
   "github.com/Sirupsen/logrus"
 
-  "awslib"
-  // "github.com/jdrivas/awslib"
+  // "awslib"
+  "github.com/jdrivas/awslib"
 )
 
 func TasksController(w http.ResponseWriter, req *http.Request) {
