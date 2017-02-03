@@ -310,7 +310,7 @@ class InstancesCard extends Component {
     const cardWidth = 200;
     return(
       <div >
-        <FlexContainer alignItems="stretch">
+        <FlexContainer flexWrap="wrap" alignItems="stretch">
           <DetailCard key={kg.nextKey()} width={Math.ceil(3*cardWidth)} title="Container Instance" subtitle={`${ec2.instanceType} in ${ec2.placement.availabilityZone}`}>
             {this.renderInstanceDetails(ci, ec2)}
           </DetailCard>

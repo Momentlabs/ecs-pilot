@@ -9,14 +9,14 @@ import DetailItem from '../components/common/DetailItem';
 import { List } from 'material-ui/List';
 
 // Since this component is simple and static, there's no parent component for it.
-const TaskCard = ({ task }) => {
+const TaskCard = ({ task, width }) => {
 
   const uptime  = uptimeString(task.createdAt);
   const start =   isoDisplayTime(task.createdAt);
 
   let kg = new KeyGenerator;
   return (
-    <DetailCard title="Task" subtitle={`Started: ${displayTime(task.createdAt)}`} width={"40em"}>
+    <DetailCard title="Task" subtitle={`Started: ${displayTime(task.createdAt)}`} width={width}>
       <List>
         <DetailItem listKey={kg.nextKey()} name="Last Status" value={task.lastStatus} />
         <DetailItem listKey={kg.nextKey()} name="Desired Status" value={task.desiredStatus} />
@@ -29,7 +29,12 @@ const TaskCard = ({ task }) => {
   );
 };
 
+TaskCard.defaultProps = {
+  width: "40em",
+}
+
 TaskCard.propTypes = {
+  width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   task: PropTypes.object.isRequired,
 };
 

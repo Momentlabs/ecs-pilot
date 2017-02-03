@@ -12,7 +12,7 @@ import { List, ListItem,  } from 'material-ui/List';
 import Divider from 'material-ui/Divider';
 
 // Since this component is simple and static, there's no parent component for it.
-const TaskDefinitionCard = ({taskDefinition, noFootLine}, context) => {
+const TaskDefinitionCard = ({taskDefinition, noFootLine, width}, context) => {
   const styles = {
     container: {
       outline: "0px solid black"
@@ -21,7 +21,7 @@ const TaskDefinitionCard = ({taskDefinition, noFootLine}, context) => {
 
   let kg = new KeyGenerator(`tdArn:${taskDefinition.taskDefinitionArn}-`);
   return (
-    <DetailCard title="Task Definition" width={"36em"} subtitle={shortArn(taskDefinition.taskDefinitionArn)} noFootLine={noFootLine}>
+    <DetailCard title="Task Definition" width={width} subtitle={shortArn(taskDefinition.taskDefinitionArn)} noFootLine={noFootLine}>
     <List>
       <DetailItem name="Family" value={taskDefinition.family} key={kg.nextKey()}/>
       <DetailItem name="Revision" value={taskDefinition.revision} key={kg.nextKey()}/>
@@ -30,10 +30,10 @@ const TaskDefinitionCard = ({taskDefinition, noFootLine}, context) => {
       <DetailItem name="ARN" value={shortArn(taskDefinition.taskDefinitionArn)} key={kg.nextKey()}/>
       <DetailSubheader key={kg.nextKey()}>Containers</DetailSubheader>
       <Divider key={kg.nextKey()}/>
+      <DetailItem name="Name" value="Image" />
       {taskDefinition.containerDefinitions.map( (cd) => <DetailItem name={cd.name} value={shortArn(cd.image)} key={kg.nextKey()} />)}
     </List>
     </DetailCard>
-
   );
 };
 
@@ -43,10 +43,12 @@ const TaskDefinitionCard = ({taskDefinition, noFootLine}, context) => {
 
 TaskDefinitionCard.defaultProps = {
   noFootLine: false,
+  width: "40em",
 };
 
 TaskDefinitionCard.propTypes = {
   taskDefinition: PropTypes.object.isRequired,
+  width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   noFootLine: PropTypes.bool
   // children: PropTypes.element
 };

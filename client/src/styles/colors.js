@@ -23,3 +23,6 @@ export const metricBackground = colors.brown50;
 export const metricTitle = colors.darkBlack;
 export const metricName = colors.lightBlack;
 
+export const tableHeaderBackground = colors.cyan500;
+export const tableHeaderColor = colors.white;
+

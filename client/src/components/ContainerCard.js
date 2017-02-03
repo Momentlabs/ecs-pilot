@@ -4,7 +4,7 @@ import DetailCard from './common/DetailCard';
 
 // Since this component is simple and static, there's no parent component for it.
 const ContainerCard = ({ecsContainer}, context) => {
-
+  console.log("ContainerCard:render()", "ecsContainer:", ecsContainer);
   const title = ecsContainer.name;
   const subtitle = ecsContainer.lastStatus;
 

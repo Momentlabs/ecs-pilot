@@ -4,17 +4,24 @@ import { shortArn } from '../helpers/aws';
 import moment from 'moment';
 import { KeyGenerator } from '../helpers/ui';
 
+import { containerBindingsTableData, containerLinksTableData } from '../ecs/deepTask';
+
 import * as colors from 'material-ui/styles/colors';
 import { Card } from 'material-ui/Card';
-// import KeyboardArrowUp from 'material-ui/svg-icons/hardware/keyboard-arrow-up'
-// import KeyboardArrowDown from 'material-ui/svg-icons/hardware/keyboard-arrow-down'
+import KeyboardArrowUp from 'material-ui/svg-icons/hardware/keyboard-arrow-up'
+import KeyboardArrowDown from 'material-ui/svg-icons/hardware/keyboard-arrow-down'
 
+import SimpleTable from './common/SimpleTable';
+import DetailCard from './common/DetailCard';
+import ContainerNetworkCard from './ContainerNetworkCard';
+import ContainerResourcesCard from './ContainerResourcesCard';
 import FlexContainer from '../components/common/FlexContainer';
 import MetricBar from '../components/common/MetricBar';
 import FlowedMetric from '../components/common/FlowedMetric';
 import TaskCard from '../components/TaskCard';
 import TaskDefinitionCard from '../components/TaskDefinitionCard';
 import ContainerCard from '../components/ContainerCard';
+// import BindingsCard from '../components/BindingsCard';
 
 
 
@@ -53,7 +60,7 @@ export default class Task extends React.Component {
   render() {
     const {deepTask} = this.props;
     const {expanded} = this.state;
-    // console.log("Task:render()", "deepTask:", deepTask);
+    console.log("Task:render()", "deepTask:", deepTask);
 
     // TODO: Change the outline color based on health.
     const outlineColor = colors.blueGrey200;
@@ -122,9 +129,11 @@ export default class Task extends React.Component {
           </MetricBar>
         </div>
         <Card expandable>
-          <FlexContainer alignItems="stretch" justifyContent="flex-start" >
-            <TaskCard task={task} width={"20em"}/>
+          <FlexContainer flexDirection="row" flexWrap="wrap" alignItems="stretch" justifyContent="space-around" >
+            <TaskCard task={task} />
+            <ContainerNetworkCard deepTask={deepTask} />
             <TaskDefinitionCard taskDefinition={td} />
+            <ContainerResourcesCard deepTask={deepTask} />
             {task.containers.map( (c) => <ContainerCard key={kg.nextKey()} ecsContainer={c} />)}
           </FlexContainer>
         </Card>

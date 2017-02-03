@@ -2,19 +2,36 @@ import React, {PropTypes } from 'react';
 import { Card, CardTitle } from 'material-ui/Card';
 import Divider from 'material-ui/Divider';
 import List from 'material-ui/List';
+import * as c from '../../styles/colors';
 
 // Since this component is simple and static, there's no parent container for it.
 
 // rough, very rough
 const computeWidth = (title) => {
-  let size = "18em";
+  let size = "20em";
   if (title.length > 15) {
-    size = "36em";
+    size = "40em";
   }
   return size;
  };
 
-const DetailCard = ({title, subtitle, width, noFootLine, children}) => {
+const computeShadow = (bs) => {
+  let shadow = `0px 0px 3px 1px ${c.metricName}`;
+  switch (bs) {
+    case undefined:
+    case true:
+      break;
+    case false:
+    case undefined:
+      shadow = "unset";
+      break;
+    default: 
+      shadow = `${shadow.x} ${shadow.y} ${shadow.blur} ${shadow.radius} ${shadow.color}`;
+  }
+  return shadow;
+};
+
+const DetailCard = ({title, subtitle, width, noFootLine, noTopLine, boxShadow, children}) => {
 
   const boxWidth = width ? width : computeWidth(title);
 
@@ -26,7 +43,9 @@ const DetailCard = ({title, subtitle, width, noFootLine, children}) => {
       margin: '1em',
       // alignSelf: 'flex-start', 
       // textAlign: 'center',
-      boxShadow: "unset",
+      // boxShadow: "unset",
+      boxShadow: computeShadow(boxShadow),
+      // border: `1px solid ${c.metricName}`,
       // outline: "1px dotted blue"
     },
     listContainer: {
@@ -60,11 +79,9 @@ const DetailCard = ({title, subtitle, width, noFootLine, children}) => {
   return (
     <Card style={styles.container}>
       <CardTitle title={title} subtitle={subtitle} style={{border: "0px", outline: "0px"}}/>
-      <Divider/>
+      {noTopLine ? undefined : <Divider/>}
       <div style={styles.listContainer}>
-        <List style={styles.list}>
-          {children}
-        </List>
+        {children}
         {noFootLine ? undefined :  <Divider />}
       </div>
     </Card>
@@ -73,7 +90,9 @@ const DetailCard = ({title, subtitle, width, noFootLine, children}) => {
 
 DetailCard.defaultProps = {
   subtitle: "Something",
-  noFootLine: false
+  noFootLine: true,
+  noTopLine: true,
+  boxShadow: true,
 };
 
 DetailCard.propTypes = {
@@ -81,6 +100,7 @@ DetailCard.propTypes = {
   subtitle: PropTypes.string,
   width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   noFootLine: PropTypes.bool,
+  boxShadow: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
   children: PropTypes.oneOfType([PropTypes.element, PropTypes.array])
 };
 

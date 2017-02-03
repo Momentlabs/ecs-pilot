@@ -53,19 +53,21 @@ export default class MetricBar extends React.Component {
     const styles = {
       expandIcon: {
         padding: "0 12 0 20",
-        alignSelf: "center"
+        alignSelf: "center",
+        // outline: "1px solid black"
       }
     };
 
     return (
-      (expanded) ?
-        <KeyboardArrowUp onClick={this.handleClick} style={styles.expandIcon} /> :
-        <KeyboardArrowDown onClick={this.handleClick} style={styles.expandIcon} />
+        (expanded) ?
+          <KeyboardArrowUp onClick={this.handleClick} style={styles.expandIcon} /> :
+          <KeyboardArrowDown onClick={this.handleClick} style={styles.expandIcon} />
       );
   }
 
   handleClick(event) {
-    // console.log("MetricBar:handleClick()", "event:", event);
+    console.log("MetricBar:handleClick()", "event:", event);
+    event.preventDefault();
     const {expanded } = this.state;
     const {onExpandChange} = this.props;
 

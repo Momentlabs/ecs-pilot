@@ -18,11 +18,11 @@ export const uptimeString = (unixTime) => {
   const ss = (s === 1) ? "second" : "seconds";
 
   if (y > 0) {
-    return `${y} ${ys} ${m} ${ms} ${d} ${ds} and ${h} ${hs}`;
+    return `${y} ${ys}, ${m} ${ms} ${d} ${ds}`;
   } else if (m > 0) {
-    return `${m} ${ms} ${d} ${ds} ${h} ${hs} ${mn} ${mns} and ${s} ${ss}`;
+    return `${m} ${ms}, ${d} ${ds} and ${h} ${hs}`; 
   } else if (d > 0) {
-    return `${d} ${ds} ${h} ${hs} ${mn} ${mns} and ${s} ${ss}`;
+    return `${d} ${ds}, ${h} ${hs} and ${mn} ${mns}`;
   } else if (h > 0) {
     return `${h} ${hs} ${mn} ${mns} and ${s} ${ss}`;
   } else {

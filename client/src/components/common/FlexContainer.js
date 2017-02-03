@@ -5,26 +5,25 @@ import React, {PropTypes } from 'react';
 const FlexContainer = (props) => {
   // console.log("FlexContainer:render()", "props:", props);
   const {
-    children, width,  justifyContent, alignItems, alignContent
+    children, width,  justifyContent, alignItems, alignContent, 
+    flexDirection, flexWrap
   } = props;
 
+  const flexFlow = flexDirection + " " + flexWrap;
   const styles = {
     container: {
-      // right: right,
-      // left: left,
-      // top: top,
-      // bottom: bottom,
-      // position: "absolute",
       width: width,
       display: "WebkitBox",
       display: "WebkitInlineFlex",
       display: 'inline-flex',
-      "WebkitFlexFlow": "row wrap",
-      flexDirection: "row",
+      WebkitFlexFlow: flexFlow,
+      flexFlow: flexFlow,
+      WebkitJustifyContent: justifyContent,
       justifyContent: justifyContent,
+      WebkitAlignItems: alignItems,
       alignItems: alignItems,
+      WebkitAlignContent: alignContent,
       alignContent: alignContent,
-      // alignContent: 'space-between',
       // outline: "1px dashed black"
     }
   };
@@ -38,13 +37,17 @@ const FlexContainer = (props) => {
 
 FlexContainer.defaultProps = {
   width: "inherit",
+  flexDirection: "row",
+  flexWrap: "nowrap",
   justifyContent: "flex-start",
   alignItems: "stretch",
-  alignContent: "stretch"
+  alignContent: "stretch",
 };
 
 FlexContainer.propTypes = {
   width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  flexDirection: PropTypes.string,
+  flexWrap: PropTypes.string,
   justifyContent: PropTypes.string,
   alignItems: PropTypes.string,
   alignContent: PropTypes.string,
