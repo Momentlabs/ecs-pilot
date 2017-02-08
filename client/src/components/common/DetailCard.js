@@ -8,7 +8,7 @@ import * as c from '../../styles/colors';
 
 // rough, very rough
 const computeWidth = (title) => {
-  let size = "20em";
+  let size = "18em";
   if (title.length > 15) {
     size = "40em";
   }

@@ -123,7 +123,6 @@ export function containerULimitsTableData(dt) {
       return [n, "No limits defined"];
     }
   });
-  console.log("ultimtsTableData()", "rows:", rows);
   return {header: header, rows: rows};
 }
 

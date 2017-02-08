@@ -15,7 +15,8 @@ import * as c from '../styles/colors';
 import {  usedCpuValue, usedMemoryValue, 
           registeredCpuValue,registeredMemoryValue,
           remainingCpuValue, remainingMemoryValue, 
-          registeredTcpPortsValue, registeredUdpPortsValue
+          registeredTcpPortsValue, registeredUdpPortsValue,
+          remainingTcpPortsValue, remainingUdpPortsValue
         } from '../ecs/instance';
 
 //
@@ -27,11 +28,14 @@ import Paper from 'material-ui/Paper';
 import { ListItem } from 'material-ui/List';
 import Subheader from 'material-ui/Subheader';
 
+import ContainerInstanceResourceCard from '../components/ContainerInstanceResourceCard';
 import DetailCard from '../components/common/DetailCard';
 import FlexContainer from '../components/common/FlexContainer';
 import RechartGauge from '../components/common/RechartGauge';
 import MetricBox from '../components/common/MetricBox';
 import ItemPair from '../components/common/ItemPair';
+
+// TODO: Clean this mess up. this is a disaster ......
 
 // TODO: Add a disk detail card. (e.g. root device data, and blockDeviceMapping data.)
 class InstancesCard extends Component {
@@ -96,8 +100,13 @@ class InstancesCard extends Component {
     const ci = instance.containerInstance;
     const ec2 = instance.ec2Instance;
     return(
-        <Card key={ci.containerInstanceArn} style={{marginBottom: "1em"}} expanded={this.state.expanded} onExpandChange={this.handleExpandChange} >
+        <Card key={ci.containerInstanceArn} 
+              // TODO: these magic numbers have got to go.
+              style={{paddingLeft: 21, paddingRight: 20, paddingBottom: 8, boxShadow: "unset"}} 
+              expanded={this.state.expanded} 
+              onExpandChange={this.handleExpandChange} >
           <CardTitle actAsExpander showExpandableButton 
+            style={{boxShaodw: "unset", outline: `2px solid ${c.expandableOutlineColor}`}}
             title={ec2.privateIpAddress} 
             subtitle={`Public IP: ${ec2.ipAddress}`}
             children={this.renderGauges({ci: ci, ec2: ec2})}
@@ -318,23 +327,18 @@ class InstancesCard extends Component {
             {this.renderNetworkItems(ci, ec2)}
           </DetailCard>
           {securityGroups.map( (sg) => <DetailCard key={kg.nextKey()} width={1.5*cardWidth} title="Security Group" subtitle={sg.groupName} >{this.renderSecurityGroup(sg)}</DetailCard>)}
-          <DetailCard key={kg.nextKey()} width={cardWidth} title="Resources" subtitle="Registered with instance">
-            {this.renderResources(registeredTcpPortsValue(ci), registeredUdpPortsValue(ci), registeredCpuValue(ci), registeredMemoryValue(ci))}
-          </DetailCard>
-          <DetailCard key={kg.nextKey()} width={cardWidth} title="Resources" subtitle="Remaining on instance">
-            {this.renderResources(registeredTcpPortsValue(ci), registeredUdpPortsValue(ci), remainingCpuValue(ci), remainingMemoryValue(ci))}
-          </DetailCard>
+          <ContainerInstanceResourceCard instance={instance} />
         </FlexContainer>
       </div>
     );
   }
 
   render() {
-    // console.log("InstancesCard:render()", "state:", this.state, "props:", this.props);
+    console.log("InstancesCard:render()", "state:", this.state, "props:", this.props);
     // const {securityGroups } = this.pr;
     const { instances, securityGroups } = this.props;
     return (
-      <Paper >
+      <Paper style={{boxShadow: "unset"}}>
         {instances.map( (instance) => this.renderInstanceBar(instance, securityGroups) )}
      </Paper>
      );

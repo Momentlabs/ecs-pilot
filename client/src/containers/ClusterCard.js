@@ -20,11 +20,10 @@ export default class ClusterCard extends React.Component {
   render() {
     const {cluster} = this.props;
     return (
-      <Card>
-        <CardHeader title={"Cluster: " + cluster.clusterName} subtitle={cluster.clusterArn} />
+      <Card style={{boxShadow: "unset"}}>
+        <CardHeader style={{boxShadow: "unset"}} title={"Cluster: " + cluster.clusterName} subtitle={cluster.clusterArn} />
         <InstancesCard clusterName={cluster.clusterName}/>
-        <Tasklist clusterName={cluster.clusterName} />
-        <CardText />
+        <Tasklist style={{dropShadow: "unset"}} clusterName={cluster.clusterName} />
       </Card>
     );
   }

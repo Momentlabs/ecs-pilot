@@ -5,10 +5,10 @@ import { connect } from 'react-redux';
 
 import { Card, CardHeader } from 'material-ui/Card';
 import { Tabs, Tab } from 'material-ui/Tabs';
+import FontIcon from 'material-ui/FontIcon';
 
 import ClusterList from '../components/ClusterList';
 import ClusterCard from './ClusterCard';
-
 
 const CLUSTER_TAB = "Clusters";
 class ClustersCard extends React.Component {
@@ -36,7 +36,9 @@ class ClustersCard extends React.Component {
     this.newClusterTab = this.newClusterTab.bind(this);
     this.tabs = this.tabs.bind(this);
     this.componentWillMount = this.componentWillMount.bind(this);
-    // console.log("ClustersCard:constructor()");
+    // this.tabClose = this.tabClose.bind(this);
+    this.closeTab = this.closeTab.bind(this);
+    this.makeCloseTab = this.makeCloseTab.bind(this);
   }
 
   // componentWillReceiveProps(nextProps) {
@@ -75,7 +77,7 @@ class ClustersCard extends React.Component {
     }
     return(
       <Tab key={"Cluster"} label={"Clusters"} value={CLUSTER_TAB} style={{"textTransform": "none"}}>
-        <Card style={{margin: "0em"}}>
+        <Card style={{margin: "0em", boxShadow: "unset"}}>
           <CardHeader title="Clusters" subtitle={sub} actAsExpander={false} showExpandableButton={false} />
             {(clusters.length > 0) ? <ClusterList onCellClick={this.onCellClick} clusters={this.props.clusters}/> : <div/>}
         </Card>
@@ -83,13 +85,69 @@ class ClustersCard extends React.Component {
     );
   }
 
+  // need to pass the clustName into close a tab.
+  makeCloseTab(clusterName) {
+    return (event) => {
+      this.closeTab(clusterName);
+    };
+  }
+
+  closeTab(clusterName){
+    console.log("ClusterCard:tabClose()", "clusterName:", clusterName);
+    this.state.clusterTabNames.delete(clusterName);
+    this.setState({value: CLUSTER_TAB});
+  }
+
   // Render a tab to describe a cluster.
   newClusterTab(cluster) {
     // console.log("ClustersCard:newClusterTab()", "State: ", this.state, "Cluster:",cluster);
     let name = cluster.clusterName;
+
+    const styles = {
+      tab: {
+        textTransform: "none",
+        // display: "WebkitBox",
+        // display: "WebkitFlex",
+        // display: 'flex',
+        // flexDirection: 'row',
+        // justifyContent: 'center',
+        // alignItems: "center",
+        // alignContent: 'center',
+        // outline: "2px solid red",
+      },
+      cont: {
+        // background: "blue",
+        // width: 200,
+        // display: "WebkitBox",
+        // display: "WebkitFlex",
+        // WebkitFlexDirection: "row",
+        // flexDirection: "row",
+        // justifyContent: "center",
+        // alignItems: "center",
+        // outline: "2px solid black"
+      },
+      label: {
+        fontSize: "small",
+        // padding: "0 10 0 10",
+        // padding: "0 20 0 0"
+        paddingRight: 5,
+        // outline: "2px solid red"
+      },
+      icon: {
+        color: "white", 
+        fontSize: "small",
+        padding: 0,
+        // outline: "2px solid red"
+      }
+    };
+    let icon = <div style={styles.cont}><span style={styles.label}>{name}</span><FontIcon onClick={this.makeCloseTab(cluster.clusterName)} style={styles.icon} className="material-icons">remove_circle</FontIcon></div>
     return (
-      <Tab key={name} label={name} value={name} style={{"textTransform": "none"}}>
-        <ClusterCard cluster={cluster} />
+      <Tab
+        key={name} 
+        icon={icon}
+        value={name} 
+        style={styles.tab}>
+        <ClusterCard style={{dropShadow: "unset"}} cluster={cluster} />
       </Tab>
     );
   }
@@ -114,10 +172,41 @@ class ClustersCard extends React.Component {
     return tabs;
   }
 
+  tabTemplate() {
+
+  }
+
   render() {
     // console.log("ClustersCard:render()", "State:", this.state, "Props:", this.props);
+    const styles = {
+      tab: { // everything: title and content
+        // outline: "2px solid green",
+      },
+      contentContainer: { // don't know!
+        // outline: "3px solid red"
+      },
+      inkBar: { // highlight underbar of chosen container (background is the display color.)
+        // color: "green",
+        // background: "green", 
+        // outline: "2px solid green",
+      },
+      tabTemplate: {// box containing all the insides of the tab (content I'd say)
+        // outline: "0px solid purple",
+      },
+      tabItemContainer: { // box containing all tabs.
+        // outline: "2px solid red",
+      },
+    };
     return (
-      <Tabs label="Clusters" onChange={this.handleTabChange} value={this.state.value} >
+      <Tabs
+      style={styles.tab}
+      // tabTemplate={this.tabTemplate}
+      inkBarStyle={styles.inkBar}
+      tabItemContainerStyle={styles.tabItemContainer}
+      tabTemplateStyle={styles.tabTemplate}
+      contentContainerStyle={styles.containerContainer}
+      onChange={this.handleTabChange} 
+      value={this.state.value} >
         {this.tabs()}
       </Tabs>
     );

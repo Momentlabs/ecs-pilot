@@ -11,8 +11,9 @@ const Tasks = ({deepTasks}) => {
   }, 0);
 
   return(
-    <Card>
+    <Card style={{boxShadow: "unset"}}>
       <CardTitle
+        style={{boxShadow: "unset", padding: 20}} // TODO GET THIS MAGIC NUMBER OUT OF HERE!
         title="Tasks" subtitle={`${noOfContainers} containers in ${deepTasks.length} tasks`}>
         {deepTasks.map( (dt) => <Task key={dt.task.taskArn} deepTask={dt}/>)}
       </CardTitle>

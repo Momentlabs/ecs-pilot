@@ -33,6 +33,8 @@ export const percentRemainingMemoryValue = (ci) => ((remainingMemoryValue(ci) / 
 
 export const registeredTcpPortsValue = (ci) => registeredPorts(ci).stringSetValue;
 export const registeredUdpPortsValue = (ci) => registeredUdpPorts(ci).stringSetValue;
+export const remainingTcpPortsValue = (ci) => remainingPorts(ci).stringSetValue;
+export const remainingUdpPortsValue = (ci) => remainingUdpPorts(ci).stringSetValue;
 
 // Objects
 export const registeredCpu = (ci) => registeredResource(ci, "CPU");
@@ -65,7 +67,7 @@ export const securityGroupIds = (instances) => {
     if (!accum.includes(g.groupId)) { // keep the list to unique values.
       accum.push(g.groupId);
     }
-    return accum
+    return accum;
   }, []);
 };
 

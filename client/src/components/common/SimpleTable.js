@@ -50,7 +50,7 @@ function renderNoData(message, span) {
 }
 
 const SimpleTable = ({ data, caption, missingDataMessage }, context) => {
-  console.log("SimpleTable:render()", "data:", data, "caption:", caption);
+  // console.log("SimpleTable:render()", "data:", data, "caption:", caption);
 
   const tablePadLeft = 16;
   const tablePadRight = 16;
