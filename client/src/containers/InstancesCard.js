@@ -1,9 +1,5 @@
 import React, { Component, PropTypes } from 'react';
-// import  * as instanceActions from '../actions/instance';
-import { bindActionCreators } from 'redux';
-import { connect } from 'react-redux';
 
-import { securityGroupIds } from '../ecs/instance';
 import moment from 'moment';
 
 import { shortArn } from '../helpers/aws';
@@ -11,7 +7,6 @@ import { KeyGenerator } from '../helpers/ui';
 import { uptimeString } from '../helpers/time';
 import * as c from '../styles/colors';
 
-// import Instance from '../ecs/instance';
 import {  usedCpuValue, usedMemoryValue, 
           registeredCpuValue,registeredMemoryValue,
           remainingCpuValue, remainingMemoryValue, 
@@ -38,7 +33,7 @@ import ItemPair from '../components/common/ItemPair';
 // TODO: Clean this mess up. this is a disaster ......
 
 // TODO: Add a disk detail card. (e.g. root device data, and blockDeviceMapping data.)
-class InstancesCard extends Component {
+export default class InstancesCard extends Component {
 
   static contextTypes  = {
     muiTheme: PropTypes.object.isRequired
@@ -334,7 +329,7 @@ class InstancesCard extends Component {
   }
 
   render() {
-    console.log("InstancesCard:render()", "state:", this.state, "props:", this.props);
+    // console.log("InstancesCard:render()", "state:", this.state, "props:", this.props);
     // const {securityGroups } = this.pr;
     const { instances, securityGroups } = this.props;
     return (
@@ -344,35 +339,5 @@ class InstancesCard extends Component {
      );
   }
 }
-
-const mapStateToProps = (state, ownProps) => { 
-  // console.log("InstancesCard#mapStateToProps - entry", "state:", state, "ownProps:", ownProps);
-  const {clusterName} = ownProps;
-  const instances = state.instances[clusterName] ? state.instances[clusterName] : [];
-  const securityGroups = securityGroupIds(instances).reduce( (accum, sgId) => {
-    // console.log("InstancesCard#mapStateToProps - Looking for security groups:", "accum:", accum, "sgId:", sgId);
-    const sg = state.securityGroups[sgId];
-    if (sg) {
-      // console.log("InstancesCard#mapStateToProps - found one:", "sgId:", sgId, "sg:", sg);
-      accum.push(sg);
-    }
-    return (accum);
-  },[]);
-
-  // console.log("InstancesCard#mapStateToProps() - exit", "instances:", instances, "securityGroups:", securityGroups);
-
-  return ({
-    instances: instances,
-    securityGroups: securityGroups
-  });
-
-};
-// const mapDispatchToProps = (dispatch, ownProps) => { 
-//   console.log("InstancesCard#mapDispatchToProps - ownProps", ownProps);
-//   return ({actions: bindActionCreators(instanceActions, dispatch)}); 
-// };
-
-// export default connect(mapStateToProps, mapDispatchToProps)(InstancesCard);
-export default connect(mapStateToProps)(InstancesCard);
 
 

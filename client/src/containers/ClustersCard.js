@@ -30,7 +30,7 @@ class ClustersCard extends React.Component {
       clusterTabNames: new Set() // a collection of tabNames that we are managing.
     };
 
-    this.onCellClick = this.onCellClick.bind(this);
+    this.displayCluster = this.displayCluster.bind(this);
     this.handleTabChange = this.handleTabChange.bind(this);
     this.clustersTab = this.clustersTab.bind(this);
     this.newClusterTab = this.newClusterTab.bind(this);
@@ -54,9 +54,9 @@ class ClustersCard extends React.Component {
   // onto the array carried around by state.
   // this.tabs() will render these when called to.
   //  onCellClick(rowNumber, columnId) (we're not using column right now.)
-  onCellClick (rowNumber) {
+  displayCluster (rowNumber) {
     let cluster = this.props.clusters[rowNumber];
-    // console.log("ClustersCard:onCellClick - row column", rowNumber, columnId, ", cluster:", cluster.clusterName);
+    // console.log("ClustersCard:displayCluster - row column", rowNumber, columnId, ", cluster:", cluster.clusterName);
     this.state.clusterTabNames.add(cluster.clusterName);
     this.props.actions.selectCluster(cluster.clusterName);
     this.setState({value: cluster.clusterName});
@@ -79,7 +79,7 @@ class ClustersCard extends React.Component {
       <Tab key={"Cluster"} label={"Clusters"} value={CLUSTER_TAB} style={{"textTransform": "none"}}>
         <Card style={{margin: "0em", boxShadow: "unset"}}>
           <CardHeader title="Clusters" subtitle={sub} actAsExpander={false} showExpandableButton={false} />
-            {(clusters.length > 0) ? <ClusterList onCellClick={this.onCellClick} clusters={this.props.clusters}/> : <div/>}
+            {(clusters.length > 0) ? <ClusterList onCellClick={this.displayCluster} clusters={this.props.clusters}/> : <div/>}
         </Card>
       </Tab>
     );
@@ -92,6 +92,7 @@ class ClustersCard extends React.Component {
     };
   }
 
+  // Delete the cluster and set the current tab to the base.
   closeTab(clusterName){
     console.log("ClusterCard:tabClose()", "clusterName:", clusterName);
     this.state.clusterTabNames.delete(clusterName);
@@ -128,24 +129,22 @@ class ClustersCard extends React.Component {
       },
       label: {
         fontSize: "small",
-        // padding: "0 10 0 10",
-        // padding: "0 20 0 0"
-        paddingRight: 5,
+        // paddingRight: 10,
         // outline: "2px solid red"
       },
       icon: {
         color: "white", 
         fontSize: "small",
-        padding: 0,
+        paddingLeft: 5,
         // outline: "2px solid red"
       }
     };
-    let icon = <div style={styles.cont}><span style={styles.label}>{name}</span><FontIcon onClick={this.makeCloseTab(cluster.clusterName)} style={styles.icon} className="material-icons">remove_circle</FontIcon></div>
+    let icon = <div style={styles.cont}><span style={styles.label}>{name}</span><FontIcon onClick={this.makeCloseTab(cluster.clusterName)} style={styles.icon} className="material-icons">clear</FontIcon></div>
     return (
       <Tab
         key={name} 
-        icon={icon}
-        value={name} 
+        value={name}
+        label={icon}
         style={styles.tab}>
         <ClusterCard style={{dropShadow: "unset"}} cluster={cluster} />
       </Tab>
@@ -206,9 +205,9 @@ class ClustersCard extends React.Component {
       tabTemplateStyle={styles.tabTemplate}
       contentContainerStyle={styles.containerContainer}
       onChange={this.handleTabChange} 
-      value={this.state.value} >
-        {this.tabs()}
-      </Tabs>
+      value={this.state.value} 
+      children={this.tabs()}
+      />
     );
   }
 }
