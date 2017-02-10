@@ -1,5 +1,5 @@
 /*
- * There are two elements to the protocol that the UI currently needs
+ * There are elements to the protocol that the UI currently needs
  *
  * REQUEST_CLUSTERS
  * Causes a list of clusters to get loaded into the databse from
@@ -10,10 +10,12 @@
  * and adds this cluster to the select list.
  *
  * DESELECT_CLUSTER
- * Removes this cluster from the select list.  
+ * Removes this cluster from the select list. DOES NOT CHANGE ANY OTHER INTERNAL STATE.
+ * This means that the state for the deselected server is kept.
  *
  * REQUEST_ALL
- * Requests all data assocaited with the selected clusters.
+ * Requests all data assocaited with the selected clusters (thik of this as updte after a select).
+ *
  *
  * The remaining protocol elements are used by sagas to 
  * generate the rest of the calls for the data to come along.
