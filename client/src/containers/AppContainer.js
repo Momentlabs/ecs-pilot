@@ -3,7 +3,7 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 
 import * as errorActions from '../actions/error';
-
+import * as serverActions from '../actions/serverData';
 import App from '../components/App';
 
 
@@ -19,13 +19,15 @@ class AppContainer extends React.Component {
   static defaultProps = {
     error: undefined,
     loadingStatus: load.READY,
+    selectedClusters: [],
   }
 
   static propTypes = {
     children: PropTypes.object.isRequired,
     actions: PropTypes.object.isRequired,
     error: PropTypes.object,
-    loadingStatus: PropTypes.string 
+    loadingStatus: PropTypes.string ,
+    selectedClusters: PropTypes.array
   }
 
   constructor(props, context) {
@@ -75,9 +77,10 @@ class AppContainer extends React.Component {
   }
 
   handleRefresh(event) {
+    console.log("AppContainer#handleRefresh clicked", event, "clusters:", this.props.selectedClusters);
     event.preventDefault();
-    // console.log("AppContainer#handleRefresh clicked", event);
-}
+    this.props.actions.requestAll(this.props.selectedClusters);
+  }
 
   handleUpdate(event) {
     event.preventDefault();
@@ -88,7 +91,7 @@ class AppContainer extends React.Component {
   }
 
   render() {
-    // console.log("AppContainer:render()","state:", this.state, "props", this.props);
+    console.log("AppContainer:render()","state:", this.state, "props", this.props);
     const { loadingStatus, children } = this.props;
     const { pendingMessages } = this.state;
     const {sbOpen, sbMessage} = (pendingMessages[0]) ? 
@@ -111,20 +114,21 @@ class AppContainer extends React.Component {
 
 const mapStateToProps = (state, ownProps) => { 
   // console.log("AppContainer#mapStateToProps", "state:", state, "ownProps:", ownProps);
-  const { error, loading } = state;
+  const { error, loading, selectedClusters } = state;
 
   const loadingStatus = (loading && (loading.length() > 0)) ? load.LOADING : load.READY;
   const err = error && error.peek() ?  error.peek() : undefined;// get the top of the queue (don't remove!)
   // const err = error;
   return ({
     error: err,
-    loadingStatus: loadingStatus
+    loadingStatus: loadingStatus,
+    selectedClusters: selectedClusters
   }); 
 };
 
 const mapDispatchToProps = (dispatch, ownProps) => { 
   // console.log("AppContainer#mapDispatchToProps", "ownProps:", ownProps);
-  return ({actions: bindActionCreators(errorActions, dispatch)}); 
+  return ({actions: bindActionCreators(Object.assign({}, errorActions, serverActions), dispatch)}); 
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(AppContainer);

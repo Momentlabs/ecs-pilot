@@ -50,8 +50,7 @@ const RechartGauge = (props, context) => { // eslint-disable-line react/no-multi
   const styles = {
     container: {
       width: size,
-      height: size,
-      position: "absolute",
+      height: size,      position: "absolute",
       right: rOffset-xOffset,
       left: lOffset,
       top: 10,

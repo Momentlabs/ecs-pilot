@@ -23,12 +23,12 @@ import Paper from 'material-ui/Paper';
 import { ListItem } from 'material-ui/List';
 import Subheader from 'material-ui/Subheader';
 
-import ContainerInstanceResourceCard from '../components/ContainerInstanceResourceCard';
-import DetailCard from '../components/common/DetailCard';
-import FlexContainer from '../components/common/FlexContainer';
-import RechartGauge from '../components/common/RechartGauge';
-import MetricBox from '../components/common/MetricBox';
-import ItemPair from '../components/common/ItemPair';
+import ContainerInstanceResourceCard from './ContainerInstanceResourceCard';
+import DetailCard from './common/DetailCard';
+import FlexContainer from './common/FlexContainer';
+import RechartGauge from './common/RechartGauge';
+import MetricBox from './common/MetricBox';
+import ItemPair from './common/ItemPair';
 
 // TODO: Clean this mess up. this is a disaster ......
 
@@ -55,7 +55,8 @@ export default class InstancesCard extends Component {
 
     super(props, context);
     this.state = {
-      cpuPopupOpen: false
+      // TODO: This should be expanded?
+      cpuPopupOpen: false,
     };
 
     this.componentWillMount = this.componentWillMount.bind(this);
@@ -73,7 +74,7 @@ export default class InstancesCard extends Component {
   }
 
   handleExpandedChange(expanded) {
-    this.setState({expanded: expanded});
+    this.setState({expanded: expanded}); // this is broken but works!?!
   }
 
   // TODO: Is this a general helper?
@@ -98,7 +99,7 @@ export default class InstancesCard extends Component {
         <Card key={ci.containerInstanceArn} 
               // TODO: these magic numbers have got to go.
               style={{paddingLeft: 21, paddingRight: 20, paddingBottom: 8, boxShadow: "unset"}} 
-              expanded={this.state.expanded} 
+              expanded={this.state.expanded} // this is broken but works?
               onExpandChange={this.handleExpandChange} >
           <CardTitle actAsExpander showExpandableButton 
             style={{boxShaodw: "unset", outline: `2px solid ${c.expandableOutlineColor}`}}
@@ -314,14 +315,14 @@ export default class InstancesCard extends Component {
     const cardWidth = 200;
     return(
       <div >
-        <FlexContainer flexWrap="wrap" alignItems="stretch">
+        <FlexContainer flexWrap="wrap" alignItems="stretch" justifyContent="space-between">
           <DetailCard key={kg.nextKey()} width={Math.ceil(3*cardWidth)} title="Container Instance" subtitle={`${ec2.instanceType} in ${ec2.placement.availabilityZone}`}>
             {this.renderInstanceDetails(ci, ec2)}
           </DetailCard>
           <DetailCard key={kg.nextKey()} width={2*cardWidth} title="Network" >
             {this.renderNetworkItems(ci, ec2)}
           </DetailCard>
-          {securityGroups.map( (sg) => <DetailCard key={kg.nextKey()} width={1.5*cardWidth} title="Security Group" subtitle={sg.groupName} >{this.renderSecurityGroup(sg)}</DetailCard>)}
+          {securityGroups.map( (sg) => <DetailCard key={kg.nextKey()} width={2*cardWidth} title="Security Group" subtitle={sg.groupName} >{this.renderSecurityGroup(sg)}</DetailCard>)}
           <ContainerInstanceResourceCard instance={instance} />
         </FlexContainer>
       </div>

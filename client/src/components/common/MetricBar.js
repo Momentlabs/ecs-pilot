@@ -87,7 +87,7 @@ export default class MetricBar extends React.Component {
     const {expandIcon} = this.state;
     const {children, showExpandableButton} = this.props;
     return (
-      <FlexContainer alignItems="flow-start">
+      <FlexContainer >
         {children}
         {showExpandableButton ? expandIcon : []}
       </FlexContainer>

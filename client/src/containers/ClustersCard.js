@@ -1,5 +1,7 @@
 import React, { PropTypes }from 'react';
-import  * as clusterActions from '../actions/cluster';
+
+import  * as serverActions from '../actions/serverData';
+
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 
@@ -79,7 +81,7 @@ class ClustersCard extends React.Component {
       <Tab key={"Cluster"} label={"Clusters"} value={CLUSTER_TAB} style={{"textTransform": "none"}}>
         <Card style={{margin: "0em", boxShadow: "unset"}}>
           <CardHeader title="Clusters" subtitle={sub} actAsExpander={false} showExpandableButton={false} />
-            {(clusters.length > 0) ? <ClusterList onCellClick={this.displayCluster} clusters={this.props.clusters}/> : <div/>}
+            {(clusters.length > 0) ? <ClusterList onClusterSelect={this.displayCluster} clusters={this.props.clusters}/> : <div/>}
         </Card>
       </Tab>
     );
@@ -89,6 +91,7 @@ class ClustersCard extends React.Component {
   makeCloseTab(clusterName) {
     return (event) => {
       this.closeTab(clusterName);
+      this.props.actions.deselectCluster(clusterName);
     };
   }
 
@@ -219,7 +222,7 @@ const mapStateToProps = (state) => {
 };
 const mapDispatchToProps = (dispatch, ownProps) => { 
   // console.log("ClustersCard#mapDispatchToProps - ownProps", ownProps);
-  return ({actions: bindActionCreators(clusterActions, dispatch)}); 
+  return ({actions: bindActionCreators(serverActions, dispatch)}); 
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(ClustersCard);

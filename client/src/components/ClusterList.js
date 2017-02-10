@@ -7,15 +7,6 @@ const clusterRowFormat = ({registeredContainerInstancesCount}) => {
   return (registeredContainerInstancesCount > 0) ? {background: colors.stableBG} : {};
 };
 
-const onRowHover = (row) => {
-  // console.log("rowHover row:", row);
-};
-
-const onRowSelection = (selectedRows) => {
-  // console.log("rowClick there were ", sselections: ", selectedRows);
-};
-
-// import {Link} from 'react-router';
 const clusterItems = (clusters) => {
   Cluster.byName(clusters);
   return clusters.map((cluster) => {
@@ -32,10 +23,9 @@ const clusterItems = (clusters) => {
   });
 };
 
-// Since this component is simple and static, there's no parent container for it.
-const ClusterList = ({clusters, onCellClick}) => {
+const ClusterList = ({clusters, onClusterSelect}) => {
   return (
-    <Table onCellClick={onCellClick} onRowSelection={onRowSelection} selectable={true} onRowHover={onRowHover} >
+    <Table onCellClick={onClusterSelect} selectable={true} >
       <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
         <TableRow>
           <TableHeaderColumn tooltip="Cluster Name">Name</TableHeaderColumn>
@@ -53,7 +43,7 @@ const ClusterList = ({clusters, onCellClick}) => {
 
 ClusterList.propTypes = {
   clusters: PropTypes.array.isRequired,
-  onCellClick: PropTypes.func
+  onClusterSelect: PropTypes.func
 };
 
 export default ClusterList;

@@ -126,5 +126,18 @@ export function containerULimitsTableData(dt) {
   return {header: header, rows: rows};
 }
 
+// A clusters worth of deepTasks
+export function totalContainers(deepTasks) {
+  return deepTasks.reduce( (ct, dt) => {
+    return ct + dt.task.containers.length;
+  },0);
+}
+export function runningContainers(deepTasks) {
+  return deepTasks.reduce( (ct, dt) => {
+    return ct + dt.task.containers.reduce( (rt, c) => {return (rt + (c.lastStatus === "RUNNING" ? 1 : 0));}, 0);
+  }, 0);
+}
+
+
 
 

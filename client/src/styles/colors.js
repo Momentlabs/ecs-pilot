@@ -1,6 +1,7 @@
 import * as colors from 'material-ui/styles/colors';
 
 export const primary = colors.cyan500;
+export const textOnPrimary = colors.white;
 
 export const title= colors.darkBlack;
 export const subtitle = colors.lightBlack;
@@ -25,7 +26,10 @@ export const metricName = colors.lightBlack;
 
 export const expandableOutlineColor = colors.blueGrey200;
 
-export const tableHeaderBackground = colors.cyan500;
-export const tableHeaderColor = colors.white;
+export const tableHeaderBackground = primary;
+export const tableHeaderColor = textOnPrimary;
+
+export const metricBannerBackground = primary;
+export const metricBannerColor = textOnPrimary;
 
 

@@ -7,10 +7,18 @@
  *
  * SELECT_CLUSTER
  * Loads the rest of the data assocaited with the selected cluster.
+ * and adds this cluster to the select list.
  *
- *  The remaining protocol elements are used by sagas to 
+ * DESELECT_CLUSTER
+ * Removes this cluster from the select list.  
+ *
+ * REQUEST_ALL
+ * Requests all data assocaited with the selected clusters.
+ *
+ * The remaining protocol elements are used by sagas to 
  * generate the rest of the calls for the data to come along.
  * 
+ *
 */
 
 // It may be a good idea to actually change the protocol
@@ -25,6 +33,10 @@ export const REPORTED_ERROR = "REPORTED_ERROR";
 
 export const SELECT_CLUSTER = "SELECT_CLUSTER";
 export const SELECT_CLUSTER_FAILURE = "SELECT_CLUSTER_FAILURE";
+export const DESELECT_CLUSTER = "DESELECT_CLUSTER";
+
+export const REQUEST_ALL = "REQUEST_ALL";
+export const REQUEST_ALL_FAILURE = "REQUEST_ALL_FAILURE";
 
 export const REQUEST_CLUSTERS = "REQUEST_CLUSTERS";
 export const LOADED_CLUSTERS = "LOADED_CLUSTERS";

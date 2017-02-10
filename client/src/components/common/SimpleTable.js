@@ -6,7 +6,7 @@ let kg = new KeyGenerator;
 
 const cellStyles = {
   header: {
-
+    paddingLeft: ".5em",
   },
   value: {
     paddingTop: "2em",

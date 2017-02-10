@@ -56,6 +56,22 @@ export const remainingResource = (ci, rName) => {
   return ci.remainingResources.find( (r) =>  r.name === rName );
 };
 
+// On arrays of instances
+function integerRemainingResourceTotal(instances, resource) { 
+  return instances.reduce( (r, i) => {
+    return r + remainingResource(i.containerInstance, resource).integerValue;;
+  }, 0);
+}
+function integerRegisteredResourceTotal(instances, resource) { 
+  return instances.reduce( (r, i) => {
+    return r + registeredResource(i.containerInstance, resource).integerValue;;
+  }, 0);
+}
+export function totalRegisteredCPU(instances) {return integerRegisteredResourceTotal(instances, "CPU");}
+export function totalRemainingCPU(instances) {return integerRemainingResourceTotal(instances, "CPU");}
+export function totalRegisteredMemory(instances) {return integerRegisteredResourceTotal(instances, "MEMORY");}
+export function totalRemainingMemory(instances) {return integerRemainingResourceTotal(instances, "MEMORY");}
+
 
 // EC2 Values
 export const securityGroups = (ec2) => ec2.groupSet; // returns an array of {groupId: string, groupName: string}

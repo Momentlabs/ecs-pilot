@@ -33,9 +33,10 @@ export const loading = (state = new Queue, action) => {
 // it could provide for some UI problems and incorrect ACTUAL state description
 // in the app.
 
-// State Shape example:
+// State Shape:
 // const initialState = {
 //   clusters: [], // array of ecs Cluster objects.
+//   selectedClusters: [] // array of cluster names that are currently selected.
 //   instances: {
 //     SomeClusterName: [], // hash of an array of instances keyed on clusterName
 //   },
@@ -59,6 +60,23 @@ export const clusters = (state = [], action) => {
   // console.log("Reducer#clusters() - exit", "state:", state, "newState", newState, "action:", action);
   return newState;
 };
+
+export function selectedClusters( state=[], action) {
+  // console.log("Reducer#selectedClusters - entry", "state", state, "action", action);
+  let newState = state;
+  switch (action.type) {
+    case types.SELECT_CLUSTER:
+      newState = Object.assign([], state);
+      newState.push(action.payload);
+      break;
+    case types.DESELECT_CLUSTER:
+      newState = Object.assign([], state);
+      let i = newState.indexOf(action.payload);
+      newState.splice(i,1);
+  }
+  // console.log("Reducer#selectedClusters - exit", "state", state, "action", action);
+  return newState;
+}
 
 // TODO: Failure is currently eaten in the saga .
 export const instances = (state = {}, action) => {

@@ -9,7 +9,6 @@ const HomePage = () => {
   return (
     <Card style={{padding: "1em"}}>
       <CardHeader title="ECS Pilot" subtitle="Welcome" actAsExpander={false} showExpandableButton={false} />
-      <CardText>Manage your AWS ECS Clusters with ease.</CardText>
       <ClustersCard />
     </Card>
   );

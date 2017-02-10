@@ -12,6 +12,7 @@ const FlexContainer = (props) => {
   const flexFlow = flexDirection + " " + flexWrap;
   const styles = {
     container: {
+      paddingTop: 8, // TODO: Theme/constants on spacing. Too many maigic numbers.
       width: width,
       display: "WebkitBox",
       display: "WebkitInlineFlex",
