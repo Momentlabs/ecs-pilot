@@ -10,6 +10,7 @@ const ContainerResourcesCard = ({deepTask, width}, context) => {
 
   const styles = {
     container: {
+      height: "15em",
       outline: "0px solid black"
     }
   };

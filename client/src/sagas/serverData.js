@@ -34,8 +34,8 @@ function* requestAll(action) {
   // console.log("saga:requestAll - start", "action:", action);
   try {
     const clusterNames = action.payload;
-    const instanceRequests = clusterNames.map( (cn) => { return put(serverActions.requestInstances(cn))});
-    const deepTaskRequests = clusterNames.map( (cn) => { return put(serverActions.requestDeepTasks(cn))});
+    const instanceRequests = clusterNames.map( (cn) => { return put(serverActions.requestInstances(cn));});
+    const deepTaskRequests = clusterNames.map( (cn) => { return put(serverActions.requestDeepTasks(cn));});
     yield [...instanceRequests, ...deepTaskRequests];
   } catch(error) {
     yield put({type: types.REQUEST_ALL_FAILURE, error});

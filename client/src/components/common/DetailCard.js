@@ -97,7 +97,7 @@ DetailCard.defaultProps = {
 
 DetailCard.propTypes = {
   title: PropTypes.string.isRequired,
-  subtitle: PropTypes.string,
+  subtitle: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
   width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   noFootLine: PropTypes.bool,
   boxShadow: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),

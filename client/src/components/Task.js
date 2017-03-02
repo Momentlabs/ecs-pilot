@@ -21,6 +21,7 @@ import FlowedMetric from '../components/common/FlowedMetric';
 import TaskCard from '../components/TaskCard';
 import TaskDefinitionCard from '../components/TaskDefinitionCard';
 import ContainerCard from '../components/ContainerCard';
+import ContainerEnvironmentCard from './ContainerEnvironmentCard';
 // import BindingsCard from '../components/BindingsCard';
 
 
@@ -136,6 +137,7 @@ export default class Task extends React.Component {
             <TaskDefinitionCard taskDefinition={td} />
             <ContainerResourcesCard deepTask={deepTask} />
             {task.containers.map( (c) => <ContainerCard width={"40em"} key={kg.nextKey()} ecsContainer={c} containerDefinition={td.containerDefinitions.find((cd) => cd.name === c.name)}/>)}
+            <ContainerEnvironmentCard deepTask={deepTask} />
           </FlexContainer>
         </Card>
       </Card>

@@ -2,6 +2,7 @@ import React, { PropTypes } from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 
+import * as authActions from '../actions/auth';
 import * as errorActions from '../actions/error';
 import * as serverActions from '../actions/serverData';
 import App from '../components/App';
@@ -20,11 +21,13 @@ class AppContainer extends React.Component {
     error: undefined,
     loadingStatus: load.READY,
     selectedClusters: [],
+    auth: undefined,
   }
 
   static propTypes = {
     children: PropTypes.object.isRequired,
     actions: PropTypes.object.isRequired,
+    auth: PropTypes.object,
     error: PropTypes.object,
     loadingStatus: PropTypes.string ,
     selectedClusters: PropTypes.array
@@ -32,6 +35,7 @@ class AppContainer extends React.Component {
 
   constructor(props, context) {
     super(props, context);
+    this.handleLogin = this.handleLogin.bind(this);
     this.handleUpdate = this.handleUpdate.bind(this);
     this.handleRefresh = this.handleRefresh.bind(this);
     this.updateMessages = this.updateMessages.bind(this);
@@ -77,21 +81,28 @@ class AppContainer extends React.Component {
   }
 
   handleRefresh(event) {
-    console.log("AppContainer#handleRefresh clicked", event, "clusters:", this.props.selectedClusters);
+    // console.log("AppContainer#handleRefresh clicked", event, "clusters:", this.props.selectedClusters);
     event.preventDefault();
     this.props.actions.requestAll(this.props.selectedClusters);
   }
 
   handleUpdate(event) {
     event.preventDefault();
-    // console.log("Clicked!", "event:", event, "state:", this.state);
+    // console.log("Clicked!", "event:", event, "state:", this.state, "props:", this.props);
     let err = new Error("Testing the error mechanism.");
     err.displayMessage = "New Error: " + err.message;
     this.props.actions.reportError(err);
   }
 
+  handleLogin(event) {
+    // console.log("Handle Login." , "state:", this.state, "props:", this.props);
+    const { auth } = this.props;
+    // this.props.actions.showLogin();
+    auth.login();
+  }
+
   render() {
-    console.log("AppContainer:render()","state:", this.state, "props", this.props);
+    // console.log("AppContainer:render()","state:", this.state, "props", this.props);
     const { loadingStatus, children } = this.props;
     const { pendingMessages } = this.state;
     const {sbOpen, sbMessage} = (pendingMessages[0]) ? 
@@ -104,6 +115,7 @@ class AppContainer extends React.Component {
         handleSBClose={this.handleSBClose}
         handleRefresh={this.handleRefresh}
         handleUpdate={this.handleUpdate}
+        handleLogin={this.handleLogin}
         sbOpen={sbOpen}
         sbMessage={sbMessage}
         children={children}
@@ -114,12 +126,13 @@ class AppContainer extends React.Component {
 
 const mapStateToProps = (state, ownProps) => { 
   // console.log("AppContainer#mapStateToProps", "state:", state, "ownProps:", ownProps);
-  const { error, loading, selectedClusters } = state;
+  const { auth, error, loading, selectedClusters } = state;
 
   const loadingStatus = (loading && (loading.length() > 0)) ? load.LOADING : load.READY;
   const err = error && error.peek() ?  error.peek() : undefined;// get the top of the queue (don't remove!)
   // const err = error;
   return ({
+    auth: auth,
     error: err,
     loadingStatus: loadingStatus,
     selectedClusters: selectedClusters
@@ -128,7 +141,7 @@ const mapStateToProps = (state, ownProps) => {
 
 const mapDispatchToProps = (dispatch, ownProps) => { 
   // console.log("AppContainer#mapDispatchToProps", "ownProps:", ownProps);
-  return ({actions: bindActionCreators(Object.assign({}, errorActions, serverActions), dispatch)}); 
+  return ({actions: bindActionCreators(Object.assign({}, authActions, errorActions, serverActions), dispatch)}); 
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(AppContainer);

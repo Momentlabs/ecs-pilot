@@ -1,4 +1,4 @@
-import { createAction } from 'redux-actions'
+import { createAction } from 'redux-actions';
 import { createActionUUID } from './makeActions';
 import * as types from './types';
 

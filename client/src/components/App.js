@@ -1,8 +1,8 @@
-import React, { PropTypes } from 'react';
-import { browserHistory } from 'react-router';
+import React, { PropTypes } from 'react'; import { browserHistory } from 'react-router';
 import { bindActionCreators} from 'redux';
 import { connect } from 'react-redux';
 
+import { showLogin } from '../actions/auth';
 import * as errorActions from '../actions/error';
 
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
@@ -52,6 +52,7 @@ export default class App extends React.Component {
     handleSBClose: PropTypes.func,
     handleUpdate: PropTypes.func,
     handleRefresh: PropTypes.func,
+    handleLogin: PropTypes.func.isRequired,
     children: PropTypes.object.isRequired
   }
 
@@ -73,40 +74,7 @@ export default class App extends React.Component {
 
   componentWillReceiveProps(newProps) {
     // console.log("App:componentWillRecceiveProps()", "state:", this.state, "newProps:", newProps);
-
-    // const { error, loading } = newProps;
-    // const updateState = this.checkForErrors(error, this.state.pendingErrors);
-    // this.setState(updateState);
   }
-
-  // TODO: Generalize the error as a generic message update.
-  // add some kind of tiered type: update/info, warning, error.
-  // Need to queue new errors.
-  // TODO: Also, this handling needs to brought up to the parent app container
-  // checkForErrors(error, pendingErrors) {
-
-  //   console.log("App:CheckForErrors()", "error:", error, "pendingErrors:", pendingErrors);
-  //   let newErrors = pendingErrors;
-  //   if (error) {
-  //     newErrors = pendingErrors.concat([error]);
-  //   }
-  //   const {sbo, sbm} = (newErrors.length > 0) ? {sbo: true, sbm: newErrors[0].displayMessage} : {sbo: false, sbm: ""};
-  //   console.log("App:checkForErrors()", "sbOpen:", sbo, "sbMessage:", sbm, "pendingErrors:", newErrors);
-
-  //   return ({
-  //     pendingErrors: newErrors,
-  //     sbOpen: sbo,
-  //     sbMessage: sbm
-  //   });
-  // }
-
-  // closeSnackbar() {
-  //   console.log("App:closeSnackbar()", "state:", this.state);
-  //   let { pendingErrors } = this.state;
-  //   pendingErrors.pop();
-  //   const updateState = this.checkForErrors(undefined, pendingErrors);
-  //   this.setState(updateState);
-  // }
 
   handleMenuChange(event, value) {
     let newPath = useMenu[(value)].path;
@@ -122,7 +90,9 @@ export default class App extends React.Component {
   render() {
     // console.log("App:render()", "state:", this.state, "props:", this.props);
     const { value } = this.state;
-    const { handleUpdate, handleSBClose, handleRefresh, loadingStatus, sbOpen, sbMessage, children } = this.props;
+    const { 
+      handleUpdate, handleSBClose, handleRefresh, handleLogin,
+      loadingStatus, sbOpen, sbMessage, children } = this.props;
     // const {sbOpen, sbMessage} = (error === undefined) ? {sbOpen: false, sbMessage: ""} : {sbOpen: true, sbMessage: error.message};
     // console.log("App:render()", "sbOpen:", sbOpen, "sbMessage:", sbMessage);
     return (
@@ -137,6 +107,7 @@ export default class App extends React.Component {
               <RefreshIndicator onClick={handleRefresh} status={loadingStatus} percentage={100} size={30} left={-20} top={13} />
               <ToolbarSeparator/>
               <RaisedButton label="Update" primary={true} onClick={handleUpdate}/>
+              <RaisedButton label="login" primary onClick={handleLogin} />
               <IconMenu 
                 iconButtonElement={<IconButton><FontIcon className="material-icons">menu</FontIcon></IconButton>}
                 anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}

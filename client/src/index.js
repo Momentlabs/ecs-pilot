@@ -11,8 +11,11 @@ import injectTapEventPlugin from 'react-tap-event-plugin';
 import { createStore, applyMiddleware } from 'redux';
 import { Provider } from 'react-redux';
 import createSagaMiddleware from 'redux-saga';
+
+import { initAuth } from './actions/auth';
 import rootSaga from './sagas';
 import reducers from './reducers';
+
 
 
 
@@ -21,7 +24,12 @@ injectTapEventPlugin();
 const sagaMiddleware = createSagaMiddleware();
 const store = createStore(reducers, applyMiddleware(sagaMiddleware));
 sagaMiddleware.run(rootSaga);
+
+store.dispatch(initAuth("3F0LkHS5KJb35w4k5WbxnsMVWKWiHi2y", "momentlabs.auth0.com"));
+
+
 console.log("Applicaiton:/src/index.js calling render.");
+
 
 render(
   <Provider store={store}>

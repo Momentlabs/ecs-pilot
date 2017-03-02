@@ -1,6 +1,8 @@
 /*
  * There are elements to the protocol that the UI currently needs
  *
+ * = DATA ACTIONS
+ *
  * REQUEST_CLUSTERS
  * Causes a list of clusters to get loaded into the databse from
  * the server.
@@ -17,6 +19,10 @@
  * Requests all data assocaited with the selected clusters (thik of this as updte after a select).
  *
  *
+ * = AUTHORIZATION ACTIONS
+ *
+ * SHOW_LOGIN (LOGIN?)
+ *
  * The remaining protocol elements are used by sagas to 
  * generate the rest of the calls for the data to come along.
  * 
@@ -30,6 +36,8 @@ export const matchErrorActions = (action) => {
   return failRE.test(action.type);
 };
 
+
+// Server Data Protocol
 export const REPORT_ERROR = "REPORT_ERROR";
 export const REPORTED_ERROR = "REPORTED_ERROR";
 
@@ -54,3 +62,9 @@ export const LOADED_DEEP_TASKS = "LOADED_DEEP_TASKS";
 
 export const LOADING_STARTED = "LOADING_STARTED";
 export const LOADING_COMPLETE = "LOADING_COMPLETE";
+
+
+// Login Protocol
+export const INIT_AUTH = "INIT_AUTH";
+export const SHOW_LOGIN = "SHOW_LOGIN";
+

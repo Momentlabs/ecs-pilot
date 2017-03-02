@@ -22,10 +22,17 @@ const ClusterStatusCard = ({cluster, instances, deepTasks}) => {
       size: 50,
     }
   };
-  const totalCPU = totalRegisteredCPU(deepTasks);
-  const usedCPU = totalCPU - totalRemainingCPU(deepTasks);
-  const totalMem = totalRegisteredMemory(deepTasks);
-  const usedMem =  totalMem - totalRemainingMemory(deepTasks);
+  let totalCPU = 100;
+  let usedCPU = 0;
+  let totalMem = 100;
+  let usedMem = 0;
+  if (deepTasks.length > 0) {
+    totalCPU = totalRegisteredCPU(deepTasks);
+    usedCPU = totalCPU - totalRemainingCPU(deepTasks);
+    totalMem = totalRegisteredMemory(deepTasks);
+    usedMem =  totalMem - totalRemainingMemory(deepTasks);
+  }
+
   return (
     <CardTitle title={`Cluster: ${cluster.clusterName}`} subtitle={cluster.clusterArn}>
       <MetricBar >

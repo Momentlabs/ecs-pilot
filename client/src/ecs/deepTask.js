@@ -138,6 +138,39 @@ export function runningContainers(deepTasks) {
   }, 0);
 }
 
+export function containerEnvironment(deepTask) {
+  console.log("containerEnvironment()", "deepTask:", deepTask);
+  const overrides = deepTask.task.overrides.containerOverrides.reduce( (ors, or) => {
+    if (or.environment) {
+      or.environment.forEach( (env) => {
+        env.container = or.name; // add the containerName to the environment variable.
+        ors.push(env);
+      });
+    }
+    return ors;
+  }, []);
 
+  let environment = deepTask.taskDefinition.containerDefinitions.reduce( (envs, cd) => {
+    cd.environment.forEach( (env) => {
+      env.container = cd.name; // as above.
+      envs.push(env);
+    });
+    return envs;
+  },[]);
 
+  // Add each overide to the environment, with the override.value mapped to e.override.
+  overrides.forEach( (or) => { 
+    let env = environment.find( (e) => (e.container === or.container && e.name == or.name));
+    if (env) {
+      env.override = or.value;
+    } else {
+      environment.push({container: or.container, name: or.name, value: undefined, override: or.value});
+    }
+  });
+  return environment;
+}
+
+export function containerEnvironmentTableData(deepTask) {
+  return containerEnvironment(deepTask).map( (e) => [e.container, e.name, e.value, e.override]);
+}
 

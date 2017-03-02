@@ -9,7 +9,7 @@ const cellStyles = {
     paddingLeft: ".5em",
   },
   value: {
-    paddingTop: "2em",
+    // paddingTop: "2em",
     paddingLeft: ".5em",
     // outline: "1px solid black"
   }
@@ -54,16 +54,22 @@ const SimpleTable = ({ data, caption, missingDataMessage }, context) => {
 
   const tablePadLeft = 16;
   const tablePadRight = 16;
+  const height = "30em";
+
   const styles = {
+    container: {
+    },
     table: {
       paddingLeft: tablePadLeft,
       paddingRight: tablePadRight,
       align: "center",
-      width: "100%",
+      width: "40em",
       marginBottom: "2em",
 
       // Horizonta' Vertical
-      borderSpacing: "0 0em",
+      borderCollapse: "collapse",
+      // borderSpacing: "0 0em",
+      tableLayout: "fixed",
       // outline: "1px solid black"
     },
     caption:{
@@ -76,34 +82,48 @@ const SimpleTable = ({ data, caption, missingDataMessage }, context) => {
       backgroundColor: c.tableHeaderBackground,
       // color: c.tableHeaderColor,
       // outline: "1px solid black"
+      // display: "inline",
+      // position: "relative",
     },
     headerRow: {
+      // display: "block",
+      display: "table-row",
+      // position: "relative",
       background: c.tableHeaderBackground,
       color: c.tableHeaderColor,
       fontWeight: "bold",
+      width: "100%"
       // outline: "1px solid black"
     },
     tb: {
+      // display: "block",
+      display: "auto",
+      overflow: "auto",
+      width: "100%",
+      padding: 0,
+      maxHeight: height,
       // outline: "1px solid blue"
     },
     tableRow: {
-      marginTop: ".5em"
+      // marginTop: ".5em",
+      padding: 0,
+      margin: 0,
       // outline: "1px solid black"
     }
   };
 
   return (
-    <table style={styles.table}>
-      {caption ? <caption style={styles.caption}>{caption}</caption> : ""}
-      <thead style={styles.th}>
-        <tr style={styles.headerRow}>
-          {data.header.map((e) => headerToCell(e))}
-        </tr>
-      </thead>
-      <tbody style={styles.tb}>
-        {(data.rows.length > 0) ? data.rows.map( (r) => renderRow(r, styles.tableRow)) : renderNoData(missingDataMessage, 4)}
-      </tbody>
-    </table>
+      <table style={styles.table}>
+        {caption ? <caption style={styles.caption}>{caption}</caption> : ""}
+        <thead style={styles.th}>
+          <tr style={styles.headerRow}>
+            {data.header.map((e) => headerToCell(e))}
+          </tr>
+        </thead>
+        <tbody style={styles.tb}>
+          {(data.rows.length > 0) ? data.rows.map( (r) => renderRow(r, styles.tableRow)) : renderNoData(missingDataMessage, 4)}
+        </tbody>
+      </table>
   );
 };
 
@@ -113,6 +133,7 @@ const SimpleTable = ({ data, caption, missingDataMessage }, context) => {
 
 SimpleTable.defaultProps = {
   caption: undefined,
+  scroll: false,
   missingDataMessage: "EmptyTable: No data provided"
 };
 
@@ -121,6 +142,7 @@ SimpleTable.propTypes = {
   title: PropTypes.string,
   data: PropTypes.object.isRequired,
   caption: PropTypes.string,
+  scroll: PropTypes.bool
 };
 
 export default SimpleTable;
