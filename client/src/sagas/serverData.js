@@ -213,7 +213,7 @@ export function* watchRequestFailiure() {
 
 // This can also be used as a simple logger given that it sees all actions.
 function* errorHandler(action) {
-  console.log("saga:errorHandler()", "action:", action);
+  // console.log("saga:errorHandler()", "action:", action);
   if (action.type === types.REPORT_ERROR) {
     return;
   } else if (action.error) {

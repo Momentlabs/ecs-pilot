@@ -6,18 +6,37 @@ import HomePage from './components/HomePage';
 import AboutPage from './components/AboutPage';
 import NotFoundPage from './components/NotFoundPage';
 
-function indexPage(nextState, replace) {
-  console.log("indexPage:", "nextState:", nextState);
+import * as errorActions from './actions/error';
+
+// const authService = undefined;
+
+function checkAuth(s) {
+  const store = s;
+  return function(nextState, replace) {
+    const auth = store.getState().auth.service;
+    if (!auth.loggedIn()) {
+      // console.log("checkAuth() - notLoggedIn");
+      const err = new Error("Not logged in.");
+      err.displayMessgae = err.message;
+      store.dispatch(errorActions.reportError(new Error("Not logged in.")));
+      replace({pathname: "/"}); // TODO: should probably spelunk nextState for the right place.
+    } else {
+      // console.log("checkAuth() - loggedIn");
+    }
+  };
 }
 
-export default (
-  <Route path="/" component={AppContainer}>
-    <IndexRoute component={LandingPage} onEnter={indexPage} />
-    <Route path="/home" component={HomePage}/>
-    <Route path="/about" component={AboutPage}/>
-    <Route path="*" component={NotFoundPage}/>
-  </Route>
-);
+export default function(store) {
+  // console.log("Creating routes: ", "store:", store);
+  return (
+    <Route path="/" component={AppContainer}>
+      <IndexRoute component={LandingPage} />
+      <Route path="/home" component={HomePage} onEnter={checkAuth(store)}/>
+      <Route path="/about" component={AboutPage}/>
+      <Route path="*" component={NotFoundPage}/>
+    </Route>
+  );
+}
 
 /*
   Flow:

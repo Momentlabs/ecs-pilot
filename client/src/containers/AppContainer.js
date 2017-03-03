@@ -15,6 +15,8 @@ const load = {
   HIDE: "hide"
 };
 
+const LOGO_CLICK_BROWSER_PATH = "/";
+
 class AppContainer extends React.Component {
   
   static defaultProps = {
@@ -36,7 +38,9 @@ class AppContainer extends React.Component {
   constructor(props, context) {
     super(props, context);
     this.handleLogin = this.handleLogin.bind(this);
+    this.handleLogout = this.handleLogout.bind(this);
     this.handleUpdate = this.handleUpdate.bind(this);
+    this.handleLogoClick = this.handleLogoClick.bind(this);
     this.handleRefresh = this.handleRefresh.bind(this);
     this.updateMessages = this.updateMessages.bind(this);
     this.handleSBClose = this.handleSBClose.bind(this);
@@ -94,28 +98,54 @@ class AppContainer extends React.Component {
     this.props.actions.reportError(err);
   }
 
+  handleLogoClick(event) {
+    event.preventDefault();
+    console.log("Logo click.");
+    this.props.router.push(LOGO_CLICK_BROWSER_PATH);
+  }
+
   handleLogin(event) {
     // console.log("Handle Login." , "state:", this.state, "props:", this.props);
     const { auth } = this.props;
     // this.props.actions.showLogin();
-    auth.login();
+    auth.service.login();
+  }
+
+  handleLogout(event) {
+    console.log("Handle logout");
+    const { auth } = this.props;
+    auth.service.logout();
   }
 
   render() {
-    // console.log("AppContainer:render()","state:", this.state, "props", this.props);
-    const { loadingStatus, children } = this.props;
+    console.log("AppContainer:render()","state:", this.state, "props", this.props);
+    const { auth, loadingStatus, children } = this.props;
+    const { service, profile } = auth;
+    // const { name, nickname, picture } = profile;
     const { pendingMessages } = this.state;
     const {sbOpen, sbMessage} = (pendingMessages[0]) ? 
       {sbOpen: true, sbMessage: pendingMessages[0].message} : 
       {sbOpen: false, sbMessage: ""};
+
+    const loginStatus = (service && service.loggedIn()) ? true : false;
+    const avatar = (profile && profile.picture) ? profile.picture : undefined;
+    let displayName = undefined;
+    if (profile) {
+      displayName = (profile.nickanem) ? profile.nickname : profile.name
+    }
     // console.log("AppContainer:render()", "loadingStatus:", loadingStatus, "sbOpen:", sbOpen, "sbMessage:", sbMessage);
     return (
       <App 
-        loadingStatus={loadingStatus} 
+        loggedIn={loginStatus}
+        loadingStatus={loadingStatus}
+        userName = {displayName}
+        avatarURL = {avatar}
         handleSBClose={this.handleSBClose}
         handleRefresh={this.handleRefresh}
         handleUpdate={this.handleUpdate}
+        handleLogoClick={this.handleLogoClick}
         handleLogin={this.handleLogin}
+        handleLogout={this.handleLogout}
         sbOpen={sbOpen}
         sbMessage={sbMessage}
         children={children}

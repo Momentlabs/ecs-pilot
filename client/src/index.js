@@ -17,22 +17,19 @@ import rootSaga from './sagas';
 import reducers from './reducers';
 
 
-
-
 console.log("Application:/src/index.js - setup including redux, and sagas.");
 injectTapEventPlugin();
 const sagaMiddleware = createSagaMiddleware();
 const store = createStore(reducers, applyMiddleware(sagaMiddleware));
 sagaMiddleware.run(rootSaga);
 
-store.dispatch(initAuth("3F0LkHS5KJb35w4k5WbxnsMVWKWiHi2y", "momentlabs.auth0.com"));
-
+store.dispatch(initAuth("3F0LkHS5KJb35w4k5WbxnsMVWKWiHi2y", "momentlabs.auth0.com", store.dispatch));
 
 console.log("Applicaiton:/src/index.js calling render.");
 
 
 render(
   <Provider store={store}>
-    <Router history={browserHistory} routes={routes}/>
+    <Router history={browserHistory} routes={routes(store)}/>
   </Provider>, document.getElementById('App')
 );
