@@ -2,7 +2,7 @@ import React, {PropTypes } from 'react';
 import { KeyGenerator } from '../../helpers/ui';
 import * as c from '../../styles/colors';
 
-let kg = new KeyGenerator;
+let kg = new KeyGenerator();
 
 const cellStyles = {
   header: {
@@ -13,6 +13,10 @@ const cellStyles = {
     paddingLeft: ".5em",
     // outline: "1px solid black"
   }
+};
+
+const renderCell = (e, styles) => {
+  return (<td style={styles} key={kg.nextKey()}>{e}</td>);
 };
 
 const headerToCell = (e) =>{
@@ -35,10 +39,6 @@ const valueToCell = (e) => {
 function renderRow(row, rowStyle) {
   return  <tr key={kg.nextKey()} style={rowStyle}>{row.map( (e) => valueToCell(e))}</tr>
 }
-
-const renderCell = (e, styles) => {
-  return (<td style={styles} key={kg.nextKey()}>{e}</td>);
-};
 
 function renderNoData(message, span) {
   return (

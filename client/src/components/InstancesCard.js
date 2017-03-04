@@ -10,8 +10,6 @@ import * as c from '../styles/colors';
 import {  usedCpuValue, usedMemoryValue, 
           registeredCpuValue,registeredMemoryValue,
           remainingCpuValue, remainingMemoryValue, 
-          registeredTcpPortsValue, registeredUdpPortsValue,
-          remainingTcpPortsValue, remainingUdpPortsValue
         } from '../ecs/instance';
 
 //
@@ -146,7 +144,7 @@ export default class InstancesCard extends Component {
         <MetricBox title="Instance" metric={ec2.instanceType} size={metricSize} rightAnchor={offset} space={2*metricSpace}  metricFontSize={'medium'} />
         <MetricBox title="Zone" metric={ec2.placement.availabilityZone} size={metricSize} rightAnchor={offset} space={3*metricSpace}  metricFontSize={'medium'} />
         <RechartGauge title={'CPU'} rightOffset={offset} cx={4*space} size={gaugeSize} innerRadius={iR} outerRadius={oR} colors={cpuColors} amount={usedCpuValue(ci)} total={registeredCpuValue(ci)}/>
-        <RechartGauge title ={'Memory'} rightOffset={offset} cx={5*space} size={gaugeSize} innerRadius={iR} outerRadius={oR} colors={memColors} amount={usedMemoryValue(ci)} total={registeredMemoryValue(ci)}/>
+        <RechartGauge title={'Memory'} rightOffset={offset} cx={5*space} size={gaugeSize} innerRadius={iR} outerRadius={oR} colors={memColors} amount={usedMemoryValue(ci)} total={registeredMemoryValue(ci)}/>
       </div>
     );
   }
@@ -190,7 +188,7 @@ export default class InstancesCard extends Component {
   }
 
   renderNetworkItems(ci, ec2) {
-    let kg = new KeyGenerator;
+    let kg = new KeyGenerator();
     let items = [];
     items.push(this.itemHeader("Public Network"));
     items.push(<Divider key={kg.nextKey()} />);
@@ -214,7 +212,7 @@ export default class InstancesCard extends Component {
   }
 
   renderInstanceDetails(ci, ec2) {
-    let kg = new KeyGenerator;
+    let kg = new KeyGenerator();
     let items = [];
     items.push(this.itemHeaderPair("Launch Time", moment.unix(ec2.launchTime).toISOString()));
     items.push(this.itemHeaderPair("Uptime", uptimeString(ec2.launchTime)));
@@ -292,7 +290,7 @@ export default class InstancesCard extends Component {
     };
 
     // Render
-    let kg = new KeyGenerator;
+    let kg = new KeyGenerator();
     items.push(this.itemHeaderPair("Owner Id", g.ownerId));
     items.push(this.itemHeaderPair("VPC Id", g.vpcId));
 
@@ -308,7 +306,7 @@ export default class InstancesCard extends Component {
   }
 
   renderDetailCards(instance, securityGroups) {
-    let kg = new KeyGenerator;
+    let kg = new KeyGenerator();
     // console.log("InstancesCard:renderDetailCards - instance", instance, "groups", securityGroups);
     let ci = instance.containerInstance;
     let ec2 = instance.ec2Instance;

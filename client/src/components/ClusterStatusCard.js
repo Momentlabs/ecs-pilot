@@ -7,7 +7,7 @@ import MetricGroup from './common/MetricGroup'
 import FlowedMetric from './common/FlowedMetric';
 import GuageRechart from './common/GuageRechart';
 
-import { Card, CardTitle } from 'material-ui/Card';
+import { CardTitle } from 'material-ui/Card';
 
 const ClusterStatusCard = ({cluster, instances, deepTasks}) => {
 

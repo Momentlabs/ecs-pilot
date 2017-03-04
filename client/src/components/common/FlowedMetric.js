@@ -16,8 +16,8 @@ const FlowedMetric = ({value, valueFontSize, title, titleFontSize, width}, conte
       // boxShadow: "1px 1px 6px 0px rgba(0,0,0,0.25)",  
       // boxShadow: "1px 1px 6px 0px rgba(0,0,0,0.25)",  
       display: "WebkitBox",
-      display: "WebkitInlineFlex",
-      display: 'inline-flex',
+      display: "WebkitInlineFlex", // eslint-disable-line no-dupe-keys
+      display: 'inline-flex', // eslint-disable-line no-dupe-keys
       "WebkitFlexFlow": "row wrap",
       flexDirection: "column",
       justifyContent: 'space-between',

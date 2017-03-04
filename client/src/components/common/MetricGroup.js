@@ -26,8 +26,8 @@ const MetricGroup = ( { title, children }, context) => {
     metrics: {
       // width: width,
       display: "WebkitBox",
-      display: "WebkitInlineFlex",
-      display: 'inline-flex',
+      display: "WebkitInlineFlex", // eslint-disable-line no-dupe-keys
+      display: 'inline-flex', // eslint-disable-line no-dupe-keys
       WebkitFlexFlow: flexFlow,
       flexFlow: flexFlow,
       WebkitJustifyContent: justifyContent,

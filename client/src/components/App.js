@@ -1,9 +1,9 @@
 import React, { PropTypes } from 'react'; 
 import { browserHistory } from 'react-router';
-import { bindActionCreators} from 'redux';
-import { connect } from 'react-redux';
+// import { bindActionCreators} from 'redux';
+// import { connect } from 'react-redux';
 
-import * as errorActions from '../actions/error';
+// import * as errorActions from '../actions/error';
 
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';

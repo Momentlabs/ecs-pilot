@@ -2,7 +2,7 @@ import React, {PropTypes } from 'react';
 
 import ItemPair from './ItemPair';
 
-import { List, ListItem,  } from 'material-ui/List';
+import { ListItem,  } from 'material-ui/List';
 
 
 // Since this component is simple and static, there's no parent component for it.

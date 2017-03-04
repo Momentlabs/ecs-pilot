@@ -1,35 +1,17 @@
-import React, { PropTypes } from 'react';
-// import {Link} from 'react-router';
+import React from 'react';
 
-import {Card, CardHeader, CardMedia, CardTitle, CardText} from 'material-ui/Card';
-
+import {Card, CardMedia, CardTitle } from 'material-ui/Card';
 
 const LandingPage = () => {
-
-  const styles = {
-    container: {
-      outline: "0px solid black"
-    }
-  };
-
   return (
     <Card>
       <CardMedia
         overlay={<CardTitle title="ECS Pilot" subtitle="Visualize and Control Your Clusters" />} 
       >
-        <img src="ContainerPilot.jpg" />
+        <img src="ContainerPilot.jpg" alt="Container ship pulled by pilot boat" />
       </CardMedia>
     </Card>
   );
-};
-
-LandingPage.propTypes = {
-  // aProp: PropTypes.string.isRequired,
-  // children: PropTypes.element
-};
-
-LandingPage.defaultProps = {
-  // aProp: "Remove me"
 };
 
 export default LandingPage;

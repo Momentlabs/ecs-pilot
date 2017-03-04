@@ -2,7 +2,7 @@ import * as types from '../actions/types';
 import Queue from '../helpers/queue';
 
 // state is a queue of loading records. 
-export const loading = (state = new Queue, action) => {
+export const loading = (state = new Queue(), action) => {
   // console.log("reducers#loading - entry", "action:", action, "state:", state );
   let newState = state;
   switch (action.type) {
@@ -16,9 +16,10 @@ export const loading = (state = new Queue, action) => {
         newState = state.copy();
         newState.remove((e) => e.id !== action.payload);
       } else {
-        throw(`trying to reduce LOADING_COMPLETE  with an empty loadingQueue. action: ${action}`)
+        throw(new Error(`trying to reduce LOADING_COMPLETE  with an empty loadingQueue. action: ${action}`))
       } // TODO: It's a logic error if we find we're trying to remove from an empty queue.
       break;
+    default:
   }
   // console.log("reducers#loading - exit", "action:", action, "newState:", newState, "state:", state );
   return newState;
@@ -56,6 +57,7 @@ export const clusters = (state = [], action) => {
     case types.LOADED_CLUSTERS:
       newState = Object.assign([], action.payload);
       break;
+    default:
   }
   // console.log("Reducer#clusters() - exit", "state:", state, "newState", newState, "action:", action);
   return newState;
@@ -73,6 +75,8 @@ export function selectedClusters( state=[], action) {
       newState = Object.assign([], state);
       let i = newState.indexOf(action.payload);
       newState.splice(i,1);
+      break;
+    default:
   }
   // console.log("Reducer#selectedClusters - exit", "state", state, "action", action);
   return newState;
@@ -88,6 +92,7 @@ export const instances = (state = {}, action) => {
       newInstances[action.payload.clusterName] = action.payload.instances;
       newState = Object.assign({}, newInstances);
       break;
+    default:
   }
   // console.log("Reducer#instances() - exit", "state:", state, "newState", newState, "action:", action);
   // console.log("Reducer#instances() - exit", "state:", JSON.stringify(state), "newState", JSON.stringify(newState), "action:", JSON.stringify(action));
@@ -105,6 +110,7 @@ export const securityGroups = (state = {}, action) => {
       });
       newState = Object.assign({}, newSgs);
       break;
+    default:
   }
   // console.log("Reducer#securityGroups() exit", "state:", state, "newState", newState, "action:", action);
   return newState;
@@ -123,6 +129,7 @@ export const deepTasks = (state = {}, action) => {
         // console.log("Reducer#deepTasks, processed LOADED_DEEP_TASKS", "newState:", newState, "newDTs:", newDTs);
       } 
       break;
+    default:
   }
   // console.log("Reducer#deepTasks() - exit", "state:", state, "newState", newState, "action:", action);
   return newState;

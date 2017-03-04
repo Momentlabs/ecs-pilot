@@ -7,7 +7,7 @@ import Tasks from '../components/Tasks';
 import InstancesCard from '../components/InstancesCard';
 import ClusterStatusCard from '../components/ClusterStatusCard';
 
-import { Card, CardHeader } from 'material-ui/Card';
+import { Card } from 'material-ui/Card';
 
 class ClusterCard extends React.Component {
   
@@ -24,9 +24,9 @@ class ClusterCard extends React.Component {
     securityGroups: PropTypes.array,
   }
 
-  constructor(props, context) {
-    super(props, context);
-  }
+  // constructor(props, context) {
+  //   super(props, context);
+  // }
 
   render() {
     // console.log("ClusterCard:render()","state:", this.state, "props", this.props);
@@ -59,5 +59,4 @@ const mapStateToProps = (state, ownProps) => {
 };
 
 export default connect(mapStateToProps)(ClusterCard);
-
 

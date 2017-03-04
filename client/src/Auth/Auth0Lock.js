@@ -7,13 +7,13 @@ import * as color from '../styles/colors';
 // Local Storage Keys
 const TOKEN_KEY = "id_token";
 const PROFILE_KEY = "profile";
-const ACCESS_KEY = "access_token";
+const ACCESS_KEY = "access_token"; // eslint-disable-line no-unused-vars
 
 // Operational Constants
 // TODO: These need to be fed in .... 
-const REDIRECT_ROOT = "http://localhost:3000";
-const REDIRECT_PATH = "home";
-const REDIRECT_URL = REDIRECT_ROOT; // TODO: Investigate the addition of path.
+// const REDIRECT_ROOT = "http://localhost:3000";
+// const REDIRECT_PATH = "home";
+// const REDIRECT_URL = REDIRECT_ROOT; // TODO: Investigate the addition of path.
 // const REDIRECT_URL = REDIRECT_ROOT + "/" + REDIRECT_PATH; // TODO: Investigate the addition of path.
 
 export default class AuthService {

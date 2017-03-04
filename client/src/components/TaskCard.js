@@ -14,7 +14,7 @@ const TaskCard = ({ task, width }) => {
   const uptime  = uptimeString(task.createdAt);
   const start =   isoDisplayTime(task.createdAt);
 
-  let kg = new KeyGenerator;
+  let kg = new KeyGenerator();
   return (
     <DetailCard title="Task" subtitle={`Started: ${displayTime(task.createdAt)}`} width={width}>
       <List>
