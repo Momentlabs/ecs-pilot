@@ -13,13 +13,14 @@ import (
 const (AUTH_HEADER = "Authorization")
 
 func JWTHandler(handler http.Handler) http.Handler {
-
   return http.HandlerFunc( func (w http.ResponseWriter, r *http.Request) {
     f := logrus.Fields{
       "middleware": "JWTHandler",
       "method": r.Method,
       "url": r.URL.String(),
     }
+    log.Info(f, "Checking Authorization")
+
     auth := r.Header.Get(AUTH_HEADER)
     if auth == "" {
       g := dupLogFields(f)

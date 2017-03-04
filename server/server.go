@@ -67,14 +67,15 @@ func serve(address string) (err error) {
   r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
 
   // REST API
-  r.Handle("/clusters", JWTHandler(http.HandlerFunc(ClusterController)))
+//  r.Handle("/clusters", JWTHandler(http.HandlerFunc(ClusterController)))
+  r.HandleFunc("/clusters", ClusterController)
   r.HandleFunc(fmt.Sprintf("/deepTasks/{%s}", CLUSTER_NAME_VAR), DeepTaskController)
   r.HandleFunc(fmt.Sprintf("/instances/{%s}", CLUSTER_NAME_VAR), InstancesController)
   r.HandleFunc(fmt.Sprintf("/tasks/{%s}", CLUSTER_NAME_VAR), TasksController)
   r.HandleFunc(fmt.Sprintf("/security_groups"), SecurityGroupsController)
 
   // General Middleware
-  handlerChain := context.ClearHandler(LogHandler(CorsHandler(r)))
+  handlerChain := context.ClearHandler(LogHandler(CorsHandler(JWTHandler(r))))
 
   // Server it up.
   err = http.ListenAndServe(address, handlerChain)
