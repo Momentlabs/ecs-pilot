@@ -2,6 +2,7 @@
 import { browserHistory } from 'react-router';
 import Auth0Lock from 'auth0-lock';
 import * as authActions from '../actions/auth';
+import * as color from '../styles/colors';
 
 // Local Storage Keys
 const TOKEN_KEY = "id_token";
@@ -13,10 +14,11 @@ const ACCESS_KEY = "access_token";
 const REDIRECT_ROOT = "http://localhost:3000";
 const REDIRECT_PATH = "home";
 const REDIRECT_URL = REDIRECT_ROOT; // TODO: Investigate the addition of path.
+// const REDIRECT_URL = REDIRECT_ROOT + "/" + REDIRECT_PATH; // TODO: Investigate the addition of path.
 
 export default class AuthService {
 
-  constructor(clientId, domain, dispatch, redirect=true) {
+  constructor(clientId, domain, dispatch, redirect=false) {
 
     this.receiveToken = this.receiveToken.bind(this);
     this.login = this.login.bind(this);
@@ -27,10 +29,24 @@ export default class AuthService {
     this.dispatch = dispatch;
 
     // Using lock
-    const lockOptions = {responseType: 'token'};
-    redirect ? lockOptions["redirectUri"] = REDIRECT_URL : lockOptions["redirect"] = false;
+    const lockOptions = {
+      autoclose: true,
+      closeable: true,
+      auth: {
+        responseType: 'token',
+        redirect: false,
+        params: {
+          scope: 'openid name nickname'
+        }
+      },
+      theme: {
+        primaryColor: color.primary
+      }
 
-    this.lock= new Auth0Lock(clientId, domain, {auth: lockOptions});
+    };
+    // redirect ? lockOptions["redirectUri"] = REDIRECT_URL : lockOptions["redirect"] = false;
+
+    this.lock = new Auth0Lock(clientId, domain, lockOptions);
     this.lock.on("authenticated", this.receiveToken);
   }
 
@@ -83,6 +99,7 @@ export default class AuthService {
 
   logout() {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(PROFILE_KEY);
     browserHistory.replace("/");
   }
 
@@ -102,6 +119,5 @@ export default class AuthService {
     const profile = localStorage.getItem(PROFILE_KEY);
     return profile ? JSON.parse(localStorage.profile) : {};
   }
-
 
 }

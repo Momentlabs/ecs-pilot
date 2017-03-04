@@ -23,7 +23,9 @@ const sagaMiddleware = createSagaMiddleware();
 const store = createStore(reducers, applyMiddleware(sagaMiddleware));
 sagaMiddleware.run(rootSaga);
 
-store.dispatch(initAuth("3F0LkHS5KJb35w4k5WbxnsMVWKWiHi2y", "momentlabs.auth0.com", store.dispatch));
+// TODO: This is not a secret, infact it is intended to identify this application, but
+// it would be much better to get this ID in some deployment configurable way.
+store.dispatch(initAuth("S26s5k7KxPPlAc93KPgR2IvL9G1LhCzx", "momentlabs.auth0.com", store.dispatch));
 
 console.log("Applicaiton:/src/index.js calling render.");
 

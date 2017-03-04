@@ -100,7 +100,7 @@ class AppContainer extends React.Component {
 
   handleLogoClick(event) {
     event.preventDefault();
-    console.log("Logo click.");
+    // console.log("Logo click.");
     this.props.router.push(LOGO_CLICK_BROWSER_PATH);
   }
 
@@ -112,13 +112,13 @@ class AppContainer extends React.Component {
   }
 
   handleLogout(event) {
-    console.log("Handle logout");
+    // console.log("AppContainer::handleLogout");
     const { auth } = this.props;
     auth.service.logout();
   }
 
   render() {
-    console.log("AppContainer:render()","state:", this.state, "props", this.props);
+    // console.log("AppContainer:render()","state:", this.state, "props", this.props);
     const { auth, loadingStatus, children } = this.props;
     const { service, profile } = auth;
     // const { name, nickname, picture } = profile;
@@ -131,7 +131,7 @@ class AppContainer extends React.Component {
     const avatar = (profile && profile.picture) ? profile.picture : undefined;
     let displayName = undefined;
     if (profile) {
-      displayName = (profile.nickanem) ? profile.nickname : profile.name
+      displayName = (profile.nickname) ? profile.nickname : profile.name;
     }
     // console.log("AppContainer:render()", "loadingStatus:", loadingStatus, "sbOpen:", sbOpen, "sbMessage:", sbMessage);
     return (

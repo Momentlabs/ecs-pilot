@@ -21,21 +21,20 @@ import RaisedButton from 'material-ui/RaisedButton';
 import {Toolbar, ToolbarGroup, ToolbarSeparator } from 'material-ui/Toolbar';
 import Snackbar from 'material-ui/Snackbar';
 
-// import NavigationExpandMoreIcon from 'material-ui/svg-icons/navigation/expand-more';
-
 import ToolbarTextLogo from './common/ToolbarTextLogo';
 
-const HOME_ITEM = 0;
-const ABOUT_ITEM = 1;
-const LOGOUT_ITEM = 2;
-const  MenuItems = {
-  home: {value: HOME_ITEM, name: "Home", path: "/home"},
-  about: {value: ABOUT_ITEM, name: "About", path: "/about" },
-  logout: {value: LOGOUT_ITEM, name: "Logout", path: "/" }
-};
-// This value will look selected the first time the menu comes up.
-const FIRST_MENU_VALUE=0; // Home menu defined above.
 
+// Define the menus up here 
+// defineMenu() below returns the current relevant one.
+const  MenuItems = {
+  home: {value: 0, name: "Home", path: "/home"},
+  about: {value: 1, name: "About", path: "/about" },
+  logout: {value: 2, name: "Logout", path: "/" }
+};
+const UserMainMenu = [MenuItems.home, MenuItems.about, MenuItems.logout];
+const LandingMainMenu = [MenuItems.about];
+
+// TODO: This can now be made a pure component.
 export default class App extends React.Component {
 
   static defaultProps = {
@@ -69,27 +68,24 @@ export default class App extends React.Component {
 
   constructor(props, context) {
     super(props, context);
-    this.state = {
-      value: FIRST_MENU_VALUE,
-    };
 
     // Bind the handlers.
     this.handleMenuChange = this.handleMenuChange.bind(this);
     this.renderMenuItems = this.renderMenuItems.bind(this);
     this.defineMenu = this.defineMenu.bind(this);
     this.getMenuItem = this.getMenuItem.bind(this);
-    // this.checkForErrors = this.checkForErrors.bind(this);
   }
 
-  componentWillReceiveProps(newProps) {
-    // console.log("App:componentWillRecceiveProps()", "state:", this.state, "newProps:", newProps);
-  }
+  // componentWillReceiveProps(newProps) {
+  //   // console.log("App:componentWillRecceiveProps()", "state:", this.state, "newProps:", newProps);
+  // }
 
   handleMenuChange(event, value) {
-    console.log("App:handleMenuChange()", "event:", event, "value:", value, "props:", this.props);
-    const newPath = this.getMenuItem(value).path;
+    // console.log("App:handleMenuChange()", "event:", event, "value:", value, "props:", this.props);
+    const menuItem = this.getMenuItem(value);
+    const newPath = menuItem.path;
 
-    if (value === LOGOUT_ITEM) {
+    if (menuItem.value === MenuItems.logout.value) {
       this.props.handleLogout();
     }
 
@@ -101,15 +97,12 @@ export default class App extends React.Component {
     return this.defineMenu().find((e) => e.value === value);
   }
 
+  // Is there a race condition between getMenuItem and defineMenu
+  // that could bite us? Practically it's only if somehow loggedIn changes to no (ie loging out) when selecting home
+  // in which case we'd be sent to the landing page on authCheck to home. That should happen and it's not
+  // a big deal if it does. Still .....
   defineMenu() {
-    const { loggedIn } = this.props;
-    let items = [];
-    if (loggedIn) {
-      items = [MenuItems.home, MenuItems.about, MenuItems.logout];
-    } else {
-      items =[MenuItems.about];
-    }
-    return  items;
+    return (this.props.loggedIn) ? UserMainMenu : LandingMainMenu;
   }
 
   renderMenuItems() {
@@ -117,8 +110,7 @@ export default class App extends React.Component {
   }
 
   render() {
-    console.log("App:render()", "state:", this.state, "props:", this.props);
-    const { value } = this.state;
+    // console.log("App:render()", "state:", this.state, "props:", this.props);
     const { 
       /*handleUpdate, */ handleSBClose, handleRefresh, handleLogin, handleLogoClick,
       loggedIn, loadingStatus, avatarURL, sbOpen, sbMessage, children } = this.props;
@@ -139,7 +131,7 @@ export default class App extends React.Component {
               <ToolbarTextLogo logoValue="ECS Pilot" clickOnLogo={handleLogoClick}/>
             </ToolbarGroup>
             <ToolbarGroup>
-              <RefreshIndicator onClick={handleRefresh} status={loadingStatus} percentage={100} size={40} left={-24} top={8} />
+              {(loggedIn) ? <RefreshIndicator onClick={handleRefresh} status={loadingStatus} percentage={100} size={40} left={-24} top={8} /> : undefined}
               <ToolbarSeparator/>
 {/*}              <RaisedButton label="Update" primary={true} onClick={handleUpdate}/> */}
               

@@ -6,6 +6,7 @@ import (
   "net/http"
   "github.com/aws/aws-sdk-go/aws/session"
   "github.com/gorilla/context"
+  "github.com/joho/godotenv"
   "github.com/gorilla/mux"
   "github.com/jdrivas/sl"
   "github.com/Sirupsen/logrus"
@@ -28,6 +29,7 @@ const (
 )
 
 // This is essentially a constant set up at the top by DoServe
+// that is ... a global for the package .....
 var awsSession *session.Session
 
 func DoServe(address string, sess *session.Session) error {
@@ -36,6 +38,15 @@ func DoServe(address string, sess *session.Session) error {
     return fmt.Errorf("AWS session  must be non-nil")
   }
   awsSession = sess
+
+  // TODO: This is for development ONLY>
+  // Let's figure out a way to turn this off.
+  // Load the environemnt (ie get the secret)
+  err := godotenv.Load();
+  if err != nil {
+    log.Error(nil, "Couldn't load environment variables from local system.", err)
+  }
+
   log.Debug(logrus.Fields{"serverName": ServerName, "action:": SERVER_STARTING,}, "Call server Go routine")
   go func() {
     serve(address)
@@ -50,18 +61,19 @@ func serve(address string) (err error) {
   // Routes
   r := mux.NewRouter().StrictSlash(true)
 
+  // TODO: Let's remove this ..... 
   // Single Page app
   r.HandleFunc("/", IndexController)
   r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
 
   // REST API
-  r.HandleFunc("/clusters", ClusterController)
+  r.Handle("/clusters", JWTHandler(http.HandlerFunc(ClusterController)))
   r.HandleFunc(fmt.Sprintf("/deepTasks/{%s}", CLUSTER_NAME_VAR), DeepTaskController)
   r.HandleFunc(fmt.Sprintf("/instances/{%s}", CLUSTER_NAME_VAR), InstancesController)
   r.HandleFunc(fmt.Sprintf("/tasks/{%s}", CLUSTER_NAME_VAR), TasksController)
   r.HandleFunc(fmt.Sprintf("/security_groups"), SecurityGroupsController)
 
-  // Middleware
+  // General Middleware
   handlerChain := context.ClearHandler(LogHandler(CorsHandler(r)))
 
   // Server it up.
@@ -86,7 +98,13 @@ func CorsHandler(handler http.Handler) http.Handler {
     w.Header().Set("Access-Control-Allow-Origin", "*")
     w.Header().Set("Access-Contorl-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
     w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
-    handler.ServeHTTP(w,r)
+
+    // TODO: Fill this out.
+    if r.Method == "OPTIONS" {
+      w.WriteHeader(http.StatusOK);
+    } else {
+      handler.ServeHTTP(w,r)
+    }
   })
 
 }

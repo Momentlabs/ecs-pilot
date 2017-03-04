@@ -66,6 +66,7 @@ export const LOADING_COMPLETE = "LOADING_COMPLETE";
 
 // Login Protocol
 export const AUTH_INIT = "AUTH_INIT";
+export const AUTH_INITED = "AUTH_INITED";
 export const AUTH_LOGIN = "AUTH_LOGIN";
 export const AUTH_LOGGED_IN = "AUTH_LOGGED_IN";
 export const AUTH_GET_PROFILE = "AUTH_GET_PROFILE";
