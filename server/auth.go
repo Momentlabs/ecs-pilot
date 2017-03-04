@@ -7,11 +7,18 @@ import (
   "strings"
   "github.com/Sirupsen/logrus"
   jwt "github.com/dgrijalva/jwt-go"
-  // auth0JWTMiddleware "github.com/auth0/go-jwt-middleware"
 )
 
-const (AUTH_HEADER = "Authorization")
+const (
+  AUTH_HEADER = "Authorization"
+)
 
+// Look at each request, determine if the token
+// provided in the Authorization header is a JWT that
+// has been signed by someone we recognize.
+// If so then we'll carry on with the request,
+// if not then we reject the request: http.StatusUnauthorized (401).
+// TODO: Put the JWT Claims into context.
 func JWTHandler(handler http.Handler) http.Handler {
   return http.HandlerFunc( func (w http.ResponseWriter, r *http.Request) {
     f := logrus.Fields{
@@ -90,7 +97,6 @@ func getJWT(r*http.Request) (*jwt.Token, error){
   return parsedToken, nil
 }
 
-
 // If there is no header we quitely return an empty string.
 func fromAuthHeader(r *http.Request) (string, error) {
   f := logrus.Fields{
@@ -120,7 +126,6 @@ func fromAuthHeader(r *http.Request) (string, error) {
   log.Debug(f, "Got token from header")
   return authHeaderParts[1], nil
 }
-
 
 func tokenHeaderString(token *jwt.Token) (hs string) {
   for k, v := range token.Header {

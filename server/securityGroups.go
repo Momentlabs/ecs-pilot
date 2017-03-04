@@ -33,7 +33,6 @@ func SecurityGroupsController(w http.ResponseWriter, req *http.Request) {
 
   f["numOfIds"] = len(groupIds)
   f["groupIds"] = groupIds
-  fmt.Printf("Groupids: %#v\n", groupIds)
   if len(groupIds) <= 0 {
     log.Error(f,
       fmt.Sprintf("Invalid requdyt. Did not receive security group IDS list in params (/%s?=id1,id2)", SECURITY_GROUP_ID_KEY),
