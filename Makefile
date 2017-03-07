@@ -28,7 +28,6 @@ check:
 	else echo "mclib hecked o.k."; \
 	fi
 
-
 # Only define these variables for the release build.
 $(darwin_target) $(linux_target) : now := $(shell date +%s)
 $(darwin_target) $(linux_target) : timeflag := -X $(prog)/version.unixtime=$(now)
@@ -42,7 +41,7 @@ $(darwin_target) :
 	GOOS=darwin GOARC=amd64 go build "-ldflags=$(ld_args)" -o $(release_dir)/$(prog)_darwin_amd64
 
 $(linux_target) :
-	GOOS=linux GOARC=amd64 go build "-ldflags=$(ld_args)" -o $(release_dir)/$(prog)_linux_amd64
+	GOOS=linux GOARC=amd64 go build "-ldflags=$(ld_args)" -o $(release_dir)/$(prog)_linux_amd64 
 
 darwin_build : $(darwin_target)
 
