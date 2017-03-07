@@ -1,6 +1,7 @@
 package server
 
 import (
+  "context"
   "fmt"
   "net/http"
   "os"
@@ -11,6 +12,7 @@ import (
 
 const (
   AUTH_HEADER = "Authorization"
+  TOKEN_CTX_KEY = "TOKEN_CTX_KEY"
 )
 
 // Look at each request, determine if the token
@@ -48,12 +50,13 @@ func JWTHandler(handler http.Handler) http.Handler {
       f["jstHeader"] = tokenHeaderString(token)
 
       log.Debug(f, "Got JWT the token.")
+      r = r.WithContext(context.WithValue(r.Context(), TOKEN_CTX_KEY, token))
       handler.ServeHTTP(w,r)
     }
   })
 }
 
-func getJWT(r*http.Request) (*jwt.Token, error){
+func getJWT(r *http.Request) (*jwt.Token, error){
 
   f := logrus.Fields{
     "middleware": "JWTHandler",
@@ -72,7 +75,7 @@ func getJWT(r*http.Request) (*jwt.Token, error){
       if len(secret) == 0 {
         return nil, fmt.Errorf("Missing Client Secret")
       }
-      log.Debug(nil, fmt.Sprintf("Parse is using secert: %s", secret))
+      // log.Debug(nil, fmt.Sprintf("Parse is using secert: %s", secret))
       return secret, nil
     })
 

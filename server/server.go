@@ -16,7 +16,6 @@ func init() {
   configureLogs()
 }
 
-
 // LOG CONSTANTS
 const (
   SERVER_STARTING = "server_starting"
@@ -30,14 +29,14 @@ const (
 
 // This is essentially a constant set up at the top by DoServe
 // that is ... a global for the package .....
-var awsSession *session.Session
+var baseSession *session.Session
 
-func DoServe(address string, sess *session.Session) error {
+func DoServe(address string, sess *session.Session, local bool) error {
   // TODO: This doesn't have a way to stop from the outside ....
   if sess == nil {
     return fmt.Errorf("AWS session  must be non-nil")
   }
-  awsSession = sess
+  baseSession = sess
 
   // TODO: This is for development ONLY>
   // Let's figure out a way to turn this off.
@@ -67,7 +66,6 @@ func serve(address string) (err error) {
   r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
 
   // REST API
-//  r.Handle("/clusters", JWTHandler(http.HandlerFunc(ClusterController)))
   r.HandleFunc("/clusters", ClusterController)
   r.HandleFunc(fmt.Sprintf("/deepTasks/{%s}", CLUSTER_NAME_VAR), DeepTaskController)
   r.HandleFunc(fmt.Sprintf("/instances/{%s}", CLUSTER_NAME_VAR), InstancesController)
@@ -75,7 +73,7 @@ func serve(address string) (err error) {
   r.HandleFunc(fmt.Sprintf("/security_groups"), SecurityGroupsController)
 
   // General Middleware
-  handlerChain := context.ClearHandler(LogHandler(CorsHandler(JWTHandler(r))))
+  handlerChain := context.ClearHandler(LogHandler(CorsHandler(JWTHandler(AwsSessionHandler(r, baseSession, true)))))
 
   // Server it up.
   err = http.ListenAndServe(address, handlerChain)
@@ -83,10 +81,10 @@ func serve(address string) (err error) {
   return err
 }
 
-
 func IndexController(w http.ResponseWriter, r *http.Request) {
   http.ServeFile(w, r, "./static/index.html")
 }
+
 
 // TODO: For the moment I'm really only using this for DEV to seperate development on client and server.
 // I don't expect that I'll necessarily want to actually enable this

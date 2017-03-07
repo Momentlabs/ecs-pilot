@@ -3,24 +3,15 @@ package server
 import (
   "fmt"
   // "encoding/json"
+  "net/http"
+
   "github.com/aws/aws-sdk-go/aws"
   "github.com/aws/aws-sdk-go/service/ecs"
   "github.com/aws/aws-sdk-go/private/protocol/json/jsonutil"
-
-  "net/http"
+  // jwt "github.com/dgrijalva/jwt-go"
   "github.com/Sirupsen/logrus"
-
   "github.com/jdrivas/awslib"
 )
-
-// type Cluster struct {
-//   ActiveServicesCount  int64
-//   ClusterName string `json:"clusterName" type:"string"`
-//   PendingTasksCount int64
-//   RegisteredContainerInstanceCount int64
-//   RunningTasksCount int64
-//   Status string
-// }
 
 var TestClusters = []ecs.Cluster {
   ecs.Cluster{
@@ -41,14 +32,30 @@ var TestClusters = []ecs.Cluster {
   },
 }
 
-func ClusterController(w http.ResponseWriter, req *http.Request) {
+func ClusterController(w http.ResponseWriter, r *http.Request) {
   f := logrus.Fields{"controller": "ClusterController"}
-  clusters, err := awslib.GetAllClusterDescriptions(awsSession)
+
+  // sess, err := sessionFromRequest(r, awsSession)
+  // if err != nil {
+  //   log.Error(f, "Failed to get the appropriate AWS session", err)
+  //   http.Error(w, fmt.Sprintf("Failed to get the appropriate AWS session: %s", err), http.StatusFailedDependency) // OR Failed AUTH?
+  //   return
+  // }
+  sess, err := getAWSSession(r)
+  if err != nil {
+    log.Error(f, "Fail to find appropriate AWS Session", err)
+    http.Error(w, fmt.Sprintf("Failed to find appropriate AWS Session: %s", err), http.StatusFailedDependency )
+    return
+  }
+
+  // clusters, err := awslib.GetAllClusterDescriptions(awsSession)
+  clusters, err := awslib.GetAllClusterDescriptions(sess)
   if err != nil {
     log.Error(f, "Failed to get current set of clusters from AWS", err)
     http.Error(w, fmt.Sprintf("Failed to obtain clusters from AWS: %s", err), http.StatusFailedDependency)
     return
   }
+
   f["numberOfClusters"] = len(clusters)
   log.Debug(f, "Got clusters from Amazon")
 

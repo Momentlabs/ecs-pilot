@@ -16,13 +16,20 @@ import (
 )
 
 const SECURITY_GROUP_ID_KEY = "sgIds"
-func SecurityGroupsController(w http.ResponseWriter, req *http.Request) {
+func SecurityGroupsController(w http.ResponseWriter, r *http.Request) {
   f := logrus.Fields{"controller": "SecurityGroupController"}
-  queries := req.URL.Query()
+  queries := r.URL.Query()
   for k, v := range queries {
     f[k] = v
   }
   log.Debug(f, "Controller Enter")
+
+  sess, err := getAWSSession(r)
+  if err != nil {
+    log.Error(f, "Fail to find appropriate AWS Session", err)
+    http.Error(w, fmt.Sprintf("Failed to find appropriate AWS Session: %s", err), http.StatusFailedDependency )
+    return
+  }
 
   // TODO:
   // THIS seems wrong. Why am I getting an array back with only one element.
@@ -41,7 +48,7 @@ func SecurityGroupsController(w http.ResponseWriter, req *http.Request) {
     return
   }
 
-  result, err := awslib.DescribeSecurityGroups(groupIds, awsSession)
+  result, err := awslib.DescribeSecurityGroups(groupIds, sess)
   if err != nil {
     log.Error(f, "Failed to obtain security groups from AWS", err)
     http.Error(w, fmt.Sprintf("Failed to obtain security groups from AWS: %s", err), http.StatusFailedDependency)

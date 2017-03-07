@@ -25,13 +25,20 @@ type InstancesResponse struct {
   ContainerInstanceFailures []*ecs.Failure     `json:"containerInstanceFailures" locationName:"containerInstanceFailures"` 
 } 
 
-func InstancesController(w http.ResponseWriter, req *http.Request) {
-  vars := mux.Vars(req)
+func InstancesController(w http.ResponseWriter, r *http.Request) {
+  vars := mux.Vars(r)
   clusterName := vars[CLUSTER_NAME_VAR];
   f := logrus.Fields{"controller": "InstancesController", "cluster": clusterName}
 
+  sess, err := getAWSSession(r)
+  if err != nil {
+    log.Error(f, "Fail to find appropriate AWS Session", err)
+    http.Error(w, fmt.Sprintf("Failed to find appropriate AWS Session: %s", err), http.StatusFailedDependency )
+    return
+  }
+
   // Should consider setting this up asynchronsously .....
-  ciMap, ec2Map, err  := awslib.GetContainerMaps(clusterName, awsSession)
+  ciMap, ec2Map, err  := awslib.GetContainerMaps(clusterName, sess)
   if err != nil {
     log.Error(f, "Failed to obtain Container Instance Descriptions from AWS.", err)
     http.Error(w, fmt.Sprintf("Failed to obtain instances from AWS: %s", err), http.StatusFailedDependency)

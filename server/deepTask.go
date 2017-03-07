@@ -12,13 +12,20 @@ import (
 
 )
 
-func DeepTaskController(w http.ResponseWriter, req *http.Request) {
-  vars := mux.Vars(req)
+func DeepTaskController(w http.ResponseWriter, r *http.Request) {
+  vars := mux.Vars(r)
   clusterName := vars[CLUSTER_NAME_VAR];
   f := logrus.Fields{"controller": "DeepTaskController", "cluster": clusterName}
 
+  sess, err := getAWSSession(r)
+  if err != nil {
+    log.Error(f, "Fail to find appropriate AWS Session", err)
+    http.Error(w, fmt.Sprintf("Failed to find appropriate AWS Session: %s", err), http.StatusFailedDependency )
+    return
+  }
+
   // this takes an awful long time ....
-  deepTasks, err := awslib.GetDeepTaskList(clusterName, awsSession)
+  deepTasks, err := awslib.GetDeepTaskList(clusterName, sess)
   if err != nil {
     log.Error(f, "Failed to obtain DeepTasks from AWS.", err)
     http.Error(w, fmt.Sprintf("Failed to obtain DeepTasks from AWS: %s", err), http.StatusFailedDependency)

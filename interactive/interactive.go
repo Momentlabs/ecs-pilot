@@ -330,7 +330,7 @@ func doICommand(line string, ecsSvc *ecs.ECS, ec2Svc *ec2.EC2, awsConfig *aws.Co
 
       case listImageCmd.FullCommand(): err = doListImages(imageRepositoryArg, sess)
 
-      case serverCmd.FullCommand(): err = doServer(serverAddressArg, sess)
+      case serverCmd.FullCommand(): err = doServer(serverAddressArg, sess, false)
 
     }
   }

@@ -6,7 +6,7 @@ import (
   "github.com/aws/aws-sdk-go/aws/session"
 )
 
-func doServer(serverAddressArg string, sess *session.Session) (error) {
-  server.DoServe(serverAddressArg, sess)
+func doServer(serverAddressArg string, sess *session.Session, local bool) (error) {
+  server.DoServe(serverAddressArg, sess, local)
   return nil;
 }
