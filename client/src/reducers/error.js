@@ -1,7 +1,7 @@
 import * as types from '../actions/types';
 import Queue from '../helpers/queue';
 
-export const error = (state = new Queue, action) => {
+export const error = (state = new Queue(), action) => {
   // console.log("Reducer#error() - entry", "state", state, "action", action);
   let newState = state;
   switch (action.type) {
@@ -13,6 +13,7 @@ export const error = (state = new Queue, action) => {
       newState = state.copy();
       newState.remove((e) => e.id === action.uuid);
       break; 
+    default:
   }
   // console.log("Reducer#error() - exit", "state:", state, "newState", newState, "action:", action);
   return newState;

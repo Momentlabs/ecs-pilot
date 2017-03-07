@@ -67,14 +67,14 @@ const GuageRechart = (props) => {
   const flexFlow = "column nowrap";
   const justifyContent = "flex-end";
   const alignItems = "center";
-  const alignContent = "space-between";
+  // const alignContent = "space-between";
   const styles = {
     container: {
       // height: size+30,
       // width: size + 30,
-      display: "WebkitBox",
-      display: "WebkitFlex",
-      display: 'flex',
+      display: "WebkitBox", 
+      display: "WebkitFlex", // eslint-disable-line no-dupe-keys
+      display: 'flex', // eslint-disable-line no-dupe-keys
       WebkitFlexFlow: flexFlow,
       flexFlow: flexFlow,
       WebkitJustifyContent: justifyContent,

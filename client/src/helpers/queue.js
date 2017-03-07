@@ -59,7 +59,7 @@ export default class Queue {
   // This is just  shallow copy of the array.
   // but it does create a new queue.
   copy() {
-    let nq = new Queue;
+    let nq = new Queue();
     nq.q = Object.assign([], this.q);
     return nq;
   }

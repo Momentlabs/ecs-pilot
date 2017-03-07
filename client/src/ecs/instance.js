@@ -17,6 +17,26 @@ export default class Instance {
 // Access and helper functions.
 //
 
+// Objects
+// TODO: BUG WAITING TO HAPPEN - What happens when we can't 'find' 
+// the resource (ie a name change or it's just not sent?
+export const registeredResource = (ci, rName) => {
+  return ci.registeredResources.find( (r) =>  r.name === rName );
+};
+export const registeredCpu = (ci) => registeredResource(ci, "CPU");
+export const registeredMemory = (ci) => registeredResource(ci, "MEMORY");
+export const registeredPorts = (ci) => registeredResource(ci, "PORTS");
+export const registeredUdpPorts = (ci) => registeredResource(ci, "PORTS_UDP");
+
+export const remainingResource = (ci, rName) => {
+  return ci.remainingResources.find( (r) =>  r.name === rName );
+};
+export const remainingCpu = (ci) => remainingResource(ci, "CPU");
+export const remainingMemory = (ci) => remainingResource(ci, "MEMORY");
+export const remainingPorts = (ci) => remainingResource(ci, "PORTS");
+export const remainingUdpPorts = (ci) => remainingResource(ci, "PORTS_UDP");
+
+
 //
 // Container Instance Values
 export const remainingCpuValue = (ci) => remainingCpu(ci).integerValue;
@@ -36,35 +56,15 @@ export const registeredUdpPortsValue = (ci) => registeredUdpPorts(ci).stringSetV
 export const remainingTcpPortsValue = (ci) => remainingPorts(ci).stringSetValue;
 export const remainingUdpPortsValue = (ci) => remainingUdpPorts(ci).stringSetValue;
 
-// Objects
-export const registeredCpu = (ci) => registeredResource(ci, "CPU");
-export const registeredMemory = (ci) => registeredResource(ci, "MEMORY");
-export const registeredPorts = (ci) => registeredResource(ci, "PORTS");
-export const registeredUdpPorts = (ci) => registeredResource(ci, "PORTS_UDP");
-
-// TODO: BUG WAITING TO HAPPEN - What happens when we can't 'find' 
-// the resource (ie a name change or it's just not sent?
-export const registeredResource = (ci, rName) => {
-  return ci.registeredResources.find( (r) =>  r.name === rName );
-};
-
-export const remainingCpu = (ci) => remainingResource(ci, "CPU");
-export const remainingMemory = (ci) => remainingResource(ci, "MEMORY");
-export const remainingPorts = (ci) => remainingResource(ci, "PORTS");
-export const remainingUdpPorts = (ci) => remainingResource(ci, "PORTS_UDP");
-export const remainingResource = (ci, rName) => {
-  return ci.remainingResources.find( (r) =>  r.name === rName );
-};
-
 // On arrays of instances
 function integerRemainingResourceTotal(instances, resource) { 
   return instances.reduce( (r, i) => {
-    return r + remainingResource(i.containerInstance, resource).integerValue;;
+    return r + remainingResource(i.containerInstance, resource).integerValue;
   }, 0);
 }
 function integerRegisteredResourceTotal(instances, resource) { 
   return instances.reduce( (r, i) => {
-    return r + registeredResource(i.containerInstance, resource).integerValue;;
+    return r + registeredResource(i.containerInstance, resource).integerValue;
   }, 0);
 }
 export function totalRegisteredCPU(instances) {return integerRegisteredResourceTotal(instances, "CPU");}

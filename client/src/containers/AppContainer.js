@@ -138,8 +138,8 @@ class AppContainer extends React.Component {
       <App 
         loggedIn={loginStatus}
         loadingStatus={loadingStatus}
-        userName = {displayName}
-        avatarURL = {avatar}
+        userName={displayName}
+        avatarURL={avatar}
         handleSBClose={this.handleSBClose}
         handleRefresh={this.handleRefresh}
         handleUpdate={this.handleUpdate}

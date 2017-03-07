@@ -22,11 +22,11 @@ const ContainerEnvironmentCard = ({deepTask, width}) => {
 
   console.log("ContainerEnvironmentCard:render()", "deepTasks:", deepTask, "data:", data);
 
-  const styles = {
-    container: {
-      outline: "0px solid black"
-    }
-  };
+  // const styles = {
+  //   container: {
+  //     outline: "0px solid black"
+  //   }
+  // };
 
   return (
     <DetailCard width={width} title="" subtitle={false}>

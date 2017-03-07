@@ -37,12 +37,12 @@ const renderLabel = (o) => { // eslint-disable-line react/no-multi-comp
 // TODO: Fix the tool-tips on this. They look horrible.
 const RechartGauge = (props, context) => { // eslint-disable-line react/no-multi-comp
   // console.log("RechartGauge() - props", props);
-  const {size, colors, amount, total, outerRadius, innerRadius, title, cx, cy, rightOffset, leftOffset}  = props;
+  const {size, colors, amount, total, outerRadius, innerRadius, title, cx, rightOffset, leftOffset}  = props;
   const {card} = context.muiTheme;
   const lOffset = leftOffset ? leftOffset : "auto";
   const rOffset = rightOffset ? rightOffset : "auto";
   const xOffset = cx ? cx : 0;
-  const yOffset = cy ? cy : 0;
+  // const yOffset = cy ? cy : 0;
   const data = [{value: amount, total: total, gaugeSize: size}, {value: (total-amount), total: total, guageSize: size}];
   const padAngle = 10;
   const subColor = card.subtitleColor;
@@ -121,7 +121,7 @@ RechartGauge.defaultProps ={
 RechartGauge.propTypes = {
   size: PropTypes.number.isRequired,
   cx: PropTypes.number,
-  cy: PropTypes.number,
+  // cy: PropTypes.number,
   rightOffset: PropTypes.number,
   leftOffset: PropTypes.number,
   colors: PropTypes.array.isRequired,

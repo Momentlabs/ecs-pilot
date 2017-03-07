@@ -6,10 +6,7 @@ import { KeyGenerator } from '../helpers/ui';
 
 // import { containerBindingsTableData, containerLinksTableData } from '../ecs/deepTask';
 
-import * as colors from 'material-ui/styles/colors';
 import { Card } from 'material-ui/Card';
-import KeyboardArrowUp from 'material-ui/svg-icons/hardware/keyboard-arrow-up'
-import KeyboardArrowDown from 'material-ui/svg-icons/hardware/keyboard-arrow-down'
 
 // import SimpleTable from './common/SimpleTable';
 // import DetailCard from './common/DetailCard';
@@ -78,8 +75,8 @@ export default class Task extends React.Component {
         // marginRight: 100,
         width: 'inherit',
         display: "WebkitBox",
-        display: "WebkitFlex",
-        display: 'flex',
+        display: "WebkitFlex", // eslint-disable-line no-dupe-keys
+        display: 'flex', // eslint-disable-line no-dupe-keys
         "WebkitFlexFlow": "row wrap",
         flexFlow: "row wrap",
         // jc: flex-start, flex-end, center, space-between, space-around
@@ -109,13 +106,13 @@ export default class Task extends React.Component {
 
     const task = deepTask.task;
     const ec2 = deepTask.ec2Instance;
-    const ci = deepTask.containerInstance;
+    // const ci = deepTask.containerInstance;
     const td = deepTask.taskDefinition;
 
     const ncTitle = task.containers.length <= 1 ? "Container" : "Containers";
     const status = task.lastStatus[0] + task.lastStatus.toLowerCase().slice(1);
     let uptime = moment.unix(task.createdAt).fromNow(true);
-    let kg = new KeyGenerator;
+    let kg = new KeyGenerator();
     return (
       <Card expanded={expanded} style={styles.container}>
         <div style={styles.barContainer}>

@@ -2,7 +2,6 @@ import React, { PropTypes } from 'react';
 // import { Link, IndexLink } from 'react-router';
 
 import FlexContainer from './FlexContainer';
-import FlowedMetric from './FlowedMetric';
 
 import KeyboardArrowUp from 'material-ui/svg-icons/hardware/keyboard-arrow-up';
 import KeyboardArrowDown from 'material-ui/svg-icons/hardware/keyboard-arrow-down';

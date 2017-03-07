@@ -8,16 +8,16 @@ import DetailSubheader from './common/DetailSubheader';
 import DetailCard from '../components/common/DetailCard';
 import DetailItem from '../components/common/DetailItem';
 
-import { List, ListItem,  } from 'material-ui/List';
+import { List } from 'material-ui/List';
 import Divider from 'material-ui/Divider';
 
 // Since this component is simple and static, there's no parent component for it.
 const TaskDefinitionCard = ({taskDefinition, noFootLine, width}, context) => {
-  const styles = {
-    container: {
-      outline: "0px solid black"
-    },
-  };
+  // const styles = {
+  //   container: {
+  //     outline: "0px solid black"
+  //   },
+  // };
 
   let kg = new KeyGenerator(`tdArn:${taskDefinition.taskDefinitionArn}-`);
   return (

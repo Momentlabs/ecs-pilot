@@ -1,7 +1,6 @@
 import React, {PropTypes } from 'react';
 import { Card, CardTitle } from 'material-ui/Card';
 import Divider from 'material-ui/Divider';
-import List from 'material-ui/List';
 import * as c from '../../styles/colors';
 
 // Since this component is simple and static, there's no parent container for it.
@@ -18,11 +17,10 @@ const computeWidth = (title) => {
 const computeShadow = (bs) => {
   let shadow = `0px 0px 3px 1px ${c.metricName}`;
   switch (bs) {
-    case undefined:
     case true:
       break;
-    case false:
     case undefined:
+    case false:
       shadow = "unset";
       break;
     default: 
@@ -51,8 +49,8 @@ const DetailCard = ({title, subtitle, width, noFootLine, noTopLine, boxShadow, c
     listContainer: {
       // height: "auto";
       display: "WebkitBox",
-      display: "WebkitFlex",
-      display: "flex",
+      display: "WebkitFlex", // eslint-disable-line no-dupe-keys
+      display: "flex", // eslint-disable-line no-dupe-keys
       WebkitFlexDirection: "column",
       flexDirection: "column",
       // // WebkitFlexFlow: "column",

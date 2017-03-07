@@ -16,6 +16,7 @@ export function auth(state = {service: undefined, profile: undefined, token: und
     case types.AUTH_PROFILE_UPDATED:
       newState.profile = action.payload;
       break;
+    default:
   }
   // console.log("reducer#auth exit", "state:", state, "newState:", newState, "action:", action);
   return newState;

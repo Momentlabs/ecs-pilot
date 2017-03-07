@@ -36,6 +36,7 @@ export function* auth(action) {
         service.setProfile(profile);
         yield put(authActions.profileUpdated(profile));
         break;
+      default:
     }
 
   } catch(error) {

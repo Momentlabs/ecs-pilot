@@ -26,7 +26,6 @@ function containerAggregateToArray(ca) {
   const containerNames = Object.keys(ca); 
   let a = [];
   containerNames.forEach( (cn) => {
-    const objs = ca[cn];
     ca[cn].forEach( (e) => {
       e["containerName"] = cn;
       a.push(e);
@@ -160,7 +159,7 @@ export function containerEnvironment(deepTask) {
 
   // Add each overide to the environment, with the override.value mapped to e.override.
   overrides.forEach( (or) => { 
-    let env = environment.find( (e) => (e.container === or.container && e.name == or.name));
+    let env = environment.find( (e) => (e.container === or.container && e.name === or.name));
     if (env) {
       env.override = or.value;
     } else {
