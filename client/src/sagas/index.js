@@ -1,6 +1,7 @@
 import { 
   watchLoaded,
   watchRequestFailiure,
+  watchRequestSessionId,
   watchSelectCluster,
   watchRequestAll,
   watchRequestClusters, 
@@ -22,6 +23,7 @@ export default function* rootSaga() {
     watchAuth(),
     watchLoaded(),
     watchRequestFailiure(),
+    watchRequestSessionId(),
     watchSelectCluster(),
     watchRequestAll(),
     watchRequestClusters(), 

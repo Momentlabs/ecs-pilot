@@ -4,14 +4,12 @@ import * as types from '../actions/types';
 import * as serverActions from '../actions/serverData';
 import * as errorActions from '../actions/error';
 
+import SessionId from '../ecs/sessionId'
 import Clusters from '../ecs/cluster';
 import Instances, { securityGroupIds }from '../ecs/instance';
 import SecurityGroup from '../ecs/securityGroup';
 import DeepTask from '../ecs/deepTask';
 
-// Currently this is the only entry into server interaction
-// from the UI. Everything below is generated indirectly
-// through this call.
 export function* selectCluster(action) {
   // console.log("saga:selectCluster - start", "action:", action);
   try {
@@ -62,6 +60,28 @@ export function* watchRequestAll() {
 // resumption is with the original stack_frame. O
 //
 // Obviously I need to read-up on generator details.
+
+export function* requestSessionId(action) {
+  console.log("saga:requestSessionId - start", "action:", action);
+  const loadAction = serverActions.startLoading("serverId");
+  const id = loadAction.uuid;
+  try {
+    yield put(loadAction);
+    const response = yield SessionId.getSessionId();
+    yield put(serverActions.completeLoading(id))
+    yield put(serverActions.loadedSessionId(response.data));
+  } catch(error) {
+    error.displayMessage = "Failed to load session id: " + error.message;
+    yield put(serverActions.completeLoading(id));
+    yield put(serverActions.loadedSessionId(error));
+  }
+}
+
+export function* watchRequestSessionId() {
+  console.log("saga:watchRequestSessionId() - started");
+  yield takeEvery(types.REQUEST_SESSION_ID, requestSessionId);
+}
+
 export function* requestClusters(action) {
   // console.log("saga:requestCluster - start", "action:", action);
   const loadAction = serverActions.startLoading("clusters");

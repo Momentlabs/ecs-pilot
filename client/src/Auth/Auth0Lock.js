@@ -36,7 +36,7 @@ export default class AuthService {
         responseType: 'token',
         redirect: false,
         params: {
-          scope: 'openid name nickname'
+          scope: 'openid name nickname user_metadata'
         }
       },
       theme: {

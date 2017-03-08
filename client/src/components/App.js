@@ -114,12 +114,10 @@ export default class App extends React.Component {
     const { 
       /*handleUpdate, */ handleSBClose, handleRefresh, handleLogin, handleLogoClick,
       loggedIn, loadingStatus, avatarURL, sbOpen, sbMessage, children } = this.props;
-    // const {sbOpen, sbMessage} = (error === undefined) ? {sbOpen: false, sbMessage: ""} : {sbOpen: true, sbMessage: error.message};
-    // console.log("App:render()", "sbOpen:", sbOpen, "sbMessage:", sbMessage);
 
     const styles = {
       avatar : {
-        marginLeft: "10",
+        marginLeft: "10px",
       }
     }
     return (

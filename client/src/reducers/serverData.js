@@ -49,6 +49,18 @@ export const loading = (state = new Queue(), action) => {
 //   }
 // };
 
+export const sessionId = (state ={}, action) => {
+  console.log("Reducer#sessionId()", "state:", state, "action:", action);
+  let newState = state;
+  switch (action.type) {
+    case types.LOADED_SESSION_ID:
+      newState = Object.assign({}, action.payload);
+      break;
+    default:
+  }
+  return newState;
+}
+
 // TODO: Failure is currently eaten in the saga .
 export const clusters = (state = [], action) => {
   // console.log("Reducer#clusters - entry", "state", state, "action", action);

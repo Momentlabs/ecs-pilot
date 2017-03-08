@@ -44,10 +44,20 @@ class AppContainer extends React.Component {
     this.handleRefresh = this.handleRefresh.bind(this);
     this.updateMessages = this.updateMessages.bind(this);
     this.handleSBClose = this.handleSBClose.bind(this);
+    this.componentWillMount = this.componentWillMount.bind(this);
 
     this.state = {
       pendingMessages: [],
     };
+  }
+
+  componentWillMount() {
+    console.log("AppContainer:componentWillMount()", "props:", this.props);
+    const { auth } = this.props;
+    if (auth && auth.service.loggedIn()) {
+      console.log("AppContainer:componentWillMount() - loggedIn.");
+      this.props.actions.requestSessionId();
+    }
   }
 
   componentWillReceiveProps(newProps) {

@@ -3,6 +3,11 @@ import { createActionUUID } from './makeActions';
 import * as types from './types';
 
 //
+// SessionID
+export const requestSessionId = createAction(types.REQUEST_SESSION_ID);
+export const loadedSessionId = createAction(types.LOADED_SESSION_ID, sessionId => sessionId);
+
+//
 // Cluster
 export const requestClusters = createAction(types.REQUEST_CLUSTERS);
 export const loadedClusters = createAction(types.LOADED_CLUSTERS, clusters => clusters);
@@ -10,6 +15,7 @@ export const loadedClusters = createAction(types.LOADED_CLUSTERS, clusters => cl
 export const selectCluster = createAction(types.SELECT_CLUSTER, clusterName => clusterName);
 export const deselectCluster = createAction(types.DESELECT_CLUSTER, clusterName => clusterName);
 export const requestAll = createAction(types.REQUEST_ALL, selectedClusters => selectedClusters);
+
 //
 // DeepTask
 

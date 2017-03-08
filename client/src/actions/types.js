@@ -41,12 +41,16 @@ export const matchErrorActions = (action) => {
 export const REPORT_ERROR = "REPORT_ERROR";
 export const REPORTED_ERROR = "REPORTED_ERROR";
 
+
 export const SELECT_CLUSTER = "SELECT_CLUSTER";
 export const SELECT_CLUSTER_FAILURE = "SELECT_CLUSTER_FAILURE";
 export const DESELECT_CLUSTER = "DESELECT_CLUSTER";
 
 export const REQUEST_ALL = "REQUEST_ALL";
 export const REQUEST_ALL_FAILURE = "REQUEST_ALL_FAILURE";
+
+export const REQUEST_SESSION_ID = "REQUEST_SESSION_ID";
+export const LOADED_SESSION_ID = "LOADED_SESSION_ID";
 
 export const REQUEST_CLUSTERS = "REQUEST_CLUSTERS";
 export const LOADED_CLUSTERS = "LOADED_CLUSTERS";
