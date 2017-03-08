@@ -71,6 +71,7 @@ func serve(address string) (err error) {
   r.HandleFunc(fmt.Sprintf("/instances/{%s}", CLUSTER_NAME_VAR), InstancesController)
   r.HandleFunc(fmt.Sprintf("/tasks/{%s}", CLUSTER_NAME_VAR), TasksController)
   r.HandleFunc(fmt.Sprintf("/security_groups"), SecurityGroupsController)
+  r.HandleFunc("/sessionId", SessionIdController)
 
   // General Middleware
   handlerChain := context.ClearHandler(LogHandler(CorsHandler(JWTHandler(AwsSessionHandler(r, baseSession, true)))))

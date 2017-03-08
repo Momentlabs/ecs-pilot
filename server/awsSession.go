@@ -10,7 +10,6 @@ import (
   "github.com/aws/aws-sdk-go/aws/session"
   "github.com/aws/aws-sdk-go/service/sts"
   jwt "github.com/dgrijalva/jwt-go"
-
 )
 
 const (
@@ -131,6 +130,12 @@ func sessionForToken(baseSession *session.Session, token *jwt.Token) (sess *sess
   if err != nil {
     return nil, fmt.Errorf("Failed to create session for token. Failed to AssumeRole %s for user: %s. %s", roleArn, xUserID, err)
   }
+
+  f := logrus.Fields{}
+  f["assumedRoleUser.Arn"] = *resp.AssumedRoleUser.Arn
+  f["assumedRoleUser.AsummedRoleId"] = *resp.AssumedRoleUser.AssumedRoleId
+  log.Debug(f, "Assumed role.")
+
 
   // Make a session from those credentials.
   stsCred := resp.Credentials
