@@ -6,17 +6,17 @@ const FlexContainer = (props) => {
   // console.log("FlexContainer:render()", "props:", props);
   const {
     children, width,  justifyContent, alignItems, alignContent, 
-    flexDirection, flexWrap
+    flexDirection, flexWrap, style
   } = props;
 
   const flexFlow = flexDirection + " " + flexWrap;
   const styles = {
     container: {
-      paddingTop: 8, // TODO: Theme/constants on spacing. Too many maigic numbers.
+      // paddingTop: 8, // TODO: Theme/constants on spacing. Too many maigic numbers.
       width: width,
       display: "WebkitBox",
       display: "WebkitInlineFlex", // eslint-disable-line no-dupe-keys
-      display: 'inline-flex', // eslint-disable-line no-dupe-keys
+      display: 'flex', // eslint-disable-line no-dupe-keys
       WebkitFlexFlow: flexFlow,
       flexFlow: flexFlow,
       WebkitJustifyContent: justifyContent,
@@ -25,7 +25,7 @@ const FlexContainer = (props) => {
       alignItems: alignItems,
       WebkitAlignContent: alignContent,
       alignContent: alignContent,
-      // outline: "1px dashed black"
+      // outline: "2px dashed red"
     }
   };
 
@@ -37,7 +37,7 @@ const FlexContainer = (props) => {
 };
 
 FlexContainer.defaultProps = {
-  width: "inherit",
+  width: "auto",
   flexDirection: "row",
   flexWrap: "nowrap",
   justifyContent: "flex-start",

@@ -118,8 +118,11 @@ export default class App extends React.Component {
     const styles = {
       avatar : {
         marginLeft: "10px",
-      }
-    }
+      },
+      mainConatiner: {
+        margin: "0em",
+      },
+    };
     return (
       <MuiThemeProvider muiTheme={getMuiTheme(darkBaseTheme)}>
         <div>
@@ -143,7 +146,9 @@ export default class App extends React.Component {
               />
             </ToolbarGroup>
           </Toolbar>
-          {children}
+          <div style={styles.mainConatiner}>
+            {children}
+          </div>
           </div>
           <Snackbar  open={sbOpen} message={sbMessage} action="Ok" onActionTouchTap={handleSBClose} onRequestClose={handleSBClose}/>
         </div>

@@ -215,7 +215,6 @@ class ClustersCard extends React.Component {
   }
 }
 
-
 const mapStateToProps = (state) => { 
   // console.log("ClustersCard#mapStateToProps - state", state);
   return ({clusters: state.clusters}); 

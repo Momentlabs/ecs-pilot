@@ -62,7 +62,7 @@ export function* watchRequestAll() {
 // Obviously I need to read-up on generator details.
 
 export function* requestSessionId(action) {
-  console.log("saga:requestSessionId - start", "action:", action);
+  // console.log("saga:requestSessionId - start", "action:", action);
   const loadAction = serverActions.startLoading("serverId");
   const id = loadAction.uuid;
   try {
@@ -78,7 +78,7 @@ export function* requestSessionId(action) {
 }
 
 export function* watchRequestSessionId() {
-  console.log("saga:watchRequestSessionId() - started");
+  // console.log("saga:watchRequestSessionId() - started");
   yield takeEvery(types.REQUEST_SESSION_ID, requestSessionId);
 }
 
@@ -108,7 +108,7 @@ export function*  watchRequestClusters() {
 // It's likely that we'll want to consolidate some of this.
 // not to mention handle errors.
 function* requestInstances(action) {
-  console.log("saga:requestInstances", "action:", action);
+  // console.log("saga:requestInstances", "action:", action);
   const loadAction = serverActions.startLoading("instances");
   const id = loadAction.uuid;
   try {

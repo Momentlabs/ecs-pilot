@@ -17,6 +17,13 @@ const ClusterStatusCard = ({cluster, instances, deepTasks}) => {
     },
     metric: {
       width: "6em",
+      height: 77,
+      marginRight: 5,
+    },
+    lastMetric: {
+      width: "6em",
+      height: 77,
+      marginRight: 0,
     },
     gauge: {
       size: 50,
@@ -37,16 +44,16 @@ const ClusterStatusCard = ({cluster, instances, deepTasks}) => {
     <CardTitle title={`Cluster: ${cluster.clusterName}`} subtitle={cluster.clusterArn}>
       <MetricBar >
         <MetricGroup title="Instance">
-          <FlowedMetric title="Instances" value={instances.length} width={styles.metric.width}/>
+          <FlowedMetric title="Instances" value={instances.length} style={styles.lastMetric}/>
         </MetricGroup>
         <MetricGroup title="Task">
-          <FlowedMetric title="Tasks" value={deepTasks.length} width={styles.metric.width} /> 
-          <FlowedMetric title="Running" value={cluster.runningTasksCount} width={styles.metric.width} /> 
-          <FlowedMetric title="Pending" value={cluster.pendingTasksCount} width={styles.metric.width} /> 
+          <FlowedMetric title="Tasks" value={deepTasks.length} style={styles.metric} /> 
+          <FlowedMetric title="Running" value={cluster.runningTasksCount} style={styles.metric} /> 
+          <FlowedMetric title="Pending" value={cluster.pendingTasksCount} style={styles.lastMetric} /> 
         </MetricGroup>
         <MetricGroup title="Container">
-          <FlowedMetric title="Containers" value={totalContainers(deepTasks)} width={styles.metric.width} /> 
-          <FlowedMetric title="Running" value={runningContainers(deepTasks)} width={styles.metric.width} /> 
+          <FlowedMetric title="Containers" value={totalContainers(deepTasks)} style={styles.metric} /> 
+          <FlowedMetric title="Running" value={runningContainers(deepTasks)} style={styles.lastMetric} /> 
         </MetricGroup>
         <MetricGroup title="Resource Reservation">
           <GuageRechart title="CPU" total={totalCPU} amount={usedCPU} size={styles.gauge.size}/>

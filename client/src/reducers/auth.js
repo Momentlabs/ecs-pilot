@@ -2,7 +2,7 @@ import * as types from '../actions/types';
 
 // State is a new Auth Instance
 export function auth(state = {service: undefined, profile: undefined, token: undefined}, action) {
-  console.log("reducer#auth", "state:", state, "action:", action);
+  // console.log("reducer#auth", "state:", state, "action:", action);
   let newState = Object.assign({}, state);
   switch (action.type) {
     case types.AUTH_INIT:

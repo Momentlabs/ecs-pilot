@@ -60,7 +60,7 @@ const GuageRechart = (props) => {
     {value: (total-amount), total: total, guageSize: size, labelWidth: 30, fontSize: 16}
   ];
 
-  console.log("GaugeRechart:render()", "props:", props);
+  // console.log("GaugeRechart:render()", "props:", props);
 
   const or = outerRadius === undefined ? Math.ceil(size / 2) : outerRadius;
   const ir = innerRadius === undefined ? or - Math.ceil(size / 10) : innerRadius;

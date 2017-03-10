@@ -42,7 +42,7 @@ class ClusterCard extends React.Component {
 }
 
 const mapStateToProps = (state, ownProps) => { 
-  console.log("ClusterCard#mapStateToProps - entry","state:", state, ownProps);
+  // console.log("ClusterCard#mapStateToProps - entry","state:", state, ownProps);
   const {cluster} = ownProps;
   const clusterName = cluster.clusterName;
   const instances = state.instances[clusterName] ? state.instances[clusterName] : [];

@@ -14,6 +14,7 @@ import ContainerNetworkCard from './ContainerNetworkCard';
 import ContainerResourcesCard from './ContainerResourcesCard';
 import FlexContainer from '../components/common/FlexContainer';
 import MetricBar from '../components/common/MetricBar';
+import MetricGroup from '../components/common/MetricGroup';
 import FlowedMetric from '../components/common/FlowedMetric';
 import TaskCard from '../components/TaskCard';
 import TaskDefinitionCard from '../components/TaskDefinitionCard';
@@ -66,14 +67,18 @@ export default class Task extends React.Component {
     const styles = {
       container: {
         boxShadow: "unset",
-         marginTop: "1em",
+         // marginTop: "1em",
+         marginBottom: "2em",
+         // paddingBottom: "1em",
         // padding:
-        outline: `2px solid ${outlineColor}`
+        // outline: `2px solid ${outlineColor}`
       },
       barContainer: {
         // marginLeft: 200,
         // marginRight: 100,
         width: 'inherit',
+        paddingTop: "1em",
+        paddingBottom: "1em",
         display: "WebkitBox",
         display: "WebkitFlex", // eslint-disable-line no-dupe-keys
         display: 'flex', // eslint-disable-line no-dupe-keys
@@ -81,13 +86,14 @@ export default class Task extends React.Component {
         flexFlow: "row wrap",
         // jc: flex-start, flex-end, center, space-between, space-around
         justifyContent: 'space-between',
+        alignItems: "center",
+        // alignContent: "center",
         // ai: flex-start, flex-end, center, stretch, baseline
-        // alignItems: "stretch",
-        // outline: "1px dotted blue"
+        // outline: "2px dotted blue"
       },
       metricBarTitleContainer: {
         // width: 100,
-        padding: "1em",
+        // padding: "1em",
         diplsay: "inline-block",
         // outline: "2px solid red"
       },
@@ -99,9 +105,12 @@ export default class Task extends React.Component {
       metricBarSubtitle: {
         // paddingTop: 0,
         fontSize: "larger",
-        color: c.subtitle
+        color: c.subtitle,
         // outline: "1px solid black"
-      }
+      },
+      metric: {
+        marginRight: 5,
+      },
     };
 
     const task = deepTask.task;
@@ -120,15 +129,17 @@ export default class Task extends React.Component {
             <div style={styles.metricBarTitle}>{shortArn(task.taskDefinitionArn)}</div>
             <div style={styles.metricBarSubtitle}>{`Instance Private IP: ${ec2.privateIpAddress}`}</div>
           </div>
-          <MetricBar onExpandChange={this.handleExpanded} showExpandableButton >
-            <FlowedMetric width={"6em"} title="Status" value={status} valueFontSize="large" key={kg.nextKey()} />
-            <FlowedMetric width={"6em"} title={ncTitle}  value={task.containers.length} key={kg.nextKey()}/>
-            <FlowedMetric width={"6em"} valueFontSize="large" title="Uptime" value={uptime} key={kg.nextKey()}/>
-            <FlowedMetric width={"11em"} valueFontSize="large"  title="Public IP" value={ec2.ipAddress} key={kg.nextKey()}/>
+         <MetricBar onExpandChange={this.handleExpanded} showExpandableButton >
+            <MetricGroup title="Task">
+              <FlowedMetric title="Status" value={status} style={styles.metric} width={"6em"} valueFontSize="large" key={kg.nextKey()} />
+              <FlowedMetric title={ncTitle} value={task.containers.length}  style={styles.metric} width={"6em"} key={kg.nextKey()}/>
+              <FlowedMetric title="Uptime" value={uptime}  style={styles.metric} width={"6em"} valueFontSize="large" key={kg.nextKey()}/>
+              <FlowedMetric title="Public IP" value={ec2.ipAddress} width={"11em"} valueFontSize="large" key={kg.nextKey()}/>
+            </MetricGroup>
           </MetricBar>
         </div>
         <Card expandable>
-          <FlexContainer flexDirection="row" flexWrap="wrap" alignItems="stretch" justifyContent="space-between" >
+          <FlexContainer flexDirection="row" flexWrap="wrap" alignItems="stretch" justifyContent="space-around" >
             <TaskCard task={task} />
             <ContainerNetworkCard deepTask={deepTask} />
             <TaskDefinitionCard taskDefinition={td} />

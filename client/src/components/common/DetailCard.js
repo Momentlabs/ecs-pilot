@@ -37,8 +37,11 @@ const DetailCard = ({title, subtitle, width, noFootLine, noTopLine, boxShadow, c
     container: { 
       width: boxWidth,
       height: "auto",
+      marginTop: "1em",
+      marginBottom: "1em",
+      marginRight: "1em",
       // padding: '1em',
-      margin: '1em',
+      // margin: '1em',
       // alignSelf: 'flex-start', 
       // textAlign: 'center',
       // boxShadow: "unset",
