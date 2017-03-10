@@ -28,7 +28,7 @@ const SessionId = ({ accountAlias, accountId, userId, region, totalClusters, tot
 
   return (
     <FlexContainer flexWrap="wrap" justifyContent="space-between">
-        <DetailCard title={accountAlias} subtitle={accountId} />
+        <DetailCard title={accountAlias} subtitle={accountId} boxShadow={false}/>
 {/*    <FlexContainer> 
         <DetailCard title={accountAlias} subtitle={accountId} />
         <DetailCard title={uid} subtitle={region} />
@@ -38,7 +38,7 @@ const SessionId = ({ accountAlias, accountId, userId, region, totalClusters, tot
         <FlowedMetric style={styles.metric} value={totalInstances} title="Instances" />
         <FlowedMetric style={styles.lastMetric} value={totalRunningTasks} title="Tasks" />
       </MetricGroup>
-        <DetailCard title={uid} subtitle={region} />
+        <DetailCard title={uid} subtitle={region} boxShadow={false} />
     </FlexContainer>
   );
 };

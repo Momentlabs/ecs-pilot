@@ -1,5 +1,6 @@
 import React, {PropTypes } from 'react';
-// import {Link} from 'react-router';
+
+import { mergeStyles } from '../../helpers/ui';
 
 // Since this component is simple and static, there's no parent component for it.
 const FlexContainer = (props) => {
@@ -29,8 +30,10 @@ const FlexContainer = (props) => {
     }
   };
 
+  const mergedStyles = mergeStyles(styles, style, 'container');
+
   return (
-    <div style={styles.container}>
+    <div style={mergedStyles.container}>
       {children}
     </div>
   );
@@ -38,6 +41,7 @@ const FlexContainer = (props) => {
 
 FlexContainer.defaultProps = {
   width: "auto",
+  style: {},
   flexDirection: "row",
   flexWrap: "nowrap",
   justifyContent: "flex-start",
@@ -47,6 +51,7 @@ FlexContainer.defaultProps = {
 
 FlexContainer.propTypes = {
   width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  style: PropTypes.object,
   flexDirection: PropTypes.string,
   flexWrap: PropTypes.string,
   justifyContent: PropTypes.string,

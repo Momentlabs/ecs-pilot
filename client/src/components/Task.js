@@ -68,7 +68,7 @@ export default class Task extends React.Component {
       container: {
         boxShadow: "unset",
          // marginTop: "1em",
-         marginBottom: "2em",
+        marginBottom: "2em",
          // paddingBottom: "1em",
         // padding:
         // outline: `2px solid ${outlineColor}`
@@ -111,6 +111,11 @@ export default class Task extends React.Component {
       metric: {
         marginRight: 5,
       },
+
+      expansionContainer: {
+        // background: c.metricBackground,
+        boxShadow: 'unset'
+      }
     };
 
     const task = deepTask.task;
@@ -138,8 +143,8 @@ export default class Task extends React.Component {
             </MetricGroup>
           </MetricBar>
         </div>
-        <Card expandable>
-          <FlexContainer flexDirection="row" flexWrap="wrap" alignItems="stretch" justifyContent="space-around" >
+        <Card  style={styles.expansionContainer} expandable>
+          <FlexContainer flexDirection="row" flexWrap="wrap" alignItems="stretch" justifyContent="space-around">
             <TaskCard task={task} />
             <ContainerNetworkCard deepTask={deepTask} />
             <TaskDefinitionCard taskDefinition={td} />

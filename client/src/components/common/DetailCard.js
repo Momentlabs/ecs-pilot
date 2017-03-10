@@ -15,7 +15,8 @@ const computeWidth = (title) => {
  };
 
 const computeShadow = (bs) => {
-  let shadow = `0px 0px 3px 1px ${c.metricName}`;
+  // let shadow = `0px 0px 3px 1px ${c.metricName}`;
+  let shadow = `5px 5px 20px 1px ${c.metricName}`;
   switch (bs) {
     case true:
       break;
@@ -24,8 +25,9 @@ const computeShadow = (bs) => {
       shadow = "unset";
       break;
     default: 
-      shadow = `${shadow.x} ${shadow.y} ${shadow.blur} ${shadow.radius} ${shadow.color}`;
+      // shadow = `${shadow.x} ${shadow.y} ${shadow.blur} ${shadow.radius} ${shadow.color}`;
   }
+  // return 'unset';
   return shadow;
 };
 
