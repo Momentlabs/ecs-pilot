@@ -1,44 +1,62 @@
 import React, { PropTypes } from 'react';
 
+import * as defaultStyles from '../styles/default';
+
 import DetailCard from './common/DetailCard';
+import TitleBox from './common/TitleBox';
 import FlexContainer from './common/FlexContainer';
 import FlowedMetric from './common/FlowedMetric';
 import MetricGroup from './common/MetricGroup';
+
+import { CardTitle } from 'material-ui/Card';
 
 const SessionId = ({ accountAlias, accountId, userId, region, totalClusters, totalRunningTasks, totalInstances }) => {
 
   const styles = {
     container: {
-      // backgroundColor: "black",
+      padding: defaultStyles.primaryAbsoluteSpace,
       // outline: "2px solid red"
     },
+    metricGroup: {
+      marginRight: defaultStyles.largerAbsoluteSpace,
+    },
+    webServicesMetrics: {
+      marginRight: defaultStyles.metricSeparator,
+    },
+    lastWebServicesMetrics: {
+      marginRight: 0,
+    },
     metric: {
-      width: "6em",
-      // height: "4em",
-      marginRight: 5,
+      width: defaultStyles.metricWidth,
+      marginRight: defaultStyles.metricSeparator,
     },
     lastMetric: {
-      width: "6em",
+      width: defaultStyles.metricWidth,
       // height: "4em",
       marginRight: 0,
+    },
+    accountDetail: {
+      alignSelf: "flex-start",
+      // outline: "1px solid black"
+    },
+    regionDetail: {
+      alignSelf: "flex-start",
+      textAlign: "right",
+      // outline: "1px solid black"
     }
   };
-  // const uid = userId == "" ? "Region" : userId;
-  const uid = "Region";
 
   return (
-    <FlexContainer flexWrap="wrap" justifyContent="space-between">
-        <DetailCard title={accountAlias} subtitle={accountId} boxShadow={false}/>
-{/*    <FlexContainer> 
-        <DetailCard title={accountAlias} subtitle={accountId} />
-        <DetailCard title={uid} subtitle={region} />
-      </FlexContainer> */}
+    <FlexContainer flexWrap="wrap" justifyContent="flex-start" style={styles.container}>
+      <MetricGroup title="Amazon Web Services" style={styles.metricGroup} >
+        <FlowedMetric title="AWS Account" value={accountId} valueFontSize="medium" style={styles.webServicesMetrics} />
+        <FlowedMetric title="Region" value={region} valueFontSize="medium" sytle={styles.lastWebServicesMetricst}/>
+      </MetricGroup>
       <MetricGroup title="Clusters">
         <FlowedMetric style={styles.metric} value={totalClusters} title="Clusters" />
         <FlowedMetric style={styles.metric} value={totalInstances} title="Instances" />
         <FlowedMetric style={styles.lastMetric} value={totalRunningTasks} title="Tasks" />
       </MetricGroup>
-        <DetailCard title={uid} subtitle={region} boxShadow={false} />
     </FlexContainer>
   );
 };

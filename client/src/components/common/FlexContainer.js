@@ -7,7 +7,7 @@ const FlexContainer = (props) => {
   // console.log("FlexContainer:render()", "props:", props);
   const {
     children, width,  justifyContent, alignItems, alignContent, 
-    flexDirection, flexWrap, style
+    flexDirection, flexWrap, style, onClick
   } = props;
 
   const flexFlow = flexDirection + " " + flexWrap;
@@ -33,7 +33,7 @@ const FlexContainer = (props) => {
   const mergedStyles = mergeStyles(styles, style, 'container');
 
   return (
-    <div style={mergedStyles.container}>
+    <div style={mergedStyles.container} onClick={onClick}>
       {children}
     </div>
   );
@@ -50,6 +50,7 @@ FlexContainer.defaultProps = {
 };
 
 FlexContainer.propTypes = {
+  onClick: PropTypes.func,
   width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   style: PropTypes.object,
   flexDirection: PropTypes.string,

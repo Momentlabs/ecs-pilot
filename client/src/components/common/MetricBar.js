@@ -58,10 +58,10 @@ export default class MetricBar extends React.Component {
     };
 
     return (
-        (expanded) ?
-          <KeyboardArrowUp onClick={this.handleClick} style={styles.expandIcon} /> :
-          <KeyboardArrowDown onClick={this.handleClick} style={styles.expandIcon} />
-      );
+      (expanded) ?
+        <KeyboardArrowUp onClick={this.handleClick} style={styles.expandIcon} /> :
+        <KeyboardArrowDown onClick={this.handleClick} style={styles.expandIcon} />
+    );
   }
 
   handleClick(event) {

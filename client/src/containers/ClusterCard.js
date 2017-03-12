@@ -9,6 +9,7 @@ import ClusterStatusCard from '../components/ClusterStatusCard';
 
 import { Card } from 'material-ui/Card';
 
+// TODO: Make this pure 
 class ClusterCard extends React.Component {
   
   static defaultProps = {
@@ -23,10 +24,6 @@ class ClusterCard extends React.Component {
     instances: PropTypes.array,
     securityGroups: PropTypes.array,
   }
-
-  // constructor(props, context) {
-  //   super(props, context);
-  // }
 
   render() {
     // console.log("ClusterCard:render()","state:", this.state, "props", this.props);

@@ -1,5 +1,7 @@
 import React, {PropTypes } from 'react';
 
+import * as defaultStyles from '../styles/default';
+
 import { totalRegisteredCPU, totalRemainingCPU, totalRegisteredMemory, totalRemainingMemory } from '../ecs/instance';
 import { totalContainers, runningContainers } from '../ecs/deepTask';
 import MetricBar from './common/MetricBar';
@@ -16,12 +18,12 @@ const ClusterStatusCard = ({cluster, instances, deepTasks}) => {
       outline: "1px solid black"
     },
     metric: {
-      width: "6em",
+      width: defaultStyles.metricWidth,
       height: 77,
-      marginRight: 5,
+      marginRight: defaultStyles.metricSeparator,
     },
     lastMetric: {
-      width: "6em",
+      width: defaultStyles.metricWidth,
       height: 77,
       marginRight: 0,
     },
@@ -39,21 +41,23 @@ const ClusterStatusCard = ({cluster, instances, deepTasks}) => {
     totalMem = totalRegisteredMemory(deepTasks);
     usedMem =  totalMem - totalRemainingMemory(deepTasks);
   }
+  // const pendingTasks = (cluster.pendingTasksCount) ? cluster.pendingTasksCount : 0;
+  const pendingTasks = 0;
 
   return (
     <CardTitle title={`Cluster: ${cluster.clusterName}`} subtitle={cluster.clusterArn}>
       <MetricBar >
         <MetricGroup title="Instance">
-          <FlowedMetric title="Instances" value={instances.length} style={styles.lastMetric}/>
+          <FlowedMetric title="Instances" value={instances.length} defaultValue={0} style={styles.lastMetric}/>
         </MetricGroup>
         <MetricGroup title="Task">
-          <FlowedMetric title="Tasks" value={deepTasks.length} style={styles.metric} /> 
-          <FlowedMetric title="Running" value={cluster.runningTasksCount} style={styles.metric} /> 
-          <FlowedMetric title="Pending" value={cluster.pendingTasksCount} style={styles.lastMetric} /> 
+          <FlowedMetric title="Tasks" value={deepTasks.length} defaultValue={0} style={styles.metric} /> 
+          <FlowedMetric title="Running" value={cluster.runningTasksCount} defaultValue={0} style={styles.metric} /> 
+          <FlowedMetric title="Pending" value={pendingTasks} defaultValue={0} style={styles.lastMetric} /> 
         </MetricGroup>
         <MetricGroup title="Container">
-          <FlowedMetric title="Containers" value={totalContainers(deepTasks)} style={styles.metric} /> 
-          <FlowedMetric title="Running" value={runningContainers(deepTasks)} style={styles.lastMetric} /> 
+          <FlowedMetric title="Containers" value={totalContainers(deepTasks)} defaultValue={0} style={styles.metric} /> 
+          <FlowedMetric title="Running" value={runningContainers(deepTasks)} defaultValue={0} style={styles.lastMetric} /> 
         </MetricGroup>
         <MetricGroup title="Resource Reservation">
           <GuageRechart title="CPU" total={totalCPU} amount={usedCPU} size={styles.gauge.size}/>

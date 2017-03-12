@@ -1,18 +1,21 @@
 import React, {PropTypes } from 'react';
 // import {Link} from 'react-router';
 
+import * as defaultStyles from '../../styles/default';
 import { mergeStyles } from '../../helpers/ui';
 import * as c from '../../styles/colors';
 
 
 // Since this component is simple and static, there's no parent component for it.
-const FlowedMetric = ({value, valueFontSize, title, titleFontSize, width, style }, context) => {
+const FlowedMetric = (props) => {
+  // console.log("FlowedMetric#render()", "props:", props);
+  const { title, value, defaultValue, valueFontSize, titleFontSize, width, style } = props;
 
   const styles = {
     metricBox: {
       width: width,
       // marginRight: "1em",
-      padding: ".5em",
+      padding: defaultStyles.smallAbsoluteSpace,
       backgroundColor: c.metricBackground,
       // display: "WebkitBox",
       // display: "WebkitInlineFlex", // eslint-disable-line no-dupe-keys
@@ -31,33 +34,42 @@ const FlowedMetric = ({value, valueFontSize, title, titleFontSize, width, style 
       justifyContent: "center",
       flexGrow: 5,
       // flexShrink: 5,
-      padding: 0,
-      margin: 0,
-      marginTop: ".25em",
+      paddingLeft: defaultStyles.smallRelativeSpace,
+      paddingRight: defaultStyles.smallRelativeSpace,
+      marginTop: defaultStyles.xSmallRelativeSpace,
       alignSelf: "center",
 
       fontSize: valueFontSize,
       textAlign: "center",
+
+      marginBottom: defaultStyles.smallRelativeSpace,
       // outline: '2px solid blue',
     },
     metricTitle: {
-      padding: 0,
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center",
+      flexGrow: 1,
+      paddingTop: 0,
+      paddingBottom: 0,
       margin: 0,
-      marginTop: ".5em",
+      paddingLeft: defaultStyles.smallRelativeSpace,
+      paddingRight: defaultStyles.smallRelativeSpace,
 
       fontSize: titleFontSize,
       textAlign: "center",
 
       color: c.metricName,
-      // outline: '1px solid green'
+      // outline: '2px dotted green'
     }
   };
-
   const mergedStyles = mergeStyles(styles, style, "metricBox");
+
+  const v = (value !== undefined) ? value : (defaultValue !== undefined) ? defaultValue : undefined;
   return (
     <div style={mergedStyles.metricBox} >
-      <div style={mergedStyles.metricValue} >{value}</div>
-      <div style={mergedStyles.metricTitle} >{title}</div>
+      { (v !== undefined) ? <div style={mergedStyles.metricValue} >{v}</div> : undefined}
+      { (title !== undefined) ? <div style={mergedStyles.metricTitle} >{title}</div> : undefined}
     </div>
   );
 };
@@ -68,18 +80,20 @@ const FlowedMetric = ({value, valueFontSize, title, titleFontSize, width, style 
 
 FlowedMetric.defaultProps = {
   style: {},
-  value: 0,
+  defaultValue: undefined,
+  value: undefined,
   valueFontSize: 'xx-large',
-  title: "Remove me",
+  title: undefined,
   titleFontSize: 'medium',
   width: "auto"
 };
 
 FlowedMetric.propTypes = {
-  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  defaultValue: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   style: PropTypes.object,
   valueFontSize: PropTypes.string,
-  title: PropTypes.string.isRequired,
+  title: PropTypes.string,
   titleFontSize: PropTypes.string,
   width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   children: PropTypes.element

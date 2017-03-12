@@ -1,6 +1,8 @@
 import React, {PropTypes } from 'react';
 import { Card, CardTitle } from 'material-ui/Card';
 import Divider from 'material-ui/Divider';
+import * as defaultStyles from '../../styles/default';
+import { mergeStyles } from '../../helpers/ui';
 import * as c from '../../styles/colors';
 
 // Since this component is simple and static, there's no parent container for it.
@@ -15,23 +17,10 @@ const computeWidth = (title) => {
  };
 
 const computeShadow = (bs) => {
-  // let shadow = `0px 0px 3px 1px ${c.metricName}`;
-  let shadow = `5px 5px 20px 1px ${c.metricName}`;
-  switch (bs) {
-    case true:
-      break;
-    case undefined:
-    case false:
-      shadow = "unset";
-      break;
-    default: 
-      // shadow = `${shadow.x} ${shadow.y} ${shadow.blur} ${shadow.radius} ${shadow.color}`;
-  }
-  // return 'unset';
-  return shadow;
+  return  (bs == undefined || bs == false) ? "unset" : defaultStyles.shadow;
 };
 
-const DetailCard = ({title, subtitle, width, noFootLine, noTopLine, boxShadow, children}) => {
+const DetailCard = ({title, subtitle, width, noFootLine, noTopLine, boxShadow, children, style}) => {
 
   const boxWidth = width ? width : computeWidth(title);
 
@@ -39,8 +28,8 @@ const DetailCard = ({title, subtitle, width, noFootLine, noTopLine, boxShadow, c
     container: { 
       width: boxWidth,
       height: "auto",
-      marginTop: "1em",
-      marginBottom: "1em",
+      // marginTop: "1em",
+      // marginBottom: "1em",
       marginRight: "1em",
       // padding: '1em',
       // margin: '1em',
@@ -79,11 +68,13 @@ const DetailCard = ({title, subtitle, width, noFootLine, noTopLine, boxShadow, c
       // outline: "1px solid blue"
     }
   };
+
+  const mergedStyles = mergeStyles(styles, style, "container");
   return (
-    <Card style={styles.container}>
-      <CardTitle title={title} subtitle={subtitle} style={{border: "0px", outline: "0px"}}/>
+    <Card style={mergedStyles.container}>
+      <CardTitle title={title} subtitle={subtitle}/>
       {noTopLine ? undefined : <Divider/>}
-      <div style={styles.listContainer}>
+      <div style={mergedStyles.listContainer}>
         {children}
         {noFootLine ? undefined :  <Divider />}
       </div>
@@ -91,20 +82,24 @@ const DetailCard = ({title, subtitle, width, noFootLine, noTopLine, boxShadow, c
   );
 };
 
-DetailCard.defaultProps = {
-  subtitle: "Something",
-  noFootLine: true,
-  noTopLine: true,
-  boxShadow: true,
-};
 
 DetailCard.propTypes = {
   title: PropTypes.string.isRequired,
   subtitle: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
-  width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   noFootLine: PropTypes.bool,
+  style: PropTypes.object,
+  width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   boxShadow: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
   children: PropTypes.oneOfType([PropTypes.element, PropTypes.array])
+};
+
+DetailCard.defaultProps = {
+  style: {},
+  width: "auto",
+  boxShadow: true,
+  subtitle: "Something",
+  noFootLine: true,
+  noTopLine: true,
 };
 
 export default DetailCard;

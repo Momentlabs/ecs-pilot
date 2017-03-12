@@ -1,5 +1,8 @@
 import React, {PropTypes } from 'react';
 import * as c from '../styles/colors';
+import * as defaultStyles from '../styles/default';
+import { mergeStyles } from '../helpers/ui';
+
 import { shortArn } from '../helpers/aws';
 import moment from 'moment';
 import { KeyGenerator } from '../helpers/ui';
@@ -12,13 +15,15 @@ import { Card } from 'material-ui/Card';
 // import DetailCard from './common/DetailCard';
 import ContainerNetworkCard from './ContainerNetworkCard';
 import ContainerResourcesCard from './ContainerResourcesCard';
-import FlexContainer from '../components/common/FlexContainer';
-import MetricBar from '../components/common/MetricBar';
-import MetricGroup from '../components/common/MetricGroup';
-import FlowedMetric from '../components/common/FlowedMetric';
-import TaskCard from '../components/TaskCard';
-import TaskDefinitionCard from '../components/TaskDefinitionCard';
-import ContainerCard from '../components/ContainerCard';
+import FlexContainer from './common/FlexContainer';
+import Bar from './common/Bar';
+import TitleBox from './common/TitleBox';
+import MetricBar from './common/MetricBar';
+import MetricGroup from './common/MetricGroup';
+import FlowedMetric from './common/FlowedMetric';
+import TaskCard from './TaskCard';
+import TaskDefinitionCard from './TaskDefinitionCard';
+import ContainerCard from './ContainerCard';
 import ContainerEnvironmentCard from './ContainerEnvironmentCard';
 // import BindingsCard from '../components/BindingsCard';
 
@@ -26,17 +31,14 @@ import ContainerEnvironmentCard from './ContainerEnvironmentCard';
 
 export default class Task extends React.Component {
 
-  // static contextTypes = {
-  //   muiTheme: PropTypes.object.isRequired
-  // };
-
-  // static defaultProps = {
-  //   aProp: "Remove me"
-  // };
-
   static propTypes = {
-    deepTask: PropTypes.object.isRequired
+    deepTask: PropTypes.object.isRequired,
+    style: PropTypes.object,
   };
+
+  static defaultProps = {
+    style: {}
+  }
 
   constructor(props, context) {
     super(props,context);
@@ -57,7 +59,7 @@ export default class Task extends React.Component {
 
   // Since this component is simple and static, there's no parent component for it.
   render() {
-    const {deepTask} = this.props;
+    const {deepTask, style} = this.props;
     const {expanded} = this.state;
     // console.log("Task:render()", "deepTask:", deepTask);
 
@@ -72,6 +74,9 @@ export default class Task extends React.Component {
          // paddingBottom: "1em",
         // padding:
         // outline: `2px solid ${outlineColor}`
+      },
+      bar: {
+        marginBottom: defaultStyles.primaryAbsoluteSpace
       },
       barContainer: {
         // marginLeft: 200,
@@ -97,17 +102,10 @@ export default class Task extends React.Component {
         diplsay: "inline-block",
         // outline: "2px solid red"
       },
-      metricBarTitle: {
+      metricBarTitle: mergeStyles(defaultStyles.title, {
         paddingBottom: ".5em",
-        fontSize: "x-large",
-        // outline: "1px solid black"
-      },
-      metricBarSubtitle: {
-        // paddingTop: 0,
-        fontSize: "larger",
-        color: c.subtitle,
-        // outline: "1px solid black"
-      },
+      }),
+      metricBarSubtitle: defaultStyles.subtitle,
       metric: {
         marginRight: 5,
       },
@@ -117,6 +115,7 @@ export default class Task extends React.Component {
         boxShadow: 'unset'
       }
     };
+    const mergedStyles = mergeStyles(styles, style, "container");
 
     const task = deepTask.task;
     const ec2 = deepTask.ec2Instance;
@@ -128,22 +127,34 @@ export default class Task extends React.Component {
     let uptime = moment.unix(task.createdAt).fromNow(true);
     let kg = new KeyGenerator();
     return (
-      <Card expanded={expanded} style={styles.container}>
-        <div style={styles.barContainer}>
-          <div style={styles.metricBarTitleContainer}>
-            <div style={styles.metricBarTitle}>{shortArn(task.taskDefinitionArn)}</div>
-            <div style={styles.metricBarSubtitle}>{`Instance Private IP: ${ec2.privateIpAddress}`}</div>
-          </div>
-         <MetricBar onExpandChange={this.handleExpanded} showExpandableButton >
-            <MetricGroup title="Task">
-              <FlowedMetric title="Status" value={status} style={styles.metric} width={"6em"} valueFontSize="large" key={kg.nextKey()} />
-              <FlowedMetric title={ncTitle} value={task.containers.length}  style={styles.metric} width={"6em"} key={kg.nextKey()}/>
-              <FlowedMetric title="Uptime" value={uptime}  style={styles.metric} width={"6em"} valueFontSize="large" key={kg.nextKey()}/>
-              <FlowedMetric title="Public IP" value={ec2.ipAddress} width={"11em"} valueFontSize="large" key={kg.nextKey()}/>
-            </MetricGroup>
-          </MetricBar>
-        </div>
-        <Card  style={styles.expansionContainer} expandable>
+      <Card expanded={expanded} style={mergedStyles.container}>
+        <Bar 
+          title={shortArn(task.taskDefinitionArn)} 
+          subtitle={`Instance Private IP: ${ec2.privateIpAddress}`} 
+          onExpandChange={this.handleExpanded} 
+          showExpandableButton={true}
+          style={mergedStyles.bar}
+        >
+          <MetricGroup title="Task">
+            <FlowedMetric title="Status" value={status} 
+                          style={mergedStyles.metric} width={"6em"} valueFontSize="large" 
+                          key={kg.nextKey()} 
+            />
+            <FlowedMetric title={ncTitle} value={task.containers.length}  
+                          style={mergedStyles.metric} width={"6em"} 
+                          key={kg.nextKey()}
+            />
+            <FlowedMetric title="Uptime" value={uptime}  
+                          style={mergedStyles.metric} width={"6em"} valueFontSize="large" 
+                          key={kg.nextKey()}
+            />
+            <FlowedMetric title="Public IP" value={ec2.ipAddress} 
+                          width={"11em"} valueFontSize="large" 
+                          key={kg.nextKey()}
+            />
+          </MetricGroup>
+        </Bar>
+        <Card  style={mergedStyles.expansionContainer} expandable>
           <FlexContainer flexDirection="row" flexWrap="wrap" alignItems="stretch" justifyContent="space-around">
             <TaskCard task={task} />
             <ContainerNetworkCard deepTask={deepTask} />

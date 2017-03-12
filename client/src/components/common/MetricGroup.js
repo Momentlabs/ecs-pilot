@@ -1,5 +1,6 @@
 import React, { PropTypes } from 'react';
 
+import * as defaultStyles from '../../styles/default';
 import { mergeStyles } from '../../helpers/ui';
 import * as c from '../../styles/colors';
 
@@ -7,49 +8,44 @@ import * as c from '../../styles/colors';
 // TODO: This doesn't play well with a non-grouped Metric in a metric bar.
 // That's probably a MetricBar problem, but ...
 // TODO: Remove the minWidth?
-const MetricGroup = ( { title, children, minWidth, style }, context) => {
+const MetricGroup = ({ title, children, minWidth, style }) => {
 
-  // This is for the metrics.
-  const flexFlow = "row nowrap";
-  const justifyContent = "space-between";
-  const alignItems = "stretch";
-  const alignContent = "flex-start";
-
-  const seperatorWidth = 5;
-
+  const separatorWidth = defaultStyles.metricSeparator;
   const styles = {
     container: {
       height: 'auto',
       display: 'flex',
-      marginRight: seperatorWidth,
+      marginRight: separatorWidth,
       flexFlow: "column nowrap",
-      justifyContent: "center",
-      // outline: "1px solid black"
+      justifyContent: "stretch",
+      // outline: "1px solid green"
     },
     banner: {
       // marginLeft: 0,
       // marginRight: 0, // TODO: contstants and magic numbers (seperators?)
-      marginBottom: seperatorWidth,
+      marginBottom: separatorWidth,
       background: c.metricBannerBackground,
       color: c.metricBannerColor,
     },
     title: {
-      paddingLeft: ".5em",
+      paddingLeft: defaultStyles.smallRelativeSpace
     },
     metrics: {
       minWidth: minWidth,
-      hieght: 'inherit',
-      display: "WebkitBox",
-      display: "WebkitInlineFlex", // eslint-disable-line no-dupe-keys
+      height: 'inherit',
+      flexGrow: 5,
+      // display: "WebkitBox",
+      // display: "WebkitInlineFlex", // eslint-disable-line no-dupe-keys
       display: 'inline-flex', // eslint-disable-line no-dupe-keys
-      WebkitFlexFlow: flexFlow,
-      flexFlow: flexFlow,
-      WebkitJustifyContent: justifyContent,
-      justifyContent: justifyContent,
-      WebkitAlignItems: alignItems,
-      alignItems: alignItems,
-      WebkitAlignContent: alignContent,
-      alignContent: alignContent,
+      // WebkitFlexFlow: flexFlow,
+      flexFlow: "row nowrap",
+      // WebkitJustifyContent: justifyContent,
+      justifyContent: "space-between",
+      alignItems: "stretch",
+      // WebkitAlignItems: alignItems,
+      // alignItems: "stretch",
+      // WebkitAlignContent: alignContent,
+      // alignContent: alignContent,
       // outline: "2px solid red",
     }
   };
@@ -76,7 +72,7 @@ MetricGroup.propTypes = {
 MetricGroup.defaultProps = {
   style: {},
   minWidth: "auto",
-  title: false,
+  title: undefined,
 };
 
 export default MetricGroup;

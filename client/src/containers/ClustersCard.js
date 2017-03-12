@@ -5,10 +5,13 @@ import  * as serverActions from '../actions/serverData';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 
+import * as defaultStyles from '../styles/default';
+
 import { Card, CardHeader } from 'material-ui/Card';
 import { Tabs, Tab } from 'material-ui/Tabs';
 import FontIcon from 'material-ui/FontIcon';
 
+import TitleBox from '../components/common/TitleBox';
 import ClusterList from '../components/ClusterList';
 import ClusterCard from './ClusterCard';
 
@@ -56,9 +59,8 @@ class ClustersCard extends React.Component {
   // onto the array carried around by state.
   // this.tabs() will render these when called to.
   //  onCellClick(rowNumber, columnId) (we're not using column right now.)
-  displayCluster (rowNumber) {
-    let cluster = this.props.clusters[rowNumber];
-    // console.log("ClustersCard:displayCluster - row column", rowNumber, columnId, ", cluster:", cluster.clusterName);
+  displayCluster (clusterName) {
+    let cluster = this.props.clusters.find( (e) => e.clusterName === clusterName);
     this.state.clusterTabNames.add(cluster.clusterName);
     this.props.actions.selectCluster(cluster.clusterName);
     this.setState({value: cluster.clusterName});
@@ -77,12 +79,24 @@ class ClustersCard extends React.Component {
     if (clusters.length > 0) {
       sub = `There are ${clusters.length} clusters in this region.`;
     }
+
+    const styles = {
+      conatiner: {
+        marginRight: defaultStyles.primaryAbsoluteSpace
+      },
+      title: {
+        paddingTop: defaultStyles.primaryAbsoluteSpace,
+        paddingBottom: defaultStyles.primaryAbsoluteSpace
+      },
+      header: {
+        marginRight: defaultStyles.primaryAbsoluteSpace        
+      }
+    };
+
     return(
-      <Tab key={"Cluster"} label={"Clusters"} value={CLUSTER_TAB} style={{"textTransform": "none"}}>
-        <Card style={{margin: "0em", boxShadow: "unset"}}>
-          <CardHeader title="Clusters" subtitle={sub} actAsExpander={false} showExpandableButton={false} />
-            {(clusters.length > 0) ? <ClusterList onClusterSelect={this.displayCluster} clusters={this.props.clusters}/> : <div/>}
-        </Card>
+      <Tab style={styles.container}key={"Cluster"} label={"Clusters"} value={CLUSTER_TAB} style={{"textTransform": "none"}}>
+        <TitleBox title="Clusters" subtitle={sub} style={styles.title} />
+        {(clusters.length > 0) ? <ClusterList  onClusterSelect={this.displayCluster} clusters={this.props.clusters}/> : <div/>}
       </Tab>
     );
   }
@@ -179,9 +193,11 @@ class ClustersCard extends React.Component {
   }
 
   render() {
-    // console.log("ClustersCard:render()", "State:", this.state, "Props:", this.props);
+    console.log("ClustersCard:render()", "State:", this.state, "Props:", this.props);
     const styles = {
       tab: { // everything: title and content
+        paddingLeft: defaultStyles.primaryAbsoluteSpace,
+        paddingRight: defaultStyles.primaryAbsoluteSpace,
         // outline: "2px solid green",
       },
       contentContainer: { // don't know!
