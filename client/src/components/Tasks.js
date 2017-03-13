@@ -1,7 +1,8 @@
 import React, {PropTypes } from 'react';
 // import {Link} from 'react-router';
 
-import { Card, CardTitle } from 'material-ui/Card';
+import * as defaultStyles from '../styles/default';
+import TitleBox from './common/TitleBox';
 import Task from './Task';
 
 const Tasks = ({deepTasks}) => {
@@ -10,14 +11,30 @@ const Tasks = ({deepTasks}) => {
     return (total += dt.task.containers.length); 
   }, 0);
 
+  const styles= {
+    container: {
+      // outline: "2px solid red"
+    },
+    title: {
+      marginBottom: defaultStyles.primaryAbsoluteSpace,
+      // outline: "1px solid black"
+    },
+    taskContainer: {
+      // outline: "1px dotted blue"
+    }
+  };
+
   return(
-    <Card style={{boxShadow: "unset"}}>
-      <CardTitle
-        style={{boxShadow: "unset", padding: 20}} // TODO GET THIS MAGIC NUMBER OUT OF HERE!
-        title="Tasks" subtitle={`${noOfContainers} containers in ${deepTasks.length} tasks`}>
+    <div style={styles.container}>
+      <TitleBox 
+        title="Tasks" 
+        subtitle={`${noOfContainers} containers in ${deepTasks.length} tasks`} 
+        style={styles.title}
+      />
+      <div style={styles.taskContainer}>
         {deepTasks.map( (dt) => <Task key={dt.task.taskArn} deepTask={dt}/>)}
-      </CardTitle>
-    </Card>
+      </div>
+    </div>
   );
 };
 

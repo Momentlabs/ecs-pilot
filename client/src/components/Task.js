@@ -17,8 +17,6 @@ import ContainerNetworkCard from './ContainerNetworkCard';
 import ContainerResourcesCard from './ContainerResourcesCard';
 import FlexContainer from './common/FlexContainer';
 import Bar from './common/Bar';
-import TitleBox from './common/TitleBox';
-import MetricBar from './common/MetricBar';
 import MetricGroup from './common/MetricGroup';
 import FlowedMetric from './common/FlowedMetric';
 import TaskCard from './TaskCard';
@@ -51,7 +49,7 @@ export default class Task extends React.Component {
   }
 
   handleExpanded(newExpanded) {
-    // console.log("Taksk#handleExpanded()", "newExpanded:", newExpanded);
+    console.log("Taksk:handleExpanded()", "newExpanded:", newExpanded);
     this.setState({
       expanded: newExpanded
     });
@@ -68,48 +66,20 @@ export default class Task extends React.Component {
     // const outlineColor = colors.red500;
     const styles = {
       container: {
-        boxShadow: "unset",
-         // marginTop: "1em",
-        marginBottom: "2em",
-         // paddingBottom: "1em",
-        // padding:
+        boxShadow: "unset"
+        // boxShadow: defaultStyles.shadow,
+        // paddingTop: defaultStyles.smallAbsoluteSpace,
+        // paddingLeft: defaultStyles.smallAbsoluteSpace,
+        // paddingRight: defaultStyles.smallAbsoluteSpace,
+        // padding: defaultStyles.smallAbsoluteSpace,
         // outline: `2px solid ${outlineColor}`
       },
       bar: {
         marginBottom: defaultStyles.primaryAbsoluteSpace
       },
-      barContainer: {
-        // marginLeft: 200,
-        // marginRight: 100,
-        width: 'inherit',
-        paddingTop: "1em",
-        paddingBottom: "1em",
-        display: "WebkitBox",
-        display: "WebkitFlex", // eslint-disable-line no-dupe-keys
-        display: 'flex', // eslint-disable-line no-dupe-keys
-        "WebkitFlexFlow": "row wrap",
-        flexFlow: "row wrap",
-        // jc: flex-start, flex-end, center, space-between, space-around
-        justifyContent: 'space-between',
-        alignItems: "center",
-        // alignContent: "center",
-        // ai: flex-start, flex-end, center, stretch, baseline
-        // outline: "2px dotted blue"
-      },
-      metricBarTitleContainer: {
-        // width: 100,
-        // padding: "1em",
-        diplsay: "inline-block",
-        // outline: "2px solid red"
-      },
-      metricBarTitle: mergeStyles(defaultStyles.title, {
-        paddingBottom: ".5em",
-      }),
-      metricBarSubtitle: defaultStyles.subtitle,
       metric: {
-        marginRight: 5,
+        marginRight: defaultStyles.metricSeparator,
       },
-
       expansionContainer: {
         // background: c.metricBackground,
         boxShadow: 'unset'

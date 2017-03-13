@@ -13,6 +13,10 @@ export const columnWidth = "6em";             // TODO: This should be an absolut
 
 export const titleFontSize = "x-large";
 
+export const metricFontSize = "xx-large";
+export const longMetricFontSize = "large";
+export const metricTitleSize = "medium";
+
 export const subtitleFontSize = "11pt";
 
 export const title = {
@@ -24,6 +28,7 @@ export const subtitle = {
   fontSize: subtitleFontSize,
   color: colors.subtitle,
 };
+
 
 export const metricSeparator = 5;
 export const metricWidth = columnWidth;

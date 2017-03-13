@@ -5,14 +5,9 @@ import { mergeStyles } from '../helpers/ui';
 import * as defaultStyles from '../styles/default';
 import { KeyGenerator } from '../helpers/ui';
 
-
 import Bar from './common/Bar';
-import FlexContainer from './common/FlexContainer';
-import TitleBox from './common/TitleBox';
-import MetricBar from './common/MetricBar';
 import MetricGroup from './common/MetricGroup';
 import FlowedMetric from './common/FlowedMetric';
-
 
 
 function makeClickedOn(cluster, onClusterSelect) {

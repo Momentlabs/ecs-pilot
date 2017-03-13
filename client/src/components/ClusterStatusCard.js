@@ -4,6 +4,7 @@ import * as defaultStyles from '../styles/default';
 
 import { totalRegisteredCPU, totalRemainingCPU, totalRegisteredMemory, totalRemainingMemory } from '../ecs/instance';
 import { totalContainers, runningContainers } from '../ecs/deepTask';
+import Bar from './common/Bar';
 import MetricBar from './common/MetricBar';
 import MetricGroup from './common/MetricGroup'
 import FlowedMetric from './common/FlowedMetric';
@@ -15,7 +16,9 @@ const ClusterStatusCard = ({cluster, instances, deepTasks}) => {
 
   const styles = {
     container: {
-      outline: "1px solid black"
+      marginTop: defaultStyles.primaryAbsoluteSpace, // TODO: Fix the spacing on the TAB to get rid of this.
+      marginBottom: defaultStyles.primaryAbsoluteSpace,
+      // outline: "1px solid black"
     },
     metric: {
       width: defaultStyles.metricWidth,
@@ -45,10 +48,9 @@ const ClusterStatusCard = ({cluster, instances, deepTasks}) => {
   const pendingTasks = 0;
 
   return (
-    <CardTitle title={`Cluster: ${cluster.clusterName}`} subtitle={cluster.clusterArn}>
-      <MetricBar >
+      <Bar title={`Cluster: ${cluster.clusterName}`} subtitle={cluster.clusterArn} style={styles.container} >
         <MetricGroup title="Instance">
-          <FlowedMetric title="Instances" value={instances.length} defaultValue={0} style={styles.lastMetric}/>
+          <FlowedMetric title="Instances" value={instances.length} defaultValue={0} style={styles.lastMetric} />
         </MetricGroup>
         <MetricGroup title="Task">
           <FlowedMetric title="Tasks" value={deepTasks.length} defaultValue={0} style={styles.metric} /> 
@@ -63,8 +65,7 @@ const ClusterStatusCard = ({cluster, instances, deepTasks}) => {
           <GuageRechart title="CPU" total={totalCPU} amount={usedCPU} size={styles.gauge.size}/>
           <GuageRechart title="Memory" total={totalMem} amount={usedMem} size={styles.gauge.size} />
         </MetricGroup>
-      </MetricBar>
-    </CardTitle>
+      </Bar>
   );
 };
 

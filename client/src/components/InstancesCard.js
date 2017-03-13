@@ -21,6 +21,7 @@ import Paper from 'material-ui/Paper';
 import { ListItem } from 'material-ui/List';
 import Subheader from 'material-ui/Subheader';
 
+import InstanceBar from './InstanceBar';
 import ContainerInstanceResourceCard from './ContainerInstanceResourceCard';
 import DetailCard from './common/DetailCard';
 import FlexContainer from './common/FlexContainer';
@@ -330,10 +331,11 @@ export default class InstancesCard extends Component {
   render() {
     // console.log("InstancesCard:render()", "state:", this.state, "props:", this.props);
     // const {securityGroups } = this.pr;
-    const { instances, securityGroups } = this.props;
+    const { instances, securityGroups, clusterName } = this.props;
     return (
       <Paper style={{boxShadow: "unset"}}>
         {instances.map( (instance) => this.renderInstanceBar(instance, securityGroups) )}
+        {instances.map( (instance) => <InstanceBar instance={instance} clusterName={clusterName} />)}
      </Paper>
      );
   }

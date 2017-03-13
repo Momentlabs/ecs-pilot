@@ -82,9 +82,9 @@ FlowedMetric.defaultProps = {
   style: {},
   defaultValue: undefined,
   value: undefined,
-  valueFontSize: 'xx-large',
+  valueFontSize: defaultStyles.metricFontSize,
   title: undefined,
-  titleFontSize: 'medium',
+  titleFontSize: defaultStyles.metricTitleSize,
   width: "auto"
 };
 
