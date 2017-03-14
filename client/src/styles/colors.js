@@ -3,7 +3,7 @@ import * as colors from 'material-ui/styles/colors';
 export const primary = colors.cyan500;
 export const textOnPrimary = colors.white;
 
-export const textPrimary = colors.Black
+export const textPrimary = colors.Black;
 export const textSecondary = colors.lightBlack;
 
 

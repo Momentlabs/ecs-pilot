@@ -57,6 +57,18 @@ describe('mergeStyles', () => {
     }
   }
 
+  describe('with undefined original', () => {
+
+    it('should merge an empty and return empty', ()  => {
+      expect(mergeStyles(undefined, empty)).toEqual(empty);
+    });
+
+    it('should merge an empty and return empty', ()  => {
+      expect(mergeStyles(undefined, simpleTestItem)).toEqual(simpleTestItem);
+    });
+
+  });
+
   describe('with empty original', () => {
 
     it('should merge in an empty return empty', () => {

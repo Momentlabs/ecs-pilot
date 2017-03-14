@@ -18,22 +18,7 @@ const SessionId = ({ accountAlias, accountId, userId, region, totalClusters, tot
       // outline: "2px solid red"
     },
     metricGroup: {
-      marginRight: defaultStyles.largerAbsoluteSpace,
-    },
-    webServicesMetrics: {
-      marginRight: defaultStyles.metricSeparator,
-    },
-    lastWebServicesMetrics: {
-      marginRight: 0,
-    },
-    metric: {
-      width: defaultStyles.metricWidth,
-      marginRight: defaultStyles.metricSeparator,
-    },
-    lastMetric: {
-      width: defaultStyles.metricWidth,
-      // height: "4em",
-      marginRight: 0,
+      marginRight: defaultStyles.largerAbsoluteSpace 
     },
     accountDetail: {
       alignSelf: "flex-start",
@@ -49,13 +34,13 @@ const SessionId = ({ accountAlias, accountId, userId, region, totalClusters, tot
   return (
     <FlexContainer flexWrap="wrap" justifyContent="flex-start" style={styles.container}>
       <MetricGroup title="Amazon Web Services" style={styles.metricGroup} >
-        <FlowedMetric title="AWS Account" value={accountId} valueFontSize="medium" style={styles.webServicesMetrics} />
-        <FlowedMetric title="Region" value={region} valueFontSize="medium" sytle={styles.lastWebServicesMetricst}/>
+        <FlowedMetric title="AWS Account" value={accountId}  width="auto"  />
+        <FlowedMetric title="Region" value={region} width="auto" />
       </MetricGroup>
       <MetricGroup title="Clusters">
-        <FlowedMetric style={styles.metric} value={totalClusters} title="Clusters" />
-        <FlowedMetric style={styles.metric} value={totalInstances} title="Instances" />
-        <FlowedMetric style={styles.lastMetric} value={totalRunningTasks} title="Tasks" />
+        <FlowedMetric value={totalClusters} title="Clusters" />
+        <FlowedMetric value={totalInstances} title="Instances" />
+        <FlowedMetric value={totalRunningTasks} title="Tasks" />
       </MetricGroup>
     </FlexContainer>
   );

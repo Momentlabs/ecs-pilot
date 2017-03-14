@@ -12,7 +12,8 @@ export class KeyGenerator {
 // This isn't perfect, but should allow us to merge a baselevel style object
 // into a single Component Styel
 export function mergeStyles(original, mergeIn, keyToMergeTo) {
-  let newObject = JSON.parse(JSON.stringify(original)); // this should deep copy fine for style objects.
+
+  let newObject = (original === undefined) ? {} : JSON.parse(JSON.stringify(original)); // this should deep copy fine for style objects.
   let mergeTo = (keyToMergeTo && (keyToMergeTo != "")) ? newObject[keyToMergeTo] : newObject;
   for (var k in mergeIn) {
     mergeTo[k] = mergeIn[k];

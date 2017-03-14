@@ -4,18 +4,30 @@ import * as defaultStyles from '../../styles/default';
 import { mergeStyles } from '../../helpers/ui';
 import * as c from '../../styles/colors';
 
-
+function renderMetrics(metrics, separatorWidth) {
+  let i = 1;
+  return React.Children.map(metrics, (c) => {
+    if (i < metrics.length) {
+      i++;
+      return React.cloneElement(c, {
+          style: mergeStyles(c.props.style, {marginRight: separatorWidth})
+      });
+    } else {
+      return React.cloneElement(c);
+    }
+  });
+}
 // TODO: This doesn't play well with a non-grouped Metric in a metric bar.
 // That's probably a MetricBar problem, but ...
 // TODO: Remove the minWidth?
-const MetricGroup = ({ title, children, minWidth, style }) => {
+const MetricGroup = ({ title, children, minWidth, separateMetricWidth, style }) => {
 
   const separatorWidth = defaultStyles.metricSeparator;
   const styles = {
     container: {
       height: 'auto',
       display: 'flex',
-      marginRight: separatorWidth,
+      // marginRight: separatorWidth,
       flexFlow: "column nowrap",
       justifyContent: "stretch",
       // outline: "1px solid green"
@@ -51,20 +63,20 @@ const MetricGroup = ({ title, children, minWidth, style }) => {
   };
 
   const mergedStyles = mergeStyles(styles, style, "container");
-
+  // console.log("MetricGroup:render()", "children:", children);
   return (
     <div style={mergedStyles.container}>
       {title ?  <div style={mergedStyles.banner}><div style={mergedStyles.title}>{title}</div></div> : ""}
-      <div style={mergedStyles.metrics}>{children}</div>
+      <div style={mergedStyles.metrics}>{renderMetrics(children, separateMetricWidth)}</div>
     </div>
   );
 };
-
 
 MetricGroup.propTypes = {
   title: PropTypes.string,
   style: PropTypes.object,
   minWidth: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  separateMetricWidth: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   banner: PropTypes.bool,
   children: PropTypes.node
 };
@@ -72,6 +84,7 @@ MetricGroup.propTypes = {
 MetricGroup.defaultProps = {
   style: {},
   minWidth: "auto",
+  separateMetricWidth: defaultStyles.smallAbsoluteSpace,
   title: undefined,
 };
 

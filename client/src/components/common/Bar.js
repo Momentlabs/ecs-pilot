@@ -40,7 +40,7 @@ export default class Bar extends React.Component {
 
   componentWillMount() {
     this.setState({
-      expandIcon: this.expandIcon(this.state.expanded)
+      expandIcon: this.expandIcon(this.state.expanded, this.handleExpand)
     });
   };
 
@@ -51,8 +51,11 @@ export default class Bar extends React.Component {
 
     event.preventDefault();
 
+    console.log("Bar:handleExpand()" ,"onExpandChange:", onExpandChange);
+
     const newExpanded = !expanded;
     if (onExpandChange) {
+      console.log("Calling onExpandChange", "onExpandChange:", onExpandChange);
       onExpandChange(newExpanded);
     }
 
@@ -97,7 +100,7 @@ export default class Bar extends React.Component {
         onClick={onSelect}
         style={mergedStyles.container} 
       >
-        <FlexContainer flexDirection="column" justifyContent="space-between" onClick={this.handleExpand} style={styles.childContainer}  >
+        <FlexContainer flexDirection="column" justifyContent="space-between" style={styles.childContainer}  >
           <TitleBox title={title} subtitle={subtitle} />
           {showExpandableButton ? expandIcon : undefined}
         </FlexContainer>

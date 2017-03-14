@@ -5,22 +5,32 @@ import * as defaultStyles from '../../styles/default';
 import { mergeStyles } from '../../helpers/ui';
 import * as c from '../../styles/colors';
 
+const LongStringLength = 4;
+function longString(value) {
+  return ((typeof(value) === "string") && (value.length > LongStringLength)) ? true : false;
+}
 
-// Since this component is simple and static, there's no parent component for it.
+function fontSizeOfValue(value) {
+  return longString(value) ? defaultStyles.longMetricFontSize : defaultStyles.metricFontSize;
+}
+
+function widthFromValue(value) {
+  return longString(value) ? "auto" : defaultStyles.metricWidth;
+}
+
 const FlowedMetric = (props) => {
   // console.log("FlowedMetric#render()", "props:", props);
   const { title, value, defaultValue, valueFontSize, titleFontSize, width, style } = props;
 
+  const vfs = (valueFontSize === undefined) ? fontSizeOfValue(value) : valueFontSize;
+  const mWidth = (width === undefined) ? widthFromValue(value) : width;
+
   const styles = {
     metricBox: {
-      width: width,
-      // marginRight: "1em",
+      width: mWidth,
       padding: defaultStyles.smallAbsoluteSpace,
       backgroundColor: c.metricBackground,
-      // display: "WebkitBox",
-      // display: "WebkitInlineFlex", // eslint-disable-line no-dupe-keys
       display: 'inline-flex',
-      "WebkitFlexFlow": "row wrap",
       flexDirection: "column",
       justifyContent: 'space-between',
       alignItems: "center",
@@ -39,7 +49,7 @@ const FlowedMetric = (props) => {
       marginTop: defaultStyles.xSmallRelativeSpace,
       alignSelf: "center",
 
-      fontSize: valueFontSize,
+      fontSize: vfs,
       textAlign: "center",
 
       marginBottom: defaultStyles.smallRelativeSpace,
@@ -82,10 +92,10 @@ FlowedMetric.defaultProps = {
   style: {},
   defaultValue: undefined,
   value: undefined,
-  valueFontSize: defaultStyles.metricFontSize,
+  valueFontSize: undefined,
   title: undefined,
   titleFontSize: defaultStyles.metricTitleSize,
-  width: "auto"
+  width: undefined
 };
 
 FlowedMetric.propTypes = {

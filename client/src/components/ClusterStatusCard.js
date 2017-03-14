@@ -20,15 +20,18 @@ const ClusterStatusCard = ({cluster, instances, deepTasks}) => {
       marginBottom: defaultStyles.primaryAbsoluteSpace,
       // outline: "1px solid black"
     },
-    metric: {
-      width: defaultStyles.metricWidth,
-      height: 77,
+    group: {
       marginRight: defaultStyles.metricSeparator,
     },
-    lastMetric: {
-      width: defaultStyles.metricWidth,
+    metric: {
+      // width: defaultStyles.metricWidth,
       height: 77,
-      marginRight: 0,
+      // marginRight: defaultStyles.metricSeparator,
+    },
+    lastMetric: {
+      // width: defaultStyles.metricWidth,
+      height: 77,
+      // marginRight: 0,
     },
     gauge: {
       size: 50,
@@ -49,15 +52,15 @@ const ClusterStatusCard = ({cluster, instances, deepTasks}) => {
 
   return (
       <Bar title={`Cluster: ${cluster.clusterName}`} subtitle={cluster.clusterArn} style={styles.container} >
-        <MetricGroup title="Instance">
+        <MetricGroup title="Instance" style={styles.group} >
           <FlowedMetric title="Instances" value={instances.length} defaultValue={0} style={styles.lastMetric} />
         </MetricGroup>
-        <MetricGroup title="Task">
+        <MetricGroup title="Task" style={styles.group} >
           <FlowedMetric title="Tasks" value={deepTasks.length} defaultValue={0} style={styles.metric} /> 
           <FlowedMetric title="Running" value={cluster.runningTasksCount} defaultValue={0} style={styles.metric} /> 
           <FlowedMetric title="Pending" value={pendingTasks} defaultValue={0} style={styles.lastMetric} /> 
         </MetricGroup>
-        <MetricGroup title="Container">
+        <MetricGroup title="Container" style={styles.group} >
           <FlowedMetric title="Containers" value={totalContainers(deepTasks)} defaultValue={0} style={styles.metric} /> 
           <FlowedMetric title="Running" value={runningContainers(deepTasks)} defaultValue={0} style={styles.lastMetric} /> 
         </MetricGroup>

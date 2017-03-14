@@ -13,9 +13,12 @@ import { shortArn } from '../helpers/aws';
 
 import Card from 'material-ui/Card';
 import Bar from './common/Bar';
+import FlexContainer from './common/FlexContainer';
 import MetricGroup from './common/MetricGroup'
 import FlowedMetric from './common/FlowedMetric';
 import GuageRechart from './common/GuageRechart'; // TODO: OH FOR GODS SAKE RENAME THIS.
+import EC2NetworkDetail from './EC2NetworkDetail';
+import ContainerInstanceDetail from './ContainerInstanceDetail';
 
 
 export default class InstanceBar extends React.Component {
@@ -61,13 +64,16 @@ export default class InstanceBar extends React.Component {
         boxShadow: "unset",
       },
       bar: {
-        marginBottom: defaultStyles.primaryAbsoluteSpace
+        marginBottom: defaultStyles.primaryAbsoluteSpace,
+        // boxShadow: (expanded) ? defaultStyles.shadow : undefined
       },
-      metric: {
-        marginRight: defaultStyles.metricSeparator,
-      }, 
+      group: {
+        marginRight: defaultStyles.smallAbsoluteSpace,
+        // boxShadow: (expanded) ? defaultStyles.shadow : undefined
+      },
       expansionContainer: {
-
+        boxShadow: "unset",
+        marginBottom: defaultStyles.largerAbsoluteSpace
       },
     };
     const mergedStyles = mergeStyles(styles, style, "container");
@@ -79,27 +85,22 @@ export default class InstanceBar extends React.Component {
           title={ec2.privateIpAddress}
           subtitle={`Public IP: ${ec2.ipAddress}`}
           style={styles.bar}
-          onExpandedChange={this.handleExpanded}
+          onExpandChange={this.handleExpanded}
           showExpandableButton
         >
-          <MetricGroup title="EC2 Container Instance"  key={k.nextKey()} >
-            <FlowedMetric title="Tasks" value={ci.runningTasksCount} 
-              style={mergedStyles.metric} 
-              key={k.nextKey()} 
-            />
+          <MetricGroup title="EC2 Container Instance"  style={styles.group} key={k.nextKey()} >
+            <FlowedMetric title="Tasks" value={ci.runningTasksCount} />
             <FlowedMetric title="Uptime" value={moment.unix(ec2.launchTime).fromNow(true)} 
-              style={mergedStyles.metric} 
+              width="auto"
               valueFontSize={defaultStyles.longMetricFontSize}
-              key={k.nextKey()}
             />
             <FlowedMetric title="Instance" value={ec2.instanceType} 
-              style={mergedStyles.metric} 
+              width="auto"
               valueFontSize={defaultStyles.longMetricFontSize}
-              key={k.nextKey()}
             />
             <FlowedMetric title="Zone" value={ec2.placement.availabilityZone}  
+              width="auto"
               valueFontSize={defaultStyles.longMetricFontSize}
-              key={k.nextKey()}
             />
           </MetricGroup>
           <MetricGroup title="Resource Reservation"key={k.nextKey()}>
@@ -108,7 +109,10 @@ export default class InstanceBar extends React.Component {
           </MetricGroup>
         </Bar>
         <Card expandable style={mergedStyles.expansionContainer}>
-          
+          <FlexContainer flexWrap="wrap" justifyContent="flex-start" alignItems="stretch">
+            <ContainerInstanceDetail instance={instance} />
+            <EC2NetworkDetail instance={instance} />
+          </FlexContainer>
         </Card>
       </Card>
     );
