@@ -29,10 +29,10 @@ const ContainerInstanceResourceCard = ({ instance, width }, context) => {
     ],
   };
   const tcpPorts = remainingTcpPortsValue(ci).map( (p) => {return {value: p, remain: registeredTcpPortsValue(ci).includes(p)}} );
-  const tcpData = tcpPorts.map( (p) => ["tcp-port", p.value, (p.remaing) ? p.value : "-", (p.remaining) ? "-" : p.value]);
+  const tcpData = tcpPorts.map( (p) => ["tcp-port", p.value, (p.remaining) ? p.value : "-", (p.remaining) ? "-" : p.value]);
   resourceData.rows = resourceData.rows.concat(tcpData);
   const udpPorts = remainingUdpPortsValue(ci).map( (p) => {return {value: p, remain: registeredUdpPortsValue(ci).includes(p)}} );
-  let udpData = udpPorts.map( (p) => ["udp-port", p.value, (p.remaing) ? p.value : "-", (p.remaining) ? "-" : p.value]);
+  let udpData = udpPorts.map( (p) => ["udp-port", p.value, (p.remaining) ? p.value : "-", (p.remaining) ? "-" : p.value]);
   if (udpData.length <= 0) { udpData = [["<no-udp>"]];}
   resourceData.rows = resourceData.rows.concat(udpData);
 

@@ -19,6 +19,8 @@ import FlowedMetric from './common/FlowedMetric';
 import GuageRechart from './common/GuageRechart'; // TODO: OH FOR GODS SAKE RENAME THIS.
 import EC2NetworkDetail from './EC2NetworkDetail';
 import ContainerInstanceDetail from './ContainerInstanceDetail';
+import InstanceComputeResourceDetail from './InstanceComputeResourceDetail';
+import InstanceNetworkResourceDetail from './InstanceNetworkResourceDetail';
 
 
 export default class InstanceBar extends React.Component {
@@ -67,10 +69,6 @@ export default class InstanceBar extends React.Component {
         marginBottom: defaultStyles.primaryAbsoluteSpace,
         // boxShadow: (expanded) ? defaultStyles.shadow : undefined
       },
-      group: {
-        marginRight: defaultStyles.smallAbsoluteSpace,
-        // boxShadow: (expanded) ? defaultStyles.shadow : undefined
-      },
       expansionContainer: {
         boxShadow: "unset",
         marginBottom: defaultStyles.largerAbsoluteSpace
@@ -88,20 +86,11 @@ export default class InstanceBar extends React.Component {
           onExpandChange={this.handleExpanded}
           showExpandableButton
         >
-          <MetricGroup title="EC2 Container Instance"  style={styles.group} key={k.nextKey()} >
+          <MetricGroup title="EC2 Container Instance"  key={k.nextKey()} >
             <FlowedMetric title="Tasks" value={ci.runningTasksCount} />
-            <FlowedMetric title="Uptime" value={moment.unix(ec2.launchTime).fromNow(true)} 
-              width="auto"
-              valueFontSize={defaultStyles.longMetricFontSize}
-            />
-            <FlowedMetric title="Instance" value={ec2.instanceType} 
-              width="auto"
-              valueFontSize={defaultStyles.longMetricFontSize}
-            />
-            <FlowedMetric title="Zone" value={ec2.placement.availabilityZone}  
-              width="auto"
-              valueFontSize={defaultStyles.longMetricFontSize}
-            />
+            <FlowedMetric title="Uptime" value={moment.unix(ec2.launchTime).fromNow(true)} width="auto" />
+            <FlowedMetric title="Instance" value={ec2.instanceType} width="auto" />
+            <FlowedMetric title="Zone" value={ec2.placement.availabilityZone} width="auto" />
           </MetricGroup>
           <MetricGroup title="Resource Reservation"key={k.nextKey()}>
             <GuageRechart title="CPU" amount={usedCpuValue(ci)} total={registeredCpuValue(ci)} key={k.nextKey()}/>
@@ -112,6 +101,8 @@ export default class InstanceBar extends React.Component {
           <FlexContainer flexWrap="wrap" justifyContent="flex-start" alignItems="stretch">
             <ContainerInstanceDetail instance={instance} />
             <EC2NetworkDetail instance={instance} />
+            <InstanceComputeResourceDetail instance={instance} />
+            <InstanceNetworkResourceDetail instance={instance} />
           </FlexContainer>
         </Card>
       </Card>

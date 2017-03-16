@@ -63,7 +63,7 @@ export default class InstancesCard extends Component {
     this.renderInstanceDetals = this.renderInstanceDetails.bind(this);
     this.renderDetailCards = this.renderDetailCards.bind(this);
     this.renderGauges = this.renderGauges.bind(this);
-    this.renderResources = this.renderResources.bind(this);
+    // this.renderResources = this.renderResources.bind(this);
     this.renderInstanceDetails = this.renderInstanceDetails.bind(this);
     this.renderSecurityGroup = this.renderSecurityGroup.bind(this);
   } 
@@ -161,32 +161,32 @@ export default class InstancesCard extends Component {
   }
 
 
-  renderResources(tcp, udp, cpu, memory) {
-    let items = [];
+  // renderResources(tcp, udp, cpu, memory) {
+  //   let items = [];
 
-    // CPU
-    items.push(this.itemHeaderPair("CPU", cpu));
+  //   // CPU
+  //   items.push(this.itemHeaderPair("CPU", cpu));
 
-    // Memory
-    items.push(this.itemHeaderPair("Memory", memory));
+  //   // Memory
+  //   items.push(this.itemHeaderPair("Memory", memory));
 
-    // Ports
-    if (tcp.length <= 0) {
-      items.push(this.itemHeader("No TCP ports exposed"));
-    } else {
-      items.push(this.itemHeaderPair("TCP", tcp[0]));
-      tcp.slice(1).map((port) => items.push(this.itemResource(port)));
-    }
+  //   // Ports
+  //   if (tcp.length <= 0) {
+  //     items.push(this.itemHeader("No TCP ports exposed"));
+  //   } else {
+  //     items.push(this.itemHeaderPair("TCP", tcp[0]));
+  //     tcp.slice(1).map((port) => items.push(this.itemResource(port)));
+  //   }
 
-    if (udp.length <= 0) {
-      items.push(this.itemHeader("No UDP ports exposed"));
-    } else {
-      items.push(this.itemHeaderPair("UDP", udp[0]));
-      udp.slice(1).map((port) => items.push(this.itemResource(port)));
-    }
+  //   if (udp.length <= 0) {
+  //     items.push(this.itemHeader("No UDP ports exposed"));
+  //   } else {
+  //     items.push(this.itemHeaderPair("UDP", udp[0]));
+  //     udp.slice(1).map((port) => items.push(this.itemResource(port)));
+  //   }
 
-    return(items);
-  }
+  //   return(items);
+  // }
 
   renderNetworkItems(ci, ec2) {
     let kg = new KeyGenerator();

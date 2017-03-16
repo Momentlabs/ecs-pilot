@@ -2,6 +2,7 @@ import React, { PropTypes } from 'react';
 
 import { mergeStyles } from '../../helpers/ui';
 import FlexContainer from './FlexContainer';
+import MetricGroup from './MetricGroup';
 import TitleBox from './TitleBox';
 import KeyboardArrowUp from 'material-ui/svg-icons/hardware/keyboard-arrow-up';
 import KeyboardArrowDown from 'material-ui/svg-icons/hardware/keyboard-arrow-down';
@@ -98,16 +99,16 @@ export default class Bar extends React.Component {
         justifyContent="space-between" 
         flexWrap="wrap" 
         onClick={onSelect}
-        style={mergedStyles.container} 
+        style={mergedStyles.container}
       >
         <FlexContainer flexDirection="column" justifyContent="space-between" style={styles.childContainer}  >
           <TitleBox title={title} subtitle={subtitle} />
           {showExpandableButton ? expandIcon : undefined}
         </FlexContainer>
-        <FlexContainer>
+        <MetricGroup>
           {children}
-        </FlexContainer>
-      </FlexContainer>
+        </MetricGroup>
+       </FlexContainer>
     );
   }
 }

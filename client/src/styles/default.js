@@ -13,7 +13,7 @@ export const columnWidth = "6em";             // TODO: This should be an absolut
 
 export const titleFontSize = "x-large";
 
-export const metricFontSize = "xx-large";
+export const metricFontSize = "large";
 export const longMetricFontSize = "large";
 export const metricTitleSize = "medium";
 

@@ -1,12 +1,17 @@
 import React, {PropTypes } from 'react';
 
+import * as defaultStyles from '../../styles/default';
 import { mergeStyles } from '../../helpers/ui';
+import { separateChildrenRow } from '../../helpers/react';
+
+
 
 // Since this component is simple and static, there's no parent component for it.
 const FlexContainer = (props) => {
   // console.log("FlexContainer:render()", "props:", props);
   const {
-    children, width,  justifyContent, alignItems, alignContent, 
+    children, width,  separateWidth,
+    justifyContent, alignItems, alignContent, 
     flexDirection, flexWrap, style, onClick
   } = props;
 
@@ -34,13 +39,14 @@ const FlexContainer = (props) => {
 
   return (
     <div style={mergedStyles.container} onClick={onClick}>
-      {children}
+      {separateChildrenRow(children, separateWidth)}
     </div>
   );
 };
 
 FlexContainer.defaultProps = {
   width: "auto",
+  separateWidth: defaultStyles.primaryAbsoluteSpace,
   style: {},
   flexDirection: "row",
   flexWrap: "nowrap",
@@ -52,6 +58,7 @@ FlexContainer.defaultProps = {
 FlexContainer.propTypes = {
   onClick: PropTypes.func,
   width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  separateWidth: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   style: PropTypes.object,
   flexDirection: PropTypes.string,
   flexWrap: PropTypes.string,

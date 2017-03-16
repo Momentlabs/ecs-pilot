@@ -2,21 +2,9 @@ import React, { PropTypes } from 'react';
 
 import * as defaultStyles from '../../styles/default';
 import { mergeStyles } from '../../helpers/ui';
+import { separateChildrenRow } from '../../helpers/react';
 import * as c from '../../styles/colors';
 
-function renderMetrics(metrics, separatorWidth) {
-  let i = 1;
-  return React.Children.map(metrics, (c) => {
-    if (i < metrics.length) {
-      i++;
-      return React.cloneElement(c, {
-          style: mergeStyles(c.props.style, {marginRight: separatorWidth})
-      });
-    } else {
-      return React.cloneElement(c);
-    }
-  });
-}
 // TODO: This doesn't play well with a non-grouped Metric in a metric bar.
 // That's probably a MetricBar problem, but ...
 // TODO: Remove the minWidth?
@@ -64,10 +52,11 @@ const MetricGroup = ({ title, children, minWidth, separateMetricWidth, style }) 
 
   const mergedStyles = mergeStyles(styles, style, "container");
   // console.log("MetricGroup:render()", "children:", children);
+  if (children.length === 0) { return <div /> }
   return (
     <div style={mergedStyles.container}>
       {title ?  <div style={mergedStyles.banner}><div style={mergedStyles.title}>{title}</div></div> : ""}
-      <div style={mergedStyles.metrics}>{renderMetrics(children, separateMetricWidth)}</div>
+      <div style={mergedStyles.metrics}>{separateChildrenRow(children, separateMetricWidth)}</div>
     </div>
   );
 };

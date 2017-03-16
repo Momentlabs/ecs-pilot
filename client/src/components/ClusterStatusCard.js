@@ -20,19 +20,6 @@ const ClusterStatusCard = ({cluster, instances, deepTasks}) => {
       marginBottom: defaultStyles.primaryAbsoluteSpace,
       // outline: "1px solid black"
     },
-    group: {
-      marginRight: defaultStyles.metricSeparator,
-    },
-    metric: {
-      // width: defaultStyles.metricWidth,
-      height: 77,
-      // marginRight: defaultStyles.metricSeparator,
-    },
-    lastMetric: {
-      // width: defaultStyles.metricWidth,
-      height: 77,
-      // marginRight: 0,
-    },
     gauge: {
       size: 50,
     }
@@ -52,21 +39,21 @@ const ClusterStatusCard = ({cluster, instances, deepTasks}) => {
 
   return (
       <Bar title={`Cluster: ${cluster.clusterName}`} subtitle={cluster.clusterArn} style={styles.container} >
-        <MetricGroup title="Instance" style={styles.group} >
-          <FlowedMetric title="Instances" value={instances.length} defaultValue={0} style={styles.lastMetric} />
+        <MetricGroup title="Instance">
+          <FlowedMetric title="Instances" value={instances.length} defaultValue={0}  />
         </MetricGroup>
-        <MetricGroup title="Task" style={styles.group} >
-          <FlowedMetric title="Tasks" value={deepTasks.length} defaultValue={0} style={styles.metric} /> 
-          <FlowedMetric title="Running" value={cluster.runningTasksCount} defaultValue={0} style={styles.metric} /> 
-          <FlowedMetric title="Pending" value={pendingTasks} defaultValue={0} style={styles.lastMetric} /> 
+        <MetricGroup title="Task">
+          <FlowedMetric title="Tasks" value={deepTasks.length} defaultValue={0} /> 
+          <FlowedMetric title="Running" value={cluster.runningTasksCount} defaultValue={0}  /> 
+          <FlowedMetric title="Pending" value={pendingTasks} defaultValue={0}  /> 
         </MetricGroup>
-        <MetricGroup title="Container" style={styles.group} >
-          <FlowedMetric title="Containers" value={totalContainers(deepTasks)} defaultValue={0} style={styles.metric} /> 
-          <FlowedMetric title="Running" value={runningContainers(deepTasks)} defaultValue={0} style={styles.lastMetric} /> 
+        <MetricGroup title="Container">
+          <FlowedMetric title="Containers" value={totalContainers(deepTasks)} defaultValue={0}  /> 
+          <FlowedMetric title="Running" value={runningContainers(deepTasks)} defaultValue={0}  /> 
         </MetricGroup>
         <MetricGroup title="Resource Reservation">
-          <GuageRechart title="CPU" total={totalCPU} amount={usedCPU} size={styles.gauge.size}/>
-          <GuageRechart title="Memory" total={totalMem} amount={usedMem} size={styles.gauge.size} />
+          <GuageRechart title="CPU" total={totalCPU} amount={usedCPU} />
+          <GuageRechart title="Memory" total={totalMem} amount={usedMem}  />
         </MetricGroup>
       </Bar>
   );
