@@ -21,6 +21,7 @@ import EC2NetworkDetail from './EC2NetworkDetail';
 import ContainerInstanceDetail from './ContainerInstanceDetail';
 import InstanceComputeResourceDetail from './InstanceComputeResourceDetail';
 import InstanceNetworkResourceDetail from './InstanceNetworkResourceDetail';
+import SecurityGroupDetails from './SecurityGroupDetails';
 
 
 export default class InstanceBar extends React.Component {
@@ -58,6 +59,7 @@ export default class InstanceBar extends React.Component {
     const { expanded } = this.state;
     const { clusterName, instance, securityGroups, style } = this.props;
 
+    console.log("InstanceBar:render()", "clusterName", clusterName, "instance:", instance, "securityGroups:", securityGroups);
     const ci = instance.containerInstance;
     const ec2 = instance.ec2Instance;
 
@@ -103,6 +105,7 @@ export default class InstanceBar extends React.Component {
             <EC2NetworkDetail instance={instance} />
             <InstanceComputeResourceDetail instance={instance} />
             <InstanceNetworkResourceDetail instance={instance} />
+              {securityGroups.map( (sg) => <SecurityGroupDetails securityGroup={sg}/>)}
           </FlexContainer>
         </Card>
       </Card>

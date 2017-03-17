@@ -21,17 +21,17 @@ const InstanceNetworkResourceDetail = ({ instance, style }, context) => {
       // outline: "0px solid black"
     }
   };
-  const mergedStyles = mergeStyles(styles, style);
+  const mergedStyles = mergeStyles(styles, style, "container");
 
-  const tcp = remainingTcpPortsValue(ci).map( (p) => (registeredTcpPortsValue(ci).includes(p)) ? p + "*" : p);
-  const udp = remainingUdpPortsValue(ci).map( (p) => (registeredUdpPortsValue(ci).includes(p)) ? p + "*" : p);
+  const tcp = remainingTcpPortsValue(ci).map( (p) => {return {t: ((registeredTcpPortsValue(ci).includes(p)) ? "in use" : "avail"), v: p}; });
+  const udp = remainingUdpPortsValue(ci).map( (p) => {return {t: ((registeredUdpPortsValue(ci).includes(p)) ? "in use" : "avail"), v: p}; });
   return (
-    <MetricGroup title="Instance Network Resources" mergedStyles={mergedStyles.container}>
+    <MetricGroup title="Instance Network Resources" style={mergedStyles.container}>
       <MetricGroup title="TCP Ports">
-        {tcp.map( (p) => <FlowedMetric title="port" value={p} />)} 
+        {tcp.map( (p) => <FlowedMetric title={p.t} value={p.v} />)} 
       </MetricGroup>
       <MetricGroup title="UDP Ports">
-        {udp.map( (p) => <FlowedMetric title="port" value={p} />)}
+        {udp.map( (p) => <FlowedMetric title={p.t} value={p.v} />)}
       </MetricGroup>
     </MetricGroup>
   );

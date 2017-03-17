@@ -12,26 +12,26 @@ function lastChild(children) {
   // console.log("lastChild()", "children", children, "Children#", React.Children.count(children));
 
   const cArray = React.Children.toArray(children);
-  //  status[i] is <true> if the ith Child has children, and false if it does not.
+  //  status[i] is <true> if the ith Child has children, and <false> if it does not.
   const status = cArray.map((c) => {
     if ((c === undefined) || React.Children.count(c.props.children) === 0)  {
-      // console.log("empty or undefined:", c);
       return false;
     } else {
-      // console.log("has children", c);
       return true;
     }
   });
   // console.log('Status', status);
-  const full = !status.includes(false); // true if all have children false otherwise;
-  const count = React.Children.count(children); // return the count if they're all full.
-  if (full) return count;
+  const count = React.Children.count(children); 
+  if (status.every((e) => e === true)) return count; // if they've all got children
+  if (status.every((e) => e === false)) return count; // If none of them have children (all leaf nodes).
+
+  // Start at the end and look for the first one with a child.
   let last = count;
-  while(last > 0) { // Find the first full entry and return it.
+  while(last > 0) {
     if(status[last-1]) return last;
     last--;
   }
-  return count; // Return the count if they're all empty (if they're all leaf nodes.)
+  return count; // We shouldn't get here, but if we did, they'd all be leaf nodes (no children).
 }
 
 export function separateChildren(children, separatorWidth, sepDir) {
@@ -47,7 +47,7 @@ export function separateChildren(children, separatorWidth, sepDir) {
       // console.log("Not last:", "i:", i);
       i++;
       return React.cloneElement(c, {
-        style: mergeStyles(c.props.sytle, sepStyle)
+        style: mergeStyles(c.props.style, sepStyle)
       });
     } else {
       // console.log("last", "i:", i)

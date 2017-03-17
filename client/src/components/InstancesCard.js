@@ -5,6 +5,7 @@ import moment from 'moment';
 import { shortArn } from '../helpers/aws';
 import { KeyGenerator } from '../helpers/ui';
 import { uptimeString } from '../helpers/time';
+import * as defaultStyles from '../styles/default';
 import * as c from '../styles/colors';
 
 import {  usedCpuValue, usedMemoryValue, 
@@ -332,10 +333,10 @@ export default class InstancesCard extends Component {
     // console.log("InstancesCard:render()", "state:", this.state, "props:", this.props);
     // const {securityGroups } = this.pr;
     const { instances, securityGroups, clusterName } = this.props;
-    return (
-      <Paper style={{boxShadow: "unset"}}>
-        {instances.map( (instance) => this.renderInstanceBar(instance, securityGroups) )}
-        {instances.map( (instance) => <InstanceBar instance={instance} clusterName={clusterName} />)}
+// {/*}        {instances.map( (instance) => this.renderInstanceBar(instance, securityGroups) )} {*/}
+  return (
+    <Paper style={{boxShadow: 'unset'}}>
+        {instances.map( (instance) => <InstanceBar instance={instance} clusterName={clusterName} securityGroups={securityGroups} />)}
      </Paper>
      );
   }

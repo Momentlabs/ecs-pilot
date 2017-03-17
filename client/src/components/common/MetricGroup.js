@@ -52,7 +52,9 @@ const MetricGroup = ({ title, children, minWidth, separateMetricWidth, style }) 
 
   const mergedStyles = mergeStyles(styles, style, "container");
   // console.log("MetricGroup:render()", "children:", children);
-  if (children.length === 0) { return <div /> }
+  if (React.Children.count(children) === 0) { 
+    return <div /> 
+  }
   return (
     <div style={mergedStyles.container}>
       {title ?  <div style={mergedStyles.banner}><div style={mergedStyles.title}>{title}</div></div> : ""}

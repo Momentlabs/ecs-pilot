@@ -22,10 +22,10 @@ const InstanceComputeResourceDetail = ({ instance, style }, context) => {
       // outline: "0px solid black"
     }
   };
-  const mergedStyles = mergeStyles(styles, style);
+  const mergedStyles = mergeStyles(styles, style, "container");
 
   return (
-    <MetricGroup title="Instance Compute Resources" mergedStyles={mergedStyles.container}>
+    <MetricGroup title="Instance Compute Resources" style={mergedStyles.container}>
       <MetricGroup title="CPU">
         <FlowedMetric title="Registered" value={registeredCpuValue(ci)} />
         <FlowedMetric title="Remaining" value={remainingCpuValue(ci)} />

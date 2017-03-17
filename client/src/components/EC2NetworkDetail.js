@@ -9,7 +9,7 @@ import FlowedMetric from './common/FlowedMetric';
 
 const EC2NetworkDetail = ({ instance, style }, context) => {
 
-  console.log("EC2NetworkDEtails", "style:", style);
+  // console.log("EC2NetworkDEtails", "style:", style);
   const { ec2Instance } = instance;
   const styles = {
     container: {
@@ -17,15 +17,12 @@ const EC2NetworkDetail = ({ instance, style }, context) => {
       // boxShadow: defaultStyles.shadow,
       // outline: "0px solid black"
     },
-    group: {
-
-    }
   };
   const mergedStyles = mergeStyles(styles, style, "container");
 
   return (
     <MetricGroup title="Network" style={mergedStyles.container}>
-      <MetricGroup title="Public Network"  style={mergedStyles.group} >
+      <MetricGroup title="Public Network" >
         <FlowedMetric title="Public IP" value={ec2Instance.ipAddress} />
       </MetricGroup>
       <MetricGroup title="Virtual Private Network" >
