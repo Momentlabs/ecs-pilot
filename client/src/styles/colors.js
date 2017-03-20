@@ -9,6 +9,8 @@ export const textSecondary = colors.lightBlack;
 
 export const title = textPrimary;
 export const subtitle = textSecondary;
+export const altTitle = textOnPrimary;
+export const altSubtitle = colors.grey50;
 
 export const shadow = textSecondary;
 

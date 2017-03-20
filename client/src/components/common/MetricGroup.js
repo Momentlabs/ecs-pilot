@@ -8,7 +8,7 @@ import * as c from '../../styles/colors';
 // TODO: This doesn't play well with a non-grouped Metric in a metric bar.
 // That's probably a MetricBar problem, but ...
 // TODO: Remove the minWidth?
-const MetricGroup = ({ title, children, minWidth, separateMetricWidth, style }) => {
+const MetricGroup = ({ title, children, minWidth, separateMetricWidth, tabTitle, style }) => {
 
   const separatorWidth = defaultStyles.metricSeparator;
   const styles = {
@@ -40,7 +40,8 @@ const MetricGroup = ({ title, children, minWidth, separateMetricWidth, style }) 
       // WebkitFlexFlow: flexFlow,
       flexFlow: "row nowrap",
       // WebkitJustifyContent: justifyContent,
-      justifyContent: "space-between",
+      // justifyContent: "space-between",
+      justifyContent: "stretch",
       alignItems: "stretch",
       // WebkitAlignItems: alignItems,
       // alignItems: "stretch",
@@ -50,7 +51,9 @@ const MetricGroup = ({ title, children, minWidth, separateMetricWidth, style }) 
     }
   };
 
-  const mergedStyles = mergeStyles(styles, style, "container");
+  let mergedStyles = mergeStyles(styles, style, "container");
+  if (tabTitle) mergedStyles = mergeStyles(mergedStyles, {alignSelf: "flexStart"}, "title");
+
   // console.log("MetricGroup:render()", "children:", children);
   if (React.Children.count(children) === 0) { 
     return <div /> 
@@ -65,6 +68,7 @@ const MetricGroup = ({ title, children, minWidth, separateMetricWidth, style }) 
 
 MetricGroup.propTypes = {
   title: PropTypes.string,
+  tabTitle: PropTypes.bool,
   style: PropTypes.object,
   minWidth: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   separateMetricWidth: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
@@ -73,6 +77,7 @@ MetricGroup.propTypes = {
 };
 
 MetricGroup.defaultProps = {
+  tabTitle: false,
   style: {},
   minWidth: "auto",
   separateMetricWidth: defaultStyles.smallAbsoluteSpace,

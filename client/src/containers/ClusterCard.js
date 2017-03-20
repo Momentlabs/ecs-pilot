@@ -3,9 +3,9 @@ import { connect } from 'react-redux';
 
 import { securityGroupIds } from '../ecs/instance';
 
-import Tasks from '../components/Tasks';
-import InstancesCard from '../components/InstancesCard';
 import ClusterStatusCard from '../components/ClusterStatusCard';
+import Instances from '../components/Instances';
+import Tasks from '../components/Tasks';
 
 import { Card } from 'material-ui/Card';
 
@@ -31,7 +31,7 @@ class ClusterCard extends React.Component {
     return (
       <Card style={{boxShadow: "unset"}}>
         <ClusterStatusCard  cluster={cluster} instances={instances} deepTasks={deepTasks} />
-        <InstancesCard instances={instances} securityGroups={securityGroups} clusterName={cluster.clusterName}/>
+        <Instances instances={instances} securityGroups={securityGroups} clusterName={cluster.clusterName} />
         <Tasks deepTasks={deepTasks} style={{dropShadow: "unset"}} clusterName={cluster.clusterName} />
       </Card>
     );

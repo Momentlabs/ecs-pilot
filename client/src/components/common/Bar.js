@@ -1,6 +1,8 @@
 import React, { PropTypes } from 'react';
 
-import { mergeStyles } from '../../helpers/ui';
+import * as defaultStyles from '../../styles/default';
+import { mergeStyles, columnWidth } from '../../helpers/ui';
+
 import FlexContainer from './FlexContainer';
 import MetricGroup from './MetricGroup';
 import TitleBox from './TitleBox';
@@ -89,6 +91,7 @@ export default class Bar extends React.Component {
         // outline: "2px solid red"
       },
       childContainer: {
+        // width: columnWidth(3),
         // outline: "1px dotted black"
       }
     };

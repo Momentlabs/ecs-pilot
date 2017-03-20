@@ -2,31 +2,23 @@ import React, {PropTypes } from 'react';
 import { KeyGenerator } from '../../helpers/ui';
 import * as c from '../../styles/colors';
 
+import * as defaultStyles from '../../styles/default';
+import { mergeStyles } from '../../helpers/ui';
+
 let kg = new KeyGenerator();
 
-const cellStyles = {
-  header: {
-    paddingLeft: ".5em",
-  },
-  value: {
-    // paddingTop: "2em",
-    paddingLeft: ".5em",
-    // outline: "1px solid black"
-  }
+const renderCell = (e, style) => {
+  return (<td style={style} key={kg.nextKey()}>{e}</td>);
 };
 
-const renderCell = (e, styles) => {
-  return (<td style={styles} key={kg.nextKey()}>{e}</td>);
-};
-
-const headerToCell = (e) =>{
+const headerToCell = (e, style) =>{
   const v = (typeof e === "object") ? e.value : e;
-  return renderCell(v, cellStyles.header);
+  return renderCell(v, style);
 };
 
-const valueToCell = (e) => {
+const valueToCell = (e, style) => {
   const v = (typeof e === "object") ? e.value : e;
-  let s = cellStyles.value;
+  let s = style;
   // if (typeof v === 'number') {
   //   s = Object.assign({}, s);
   //   s.textAlign = "right";
@@ -36,8 +28,8 @@ const valueToCell = (e) => {
 
 // {data.rows.map( (r) => <tr key={kg.nextKey()} style={styles.tableRow}>{r.map( (e) => valueToCell(e))}</tr>)}
 
-function renderRow(row, rowStyle) {
-  return  <tr key={kg.nextKey()} style={rowStyle}>{row.map( (e) => valueToCell(e))}</tr>
+function renderRow(row, styles) {
+  return  <tr key={kg.nextKey()} style={styles.tableRow}>{row.map( (e) => valueToCell(e, styles.tableCell) )}</tr>
 }
 
 function renderNoData(message, span) {
@@ -49,33 +41,33 @@ function renderNoData(message, span) {
   );
 }
 
-const SimpleTable = ({ data, caption, missingDataMessage }, context) => {
+const SimpleTable = ({ data, caption, missingDataMessage, style }) => {
   // console.log("SimpleTable:render()", "data:", data, "caption:", caption);
 
-  const tablePadLeft = 16;
-  const tablePadRight = 16;
-  const height = "30em";
+  // const tablePadLeft = 16;
+  // const tablePadRight = 16;
+  // const height = "30em";
 
   const styles = {
-    container: {
-    },
     table: {
-      paddingLeft: tablePadLeft,
-      paddingRight: tablePadRight,
+      // paddingLeft: tablePadLeft,
+      // paddingRight: tablePadRight,
+      padding: defaultStyles.primaryRelativeSpace,
       align: "center",
-      width: "40em",
-      marginBottom: "2em",
+      // width: "40em",
+      // marginBottom: "2em",
+      // backgroundColor: c.metricBackground,
 
-      // Horizonta' Vertical
       borderCollapse: "collapse",
-      // borderSpacing: "0 0em",
+      // h and v
+      // Horizontal Vertical
       tableLayout: "fixed",
       // outline: "1px solid black"
     },
     caption:{
       fontSize: "large",
-      paddingLeft: tablePadLeft,
-      paddingBottom: "1em",
+      // paddingLeft: tablePadLeft,
+      paddingBottom: defaultStyles.primaryAbsoluteSpace,
       textAlign: "left",
     },
     th: {
@@ -88,12 +80,15 @@ const SimpleTable = ({ data, caption, missingDataMessage }, context) => {
     headerRow: {
       // display: "block",
       display: "table-row",
-      // position: "relative",
       background: c.tableHeaderBackground,
       color: c.tableHeaderColor,
       fontWeight: "bold",
-      width: "100%"
+      width: "100%",
       // outline: "1px solid black"
+    },
+    headerCell: {
+      paddingLeft: defaultStyles.smallRelativeSpace,
+      paddingRight: defaultStyles.smallRelativeSpace,
     },
     tb: {
       // display: "block",
@@ -101,40 +96,33 @@ const SimpleTable = ({ data, caption, missingDataMessage }, context) => {
       overflow: "auto",
       width: "100%",
       padding: 0,
-      maxHeight: height,
+      // maxHeight: height,
       // outline: "1px solid blue"
     },
     tableRow: {
-      // marginTop: ".5em",
-      padding: 0,
-      margin: 0,
       // outline: "1px solid black"
+    },
+    tableCell: {
+      padding: defaultStyles.smallRelativeSpace,
     }
   };
+  const mergedStyles = mergeStyles(styles, style, "table");
+
+  console.log("SimpleTable:render()", "mergedStyles:", mergedStyles);
 
   return (
-      <table style={styles.table}>
-        {caption ? <caption style={styles.caption}>{caption}</caption> : ""}
-        <thead style={styles.th}>
-          <tr style={styles.headerRow}>
-            {data.header.map((e) => headerToCell(e))}
+      <table style={mergedStyles.table}>
+        {caption ? <caption style={mergedStyles.caption}>{caption}</caption> : ""}
+        <thead style={mergedStyles.th}>
+          <tr style={mergedStyles.headerRow}>
+            {data.header.map((e) => headerToCell(e, mergedStyles.headerCell))}
           </tr>
         </thead>
-        <tbody style={styles.tb}>
-          {(data.rows.length > 0) ? data.rows.map( (r) => renderRow(r, styles.tableRow)) : renderNoData(missingDataMessage, 4)}
+        <tbody style={mergedStyles.tb}>
+          {(data.rows.length > 0) ? data.rows.map( (r) => renderRow(r, mergedStyles)) : renderNoData(missingDataMessage, 4)}
         </tbody>
       </table>
   );
-};
-
-// SimpleTable.contextTypes = {
-//   muiTheme: PropTypes.object.isRequired
-// };
-
-SimpleTable.defaultProps = {
-  caption: undefined,
-  scroll: false,
-  missingDataMessage: "EmptyTable: No data provided"
 };
 
 SimpleTable.propTypes = {
@@ -142,7 +130,15 @@ SimpleTable.propTypes = {
   title: PropTypes.string,
   data: PropTypes.object.isRequired,
   caption: PropTypes.string,
-  scroll: PropTypes.bool
+  scroll: PropTypes.bool,
+  style: PropTypes.object
+};
+
+SimpleTable.defaultProps = {
+  caption: undefined,
+  scroll: false,
+  missingDataMessage: "EmptyTable: No data provided",
+  style: {}
 };
 
 export default SimpleTable;

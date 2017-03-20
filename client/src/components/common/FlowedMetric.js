@@ -20,7 +20,7 @@ function widthFromValue(value) {
 
 const FlowedMetric = (props) => {
   // console.log("FlowedMetric#render()", "props:", props);
-  const { title, value, defaultValue, valueFontSize, titleFontSize, width, style } = props;
+  const { title, value, defaultValue, valueFontSize, valueStyles, titleFontSize, width, style } = props;
 
   const vfs = (valueFontSize === undefined) ? fontSizeOfValue(value) : valueFontSize;
   const mWidth = (width === undefined) ? widthFromValue(value) : width;
@@ -73,7 +73,8 @@ const FlowedMetric = (props) => {
       // outline: '2px dotted green'
     }
   };
-  const mergedStyles = mergeStyles(styles, style, "metricBox");
+  let mergedStyles = mergeStyles(styles, style, "metricBox");
+  mergedStyles = mergeStyles(mergedStyles, valueStyles, "metricValue");
 
   const v = (value !== undefined) ? value : (defaultValue !== undefined) ? defaultValue : undefined;
   return (
@@ -93,6 +94,7 @@ FlowedMetric.defaultProps = {
   defaultValue: undefined,
   value: undefined,
   valueFontSize: undefined,
+  valueStyles: {},
   title: undefined,
   titleFontSize: defaultStyles.metricTitleSize,
   width: undefined
@@ -103,6 +105,7 @@ FlowedMetric.propTypes = {
   defaultValue: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   style: PropTypes.object,
   valueFontSize: PropTypes.string,
+  valueStyles: PropTypes.string,
   title: PropTypes.string,
   titleFontSize: PropTypes.string,
   width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),

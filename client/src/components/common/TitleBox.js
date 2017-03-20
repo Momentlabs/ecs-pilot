@@ -3,16 +3,18 @@ import React, { PropTypes } from 'react';
 import * as defaultStyles from '../../styles/default';
 import { mergeStyles } from '../../helpers/ui';
 
-const TitleBox = ({title, subtitle, style}) => {
+const TitleBox = ({title, subtitle, style, altColor}) => {
+
+  const titleBoxStyle = (altColor) ? (defaultStyles.altColorTitleBox) : defaultStyles.titleBox;
+  const titleStyle = (altColor) ? (defaultStyles.altColorTitle) : defaultStyles.title;
+  const subtitleStyle = (altColor) ? (defaultStyles.altColorSubtitle) : defaultStyles.subTitle;
 
   const styles = {
-    container: {
-      // outline: "1px solid black"
-    },
-    title: mergeStyles(defaultStyles.title,{
+    container: titleBoxStyle,
+    title: mergeStyles(titleStyle, {
       marginBottom: defaultStyles.smallRelativeSpace,
     }),
-    subtitle: defaultStyles.subtitle,
+    subtitle: subtitleStyle
   };
 
   const mergedStyles = mergeStyles(styles, style, "container");
@@ -28,12 +30,14 @@ const TitleBox = ({title, subtitle, style}) => {
 TitleBox.propTypes = {
   title: PropTypes.string.isRequired,
   subtitle: PropTypes.string,
+  altColor: PropTypes.bool,
   style: PropTypes.object
 };
 
 TitleBox.defaultProps = {
   title: "Title",
   subtitle: undefined,
+  altColor: false,
   sytle: {}
 };
 

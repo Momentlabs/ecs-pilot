@@ -1,3 +1,4 @@
+import * as defaultStyles from '../styles/default';
 export class KeyGenerator {
 
   constructor(keyString="Key-") {
@@ -19,4 +20,8 @@ export function mergeStyles(original, mergeIn, keyToMergeTo) {
     mergeTo[k] = mergeIn[k];
   }
   return newObject;
+}
+
+export function columnWidth(n) {
+  return "" + (defaultStyles.columnWidthPt * n) + "pt";
 }
