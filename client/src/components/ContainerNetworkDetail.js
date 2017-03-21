@@ -33,12 +33,6 @@ const ContainerNetworkDetail = ({ deepTask, style }) => {
       <MetricGroup title="ContainerLinks" >
         <SimpleTable data={containerLinksTableData(deepTask)} style={mergedStyles.table} />
       </MetricGroup>
-      <MetricGroup title="Compute Resources" >
-        <SimpleTable data={containerResourceTableData(deepTask)} style={mergedStyles.table} />
-      </MetricGroup>
-      <MetricGroup title="ULimits" >
-        <SimpleTable data={containerULimitsTableData(deepTask)} style={mergedStyles.table} />
-      </MetricGroup>
     </MetricGroup>
   );
 };

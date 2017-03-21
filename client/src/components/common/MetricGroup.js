@@ -34,18 +34,10 @@ const MetricGroup = ({ title, children, minWidth, separateMetricWidth, tabTitle,
       minWidth: minWidth,
       height: 'inherit',
       flexGrow: 5,
-      // display: "WebkitBox",
-      // display: "WebkitInlineFlex", // eslint-disable-line no-dupe-keys
       display: 'inline-flex', // eslint-disable-line no-dupe-keys
-      // WebkitFlexFlow: flexFlow,
       flexFlow: "row nowrap",
-      // WebkitJustifyContent: justifyContent,
-      // justifyContent: "space-between",
       justifyContent: "stretch",
       alignItems: "stretch",
-      // WebkitAlignItems: alignItems,
-      // alignItems: "stretch",
-      // WebkitAlignContent: alignContent,
       // alignContent: alignContent,
       // outline: "2px solid red",
     }

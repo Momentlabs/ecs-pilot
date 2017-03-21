@@ -23,5 +23,8 @@ export function mergeStyles(original, mergeIn, keyToMergeTo) {
 }
 
 export function columnWidth(n) {
-  return "" + (defaultStyles.columnWidthPt * n) + "pt";
+  const width = (defaultStyles.columnWidthPt * n) + (n-1)*defaultStyles.columnGutterPt;
+  // console.log("helpers#ui#columWidth()", "columns:", n, "width:", width);
+  const styleVal = (width === 0) ? "auto" : width;
+  return "" + styleVal + "pt";
 }

@@ -1,7 +1,7 @@
 import React, {PropTypes } from 'react';
 import * as c from '../styles/colors';
 import * as defaultStyles from '../styles/default';
-import { mergeStyles } from '../helpers/ui';
+import { mergeStyles, columnWidth  } from '../helpers/ui';
 
 import { shortArn } from '../helpers/aws';
 import moment from 'moment';
@@ -28,6 +28,7 @@ import TaskDetail from './TaskDetail';
 import ContainerNetworkDetail from './ContainerNetworkDetail';
 import ContainerResourcesDetail from './ContainerResourcesDetail';
 import ContainerDetails from './ContainerDetails';
+import ContainerEnvironmentDetails from './ContainerEnvironmentDetails';
 import TaskDefinitionDetail from './TaskDefinitionDetail';
 
 // import TaskCard from './TaskCard';
@@ -95,9 +96,22 @@ export default class Task extends React.Component {
         // background: c.metricBackground,
         boxShadow: 'unset'
       },
-      table: {
-        backgroundColor: defaultStyles.metricBackgroundColor,
+      tableContainer: {
+        alignSelf: "stretch",
         marginBottom: defaultStyles.primaryAbsoluteSpace,
+        backgroundColor: defaultStyles.metricBackgroundColor,
+      },
+      table3Col: {
+        width: columnWidth(4.5),
+        backgroundColor: defaultStyles.metricBackgroundColor,
+      },
+      table4Col: {
+        width: columnWidth(4.5),
+        backgroundColor: defaultStyles.metricBackgroundColor,
+      },
+      envStyle: {
+        height: "1000px",
+        selfAlign: "stretch"
       }
     };
     const mergedStyles = mergeStyles(styles, style, "container");
@@ -122,53 +136,43 @@ export default class Task extends React.Component {
         >
           <MetricGroup title="Task">
             <FlowedMetric title="Status" value={status} 
-                          style={mergedStyles.metric} width={"6em"} valueFontSize="large" 
+                          style={mergedStyles.metric} width={columnWidth(1)} valueFontSize="large" 
                           key={kg.nextKey()} 
             />
             <FlowedMetric title={ncTitle} value={task.containers.length}  
-                          style={mergedStyles.metric} width={"6em"} 
+                          style={mergedStyles.metric} width={columnWidth(1)} 
                           key={kg.nextKey()}
             />
             <FlowedMetric title="Uptime" value={uptime}  
-                          style={mergedStyles.metric} width={"6em"} valueFontSize="large" 
+                          style={mergedStyles.metric} width={columnWidth(1)} valueFontSize="large" 
                           key={kg.nextKey()}
             />
             <FlowedMetric title="Public IP" value={ec2.ipAddress} 
-                          width={"11em"} valueFontSize="large" 
+                          width={columnWidth(2)} valueFontSize="large" 
                           key={kg.nextKey()}
             />
           </MetricGroup>
         </Bar>
         <Card  style={mergedStyles.expansionContainer} expandable>
-          <FlexContainer flexDirection="row" flexWrap="wrap" alignItems="stretch" justifyContent="flex-start">
-            <TaskDetail task={task} />
-            <TaskDefinitionDetail taskDefinition={td} />
-            <MetricGroup title="Port Bindings">
-              <div style={mergedStyles.table} >
-                <SimpleTable data={containerBindingsTableData(deepTask)} style={mergedStyles.table} />
-              </div>
-            </MetricGroup>
-            <MetricGroup title="ContainerLinks" >
-              <div style={mergedStyles.table} >
-                <SimpleTable data={containerLinksTableData(deepTask)} style={mergedStyles.table} />
-              </div>
-            </MetricGroup>
-            <MetricGroup title="Compute Resources" >
-              <div style={mergedStyles.table} >
-                <SimpleTable data={containerResourceTableData(deepTask)} style={mergedStyles.table} />
-              </div>
-            </MetricGroup>
-            <MetricGroup title="ULimits" >
-              <div style={mergedStyles.table} >
-                <SimpleTable data={containerULimitsTableData(deepTask)} style={mergedStyles.table} />
-              </div>
-            </MetricGroup>
-
-
-{/*}            <ContainerNetworkDetail deepTask={deepTask} /> 
-            <ContainerResourcesDetail deepTask={deepTask} /> {*/}
-            {task.containers.map( (c) => <ContainerDetails container={c} containerDef={td.containerDefinitions.find((cd) => cd.name === c.name)}/>)}
-            <ContainerEnvironmentCard deepTask={deepTask} />
+          <FlexContainer flexDirection="row" flexWrap="nowrap" alignItems="stretch" justifyContent="space-between">
+            <FlexContainer flexDirection="row" flexWrap="wrap" alignItems="flex-start" justifyContent="felx-start">
+              <TaskDetail task={task} />
+              <TaskDefinitionDetail taskDefinition={td} />
+              <MetricGroup title="Container Port Bindings" style={mergedStyles.tableContainer}>
+                <SimpleTable data={containerBindingsTableData(deepTask)} style={mergedStyles.table4Col} />
+              </MetricGroup>
+              <MetricGroup title="Container Links" style={mergedStyles.tableContainer}>
+                <SimpleTable data={containerLinksTableData(deepTask)} style={mergedStyles.table3Col} />
+              </MetricGroup>
+              <MetricGroup title="Container Compute Resources" style={mergedStyles.tableContainer}>
+                <SimpleTable data={containerResourceTableData(deepTask)} style={mergedStyles.table4Col} />
+              </MetricGroup>
+              <MetricGroup title="Container ULimits" style={mergedStyles.tableContainer}>
+                <SimpleTable data={containerULimitsTableData(deepTask)} style={mergedStyles.table4Col} />
+              </MetricGroup>
+              {task.containers.map( (c) => <ContainerDetails container={c} containerDef={td.containerDefinitions.find((cd) => cd.name === c.name)}/>)}
+              </FlexContainer>
+            <ContainerEnvironmentDetails deepTask={deepTask} style={mergedStyles.envStyle}/>
           </FlexContainer>
         </Card>
       </Card>
@@ -176,11 +180,14 @@ export default class Task extends React.Component {
   }
 }
 
+{/*}            <ContainerNetworkDetail deepTask={deepTask} /> 
+            <ContainerResourcesDetail deepTask={deepTask} /> {*/}
 /*            <TaskCard task={task} /> 
             {task.containers.map( (c) => <ContainerCard width={"40em"} key={kg.nextKey()} ecsContainer={c} containerDefinition={td.containerDefinitions.find((cd) => cd.name === c.name)}/>)}
               <TaskDefinitionCard taskDefinition={td} />
               <ContainerNetworkCard deepTask={deepTask} />
               <ContainerResourcesCard deepTask={deepTask} />
+            <ContainerEnvironmentCard deepTask={deepTask} />
 */
 
 

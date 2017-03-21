@@ -3,10 +3,6 @@ import React from 'react';
 import { mergeStyles } from './ui';
 
 
-// Add/change the margin-right style for each child execpt the
-// last. The idea is that we sepate each child in a row by the separateWidth.
-const SEP_COL = 1;
-const SEP_ROW = 2;
 
 function lastChild(children) {
   // console.log("lastChild()", "children", children, "Children#", React.Children.count(children));
@@ -34,6 +30,10 @@ function lastChild(children) {
   return count; // We shouldn't get here, but if we did, they'd all be leaf nodes (no children).
 }
 
+// Add/change the margin-right style for each child except the
+// last. The idea is that we seperate each child in a row by the separateWidth.
+const SEP_COL = 1;
+const SEP_ROW = 2;
 export function separateChildren(children, separatorWidth, sepDir) {
   const sepStyle = (sepDir === SEP_ROW) ? {marginRight: separatorWidth} : {marginBottom: separatorWidth};
   const last = lastChild(children);

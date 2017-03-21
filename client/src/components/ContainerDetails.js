@@ -11,13 +11,13 @@ import { shortRepoName } from '../helpers/aws';
 
 const ContainerDetails = ({ container, containerDef, style }) => {
 
-  let epValueStyle = {}
+  let epValueStyle = {};
   if (containerDef.entryPoint) {
     epValueStyle = {
       width: columnWidth(3),
       textAlign: "left",
       fontSize: "x-smallest,"
-    }
+    };
   }
 
   const styles = {
@@ -33,12 +33,12 @@ const ContainerDetails = ({ container, containerDef, style }) => {
   const entryPoint = (containerDef.entryPoint) ? containerDef.entryPoint.join(" ") : "<empty>";
 
   return (
-    <MetricGroup title="Container Details" style={mergedStyles.container}>
-      <FlowedMetric title="Name" value={container.name} />
-      <FlowedMetric title="Command" value={command} />
-      <FlowedMetric title="Entry Point" value={entryPoint} valueStyles={mergedStyles.entryPointValue} />
-      <FlowedMetric title="Image" value={shortRepoName(containerDef.image)}  />
-      <FlowedMetric title="Essential" value={(containerDef.essential) ? "yes" : "no"} />
+    <MetricGroup title={`Container: ${container.name}`} style={mergedStyles.container}>
+{/*}      <FlowedMetric title="Name" value={container.name} /> {*/}
+      <FlowedMetric title="Command" value={command} width={columnWidth(2)} />
+      <FlowedMetric title="Entry Point" value={entryPoint} valueStyles={mergedStyles.entryPointValue} width={columnWidth(3)} />
+      <FlowedMetric title="Image" value={shortRepoName(containerDef.image)}  width={columnWidth(2.5)} />
+      <FlowedMetric title="Essential" value={(containerDef.essential) ? "yes" : "no"} width={columnWidth(1)} />
     </MetricGroup>
   );
 };

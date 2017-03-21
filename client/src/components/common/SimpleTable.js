@@ -7,8 +7,13 @@ import { mergeStyles } from '../../helpers/ui';
 
 let kg = new KeyGenerator();
 
-const renderCell = (e, style) => {
+const renderCell = (e, style, span) => {
   return (<td style={style} key={kg.nextKey()}>{e}</td>);
+  // if (span === undefined) {
+  //   return (<td style={style} key={kg.nextKey()}>{e}</td>);
+  // } else {
+  //   return (<td style={style} colspan={span} key={kg.nextKey()}>{e}</td>);
+  // }
 };
 
 const headerToCell = (e, style) =>{
@@ -35,7 +40,7 @@ function renderRow(row, styles) {
 function renderNoData(message, span) {
   return (
     <div
-    style={{fontSize: "large", textAlign: "right", paddingTop: '1em'}}>
+    style={{fontSize: "large", textAlign: "right", paddingTop: '1em'}} >
       {message}
     </div>
   );
@@ -107,6 +112,7 @@ const SimpleTable = ({ data, caption, missingDataMessage, style }) => {
     }
   };
   const mergedStyles = mergeStyles(styles, style, "table");
+
 
   console.log("SimpleTable:render()", "mergedStyles:", mergedStyles);
 

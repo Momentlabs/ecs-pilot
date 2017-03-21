@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 
 import * as defaultStyles from '../styles/default';
-import { mergeStyles } from '../helpers/ui';
+import { mergeStyles, columnWidth  } from '../helpers/ui';
 import { shortArn, shortRepoName } from '../helpers/aws';
 
 import MetricGroup from './common/MetricGroup';
@@ -21,15 +21,14 @@ const TaskDefinitionDetail = ({ taskDefinition, style }) => {
 
   return (
     <MetricGroup title="Task Definition" style={mergedStyles.container}>
-      <MetricGroup title={`ARN: ${shortArn(taskDefinition.taskDefinitionArn)}`} >
-        <FlowedMetric title="Family" value={taskDefinition.family} />
-        <FlowedMetric title="Revision" value={taskDefinition.revision} />
-        <FlowedMetric title="Active" value={taskDefinition.status} />
-        <FlowedMetric title="NetworkMode" value={taskDefinition.networkMode} />
-      </MetricGroup>
-      <MetricGroup title="Container Images" >
-        {taskDefinition.containerDefinitions.map( (cd) => <FlowedMetric title={cd.name} value={shortRepoName(cd.image)} /> )}
-      </MetricGroup>
+        <FlowedMetric title="ARN" value={shortArn(taskDefinition.taskDefinitionArn)}width={columnWidth(2)} />
+        <FlowedMetric title="Family" value={taskDefinition.family} width={columnWidth(2)} />
+        <FlowedMetric title="Revision" value={taskDefinition.revision} width={columnWidth(1)} />
+        <FlowedMetric title="Active" value={taskDefinition.status} width={columnWidth(1.5)} />
+        <FlowedMetric title="NetworkMode" value={taskDefinition.networkMode} width={columnWidth(2)} />
+{/*}      <MetricGroup title="Container Images" >
+        {taskDefinition.containerDefinitions.map( (cd) => <FlowedMetric title={cd.name} value={shortRepoName(cd.image)} width={columnWidth(3)} /> )}
+      </MetricGroup>{*/}
     </MetricGroup>
   );
 };

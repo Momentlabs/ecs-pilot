@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 
 import * as defaultStyles from '../styles/default';
-import { mergeStyles } from '../helpers/ui';
+import { mergeStyles, columnWidth } from '../helpers/ui';
 import { displayTime,  uptimeString } from '../helpers/time';
 import { shortArn } from '../helpers/aws';
 
@@ -21,11 +21,11 @@ const TaskDetail = ({ task, style }) => {
 
   return (
     <MetricGroup title={`Task ${task.taskArn}`} style={mergedStyles.container} >
-      <FlowedMetric title="Started" value={displayTime(task.createdAt)} />
-      <FlowedMetric title="Uptime" value={uptimeString(task.createdAt) } />
-      <FlowedMetric title="Last Status" value={task.lastStatus} />
-      <FlowedMetric title="Desired Status" value={task.desiredStatus} />
-      <FlowedMetric title="Task Definition" value={shortArn(task.taskDefinitionArn)} />
+      <FlowedMetric title="Started" value={displayTime(task.createdAt)} width={columnWidth(3.5)} />
+      <FlowedMetric title="Uptime" value={uptimeString(task.createdAt)} width={columnWidth(2)} />
+      <FlowedMetric title="Last Status" value={task.lastStatus} width={columnWidth(1.5)} />
+      <FlowedMetric title="Desired Status" value={task.desiredStatus} width={columnWidth(1.5)} />
+{/*}      <FlowedMetric title="Task Definition" value={shortArn(task.taskDefinitionArn)} width={columnWidth(2)} /> {*/}
     </MetricGroup>
   );
 };

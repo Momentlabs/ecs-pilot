@@ -5,13 +5,15 @@ export const xSmallRelativeSpace = ".25em";     // Small space between text (e.g
 export const smallRelativeSpace = ".5em";     // Small space between text (e.g. Title and subtitle)
 export const primaryRelativeSpace = "2em";    // Basic space between text and visual elements.
 
-export const smallAbsoluteSpace = 5;          // very small spaces (e.g. small space between metric boxes and title bar and group)
+export const smallAbsoluteSpacePt = 4;
+export const smallAbsoluteSpace = smallAbsoluteSpacePt + "pt";          // very small spaces (e.g. small space between metric boxes and title bar and group)
 export const primaryAbsoluteSpace = "2em";    // TODO THIS IS NOT ABSOLUTE!
 export const largerAbsoluteSpace = "4em";
 
 // n*10pt
 export const columnWidthPt = 60;
 export const columnWidth = columnWidthPt + "pt";             // TODO: This should be an absolute number
+export const columnGutterPt =  smallAbsoluteSpacePt;
 
 export const titleFontSize = "x-large";
 
