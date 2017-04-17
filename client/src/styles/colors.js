@@ -9,8 +9,18 @@ export const textSecondary = colors.lightBlack;
 
 export const title = textPrimary;
 export const subtitle = textSecondary;
+export const altBackground = primary;
 export const altTitle = textOnPrimary;
 export const altSubtitle = colors.grey50;
+
+export const gridTitleBackground = altBackground;
+export const gridSub1 = colors.teal200;
+export const gridSub2 = colors.teal100;
+export const gridSub3 = colors.teal50;
+export const gridTitle = altTitle;
+export const gridSub1Title = colors.black;
+export const gridSub2Title = colors.black;
+export const gridSub3Title = colors.black;
 
 export const shadow = textSecondary;
 
@@ -28,6 +38,8 @@ export const resourceWarn = colors.amber500;
 export const resourceLow = colors.redA700;
 
 // export const  metricBackground = colors.blueGrey100;
+export const metricBannerBackground = primary;
+export const metricBannerColor = textOnPrimary;
 export const metricBackground = colors.brown50;
 export const metricTitle = textPrimary;
 export const metricName = textSecondary;
@@ -37,7 +49,5 @@ export const expandableOutlineColor = colors.blueGrey200;
 export const tableHeaderBackground = primary;
 export const tableHeaderColor = textOnPrimary;
 
-export const metricBannerBackground = primary;
-export const metricBannerColor = textOnPrimary;
 
 

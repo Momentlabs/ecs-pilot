@@ -21,18 +21,17 @@ const TaskDefinitionDetail = ({ taskDefinition, style }) => {
 
   return (
     <MetricGroup title="Task Definition" style={mergedStyles.container}>
-        <FlowedMetric title="ARN" value={shortArn(taskDefinition.taskDefinitionArn)}width={columnWidth(2)} />
+        <FlowedMetric title="ARN" value={shortArn(taskDefinition.taskDefinitionArn)} width={columnWidth(2)} />
         <FlowedMetric title="Family" value={taskDefinition.family} width={columnWidth(2)} />
         <FlowedMetric title="Revision" value={taskDefinition.revision} width={columnWidth(1)} />
-        <FlowedMetric title="Active" value={taskDefinition.status} width={columnWidth(1.5)} />
+        <FlowedMetric title="Active" value={taskDefinition.status} width={columnWidth(2)} />
         <FlowedMetric title="NetworkMode" value={taskDefinition.networkMode} width={columnWidth(2)} />
 {/*}      <MetricGroup title="Container Images" >
         {taskDefinition.containerDefinitions.map( (cd) => <FlowedMetric title={cd.name} value={shortRepoName(cd.image)} width={columnWidth(3)} /> )}
       </MetricGroup>{*/}
     </MetricGroup>
   );
-};
-
+}
 
 TaskDefinitionDetail.propTypes = {
   taskDefinition: PropTypes.object.isRequired,
@@ -44,4 +43,3 @@ TaskDefinitionDetail.defaultProps = {
 };
 
 export default TaskDefinitionDetail;
-

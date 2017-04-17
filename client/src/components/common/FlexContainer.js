@@ -1,16 +1,15 @@
 import React, {PropTypes } from 'react';
 
+import * as c from '../../styles/colors';
 import * as defaultStyles from '../../styles/default';
 import { mergeStyles } from '../../helpers/ui';
-import { separateChildrenRow } from '../../helpers/react';
-
-
+// import { separateChildrenRow } from '../../helpers/react';
 
 // Since this component is simple and static, there's no parent component for it.
 const FlexContainer = (props) => {
   // console.log("FlexContainer:render()", "props:", props);
   const {
-    children, width,  separateWidth,
+    children, width,  title, separateWidth,
     justifyContent, alignItems, alignContent, 
     flexDirection, flexWrap, style, onClick
   } = props;
@@ -18,41 +17,55 @@ const FlexContainer = (props) => {
   const flexFlow = flexDirection + " " + flexWrap;
   const styles = {
     container: {
-      // paddingTop: 8, // TODO: Theme/constants on spacing. Too many maigic numbers.
       width: width,
-      display: "WebkitBox",
-      display: "WebkitInlineFlex", // eslint-disable-line no-dupe-keys
-      display: 'flex', // eslint-disable-line no-dupe-keys
-      WebkitFlexFlow: flexFlow,
-      flexFlow: flexFlow,
-      WebkitJustifyContent: justifyContent,
-      justifyContent: justifyContent,
-      WebkitAlignItems: alignItems,
-      alignItems: alignItems,
-      WebkitAlignContent: alignContent,
-      alignContent: alignContent,
-      // outline: "2px dashed red"
+      display: 'flex',
+      flexFlow: 'column nowrap',
+      flexWrap: "nowrap",
+      justifyContent: "flex-start",
+      alignItems: "stretch",
+      alignContent: "stretch",
+      // marginRight: separateWidth,
+      // outline: "2px solid green"
+    },
+    banner: {
+      paddingLeft: defaultStyles.smallRelativeSpace,
+      marginBottom: separateWidth,
+      marginRight: separateWidth,   // This seems like a hack somehow ....
+      background: c.metricBannerBackground,
+      color: c.metricBannerColor,
+    },
+    flexContainer: {
+        display: 'flex',
+        flexFlow: flexFlow,
+        justifyContent: justifyContent,
+        alignItems: alignItems,
+        alignContent: alignContent,
+        // outline: "2px dashed red"
     }
   };
 
   const mergedStyles = mergeStyles(styles, style, 'container');
-
   return (
-    <div style={mergedStyles.container} onClick={onClick}>
-      {separateChildrenRow(children, separateWidth)}
+      <div style={mergedStyles.container}>
+        {title ?  <div style={mergedStyles.banner}>{title}</div> : ""}
+        <div style={mergedStyles.flexContainer} onClick={onClick}>
+          {children}
+{/*}      {separateChildrenRow(children, separateWidth)} {*/}
+      </div>
     </div>
   );
 };
 
 FlexContainer.defaultProps = {
   width: "auto",
-  separateWidth: defaultStyles.primaryAbsoluteSpace,
+  separateWidth: defaultStyles.metricSeparator,
   style: {},
   flexDirection: "row",
   flexWrap: "nowrap",
   justifyContent: "flex-start",
   alignItems: "stretch",
   alignContent: "stretch",
+  title: undefined,
 };
 
 FlexContainer.propTypes = {

@@ -10,6 +10,7 @@ import { registeredCpuValue,registeredMemoryValue,
 
 
 
+import FlexContainer from './common/FlexContainer';
 import MetricGroup from './common/MetricGroup';
 import FlowedMetric from './common/FlowedMetric';
 
@@ -18,25 +19,27 @@ const InstanceComputeResourceDetail = ({ instance, style }, context) => {
   const ci = instance.containerInstance;
   const styles = {
     container: {
-      marginBottom: defaultStyles.primaryAbsoluteSpace
+      marginBottom: defaultStyles.rowGutter,
       // outline: "0px solid black"
     }
   };
   const mergedStyles = mergeStyles(styles, style, "container");
 
   return (
-    <MetricGroup title="Instance Compute Resources" style={mergedStyles.container}>
-      <MetricGroup title="CPU">
-        <FlowedMetric title="Registered" value={registeredCpuValue(ci)} />
-        <FlowedMetric title="Remaining" value={remainingCpuValue(ci)} />
-        <FlowedMetric title="Used" value={registeredCpuValue(ci) - remainingCpuValue(ci)} />
+    <FlexContainer style={mergedStyles.container} >
+{/*}    <MetricGroup title="Instance Compute Resources" style={mergedStyles.container}> {*/}
+      <MetricGroup title="CPU" columns={2} >
+        <FlowedMetric title="Registered" value={registeredCpuValue(ci)} columns={2} />
+        <FlowedMetric title="Remaining" value={remainingCpuValue(ci)} columns={2} />
+        <FlowedMetric title="Used" value={registeredCpuValue(ci) - remainingCpuValue(ci)} columns={2} />
       </MetricGroup>
-      <MetricGroup title="Memory">
-        <FlowedMetric title="Registered" value={registeredMemoryValue(ci)} />
-        <FlowedMetric title="Remaining" value={remainingMemoryValue(ci)} />
-        <FlowedMetric title="Used" value={registeredMemoryValue(ci) - remainingMemoryValue(ci)} />
+      <MetricGroup title="Memory" columns={2} >
+        <FlowedMetric title="Registered" value={registeredMemoryValue(ci)}  columns={2} />
+        <FlowedMetric title="Remaining" value={remainingMemoryValue(ci)} columns={2} />
+        <FlowedMetric title="Used" value={registeredMemoryValue(ci) - remainingMemoryValue(ci)} columns={2}/>
       </MetricGroup>
-    </MetricGroup>
+{/*}    </MetricGroup> {*/}
+    </FlexContainer>
   );
 };
 

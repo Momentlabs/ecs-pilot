@@ -20,7 +20,7 @@ const ContainerEnvironmentDetails = ({ deepTask, style }) => {
   const styles = {
     container: {
       marginBottom: defaultStyles.primaryAbsoluteSpace,
-      background: defaultStyles.metricBackgroundColor,
+      // background: defaultStyles.metricBackgroundColor,
       outline: "0px solid black"
     },
     tableContainer: {
@@ -34,7 +34,7 @@ const ContainerEnvironmentDetails = ({ deepTask, style }) => {
     header: ["Container", "Key", "Value", "Override"],
     rows: containerEnvironmentTableData(deepTask)
   };
-  data.rows.sort( (a, b) => compare(a[1], b[1]));
+  data.rows.sort( (a, b) => compare(a[1], b[1])); // sort by envVar name
 
   return (
     <MetricGroup title="Container Environments" style={mergedStyles.container}>

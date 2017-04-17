@@ -5,12 +5,10 @@ import * as defaultStyles from '../styles/default';
 import { totalRegisteredCPU, totalRemainingCPU, totalRegisteredMemory, totalRemainingMemory } from '../ecs/instance';
 import { totalContainers, runningContainers } from '../ecs/deepTask';
 import Bar from './common/Bar';
-import MetricBar from './common/MetricBar';
-import MetricGroup from './common/MetricGroup'
+import MetricGrid from './common/MetricGrid';
+import GridTitle from './common/GridTitle';
 import FlowedMetric from './common/FlowedMetric';
 import GuageRechart from './common/GuageRechart';
-
-import { CardTitle } from 'material-ui/Card';
 
 const ClusterStatusCard = ({cluster, instances, deepTasks}) => {
 
@@ -39,29 +37,25 @@ const ClusterStatusCard = ({cluster, instances, deepTasks}) => {
 
   return (
       <Bar title={`Cluster: ${cluster.clusterName}`} subtitle={cluster.clusterArn} style={styles.container} >
-        <MetricGroup title="Instance">
+        <MetricGrid columns={6} >
+          <GridTitle title="Instance" />
           <FlowedMetric title="Instances" value={instances.length} defaultValue={0}  />
-        </MetricGroup>
-        <MetricGroup title="Task">
+
+          <GridTitle title="Task" />
           <FlowedMetric title="Tasks" value={deepTasks.length} defaultValue={0} /> 
           <FlowedMetric title="Running" value={cluster.runningTasksCount} defaultValue={0}  /> 
           <FlowedMetric title="Pending" value={pendingTasks} defaultValue={0}  /> 
-        </MetricGroup>
-        <MetricGroup title="Container">
+
+          <GridTitle title="Container" />
           <FlowedMetric title="Containers" value={totalContainers(deepTasks)} defaultValue={0}  /> 
           <FlowedMetric title="Running" value={runningContainers(deepTasks)} defaultValue={0}  /> 
-        </MetricGroup>
-        <MetricGroup title="Resource Reservation">
+          <GridTitle title="Resource Reservation" />
           <GuageRechart title="CPU" total={totalCPU} amount={usedCPU} />
           <GuageRechart title="Memory" total={totalMem} amount={usedMem}  />
-        </MetricGroup>
+        </MetricGrid>
       </Bar>
   );
 };
-
-// ClusterStatusCard.contextTypes = {
-//   muiTheme: PropTypes.object.isRequired
-// };
 
 // ClusterStatusCard.defaultProps = {
 //   aProp: "Remove me"

@@ -4,7 +4,6 @@ import * as defaultStyles from '../../styles/default';
 import { mergeStyles, columnWidth } from '../../helpers/ui';
 
 import FlexContainer from './FlexContainer';
-import MetricGroup from './MetricGroup';
 import TitleBox from './TitleBox';
 import KeyboardArrowUp from 'material-ui/svg-icons/hardware/keyboard-arrow-up';
 import KeyboardArrowDown from 'material-ui/svg-icons/hardware/keyboard-arrow-down';
@@ -48,17 +47,17 @@ export default class Bar extends React.Component {
   };
 
   handleExpand(event) {
-    console.log("Bar:handleExpand()", "event:", event);
+    // console.log("Bar:handleExpand()", "event:", event);
     const { expanded } = this.state;
     const { onExpandChange } = this.props;
 
     event.preventDefault();
 
-    console.log("Bar:handleExpand()" ,"onExpandChange:", onExpandChange);
+    // console.log("Bar:handleExpand()" ,"onExpandChange:", onExpandChange);
 
     const newExpanded = !expanded;
     if (onExpandChange) {
-      console.log("Calling onExpandChange", "onExpandChange:", onExpandChange);
+      // console.log("Calling onExpandChange", "onExpandChange:", onExpandChange);
       onExpandChange(newExpanded);
     }
 
@@ -104,13 +103,13 @@ export default class Bar extends React.Component {
         onClick={onSelect}
         style={mergedStyles.container}
       >
-        <FlexContainer flexDirection="column" justifyContent="space-between" style={styles.childContainer}  >
+        <FlexContainer flexDirection="column" justifyContent="space-between"  >
           <TitleBox title={title} subtitle={subtitle} />
           {showExpandableButton ? expandIcon : undefined}
         </FlexContainer>
-        <MetricGroup>
+        <FlexContainer style={mergedStyles.childContainer}>
           {children}
-        </MetricGroup>
+        </FlexContainer>
        </FlexContainer>
     );
   }

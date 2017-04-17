@@ -1,7 +1,7 @@
 import React, {PropTypes } from 'react';
 
 import * as c from '../../styles/colors';
-
+import * as defaultStyles from '../../styles/default';
 import { PieChart, Pie, Cell, Text} from 'recharts';
 
 function renderColor(entry, index, colors) {
@@ -32,7 +32,7 @@ function renderLabel(o) {
   } else {
     return undefined;
   }
-};
+}
 
  // TODO: Remove to somewhere general?
 function resourceColors(rUsed, rRemain) {
@@ -65,13 +65,15 @@ const GuageRechart = (props) => {
   const or = outerRadius === undefined ? Math.ceil(size / 2) : outerRadius;
   const ir = innerRadius === undefined ? or - Math.ceil(size / 10) : innerRadius;
   const flexFlow = "column nowrap";
-  const justifyContent = "flex-end";
+  const justifyContent = "space-between";
   const alignItems = "center";
   // const alignContent = "space-between";
   const styles = {
     container: {
       // height: size+30,
       // width: size + 30,
+      height: "100%",
+      background: defaultStyles.metricBackgroundColor,
       display: "WebkitBox", 
       display: "WebkitFlex", // eslint-disable-line no-dupe-keys
       display: 'flex', // eslint-disable-line no-dupe-keys
@@ -81,10 +83,15 @@ const GuageRechart = (props) => {
       justifyContent: justifyContent,
       WebkitAlignItems: alignItems,
       alignItems: alignItems,
-      padding: 10,
+      // padding: 10,
       // outline: "1px solid black",
     },
     chartBox: {
+      height: "100%",
+      display: 'flex',
+      justifyContent: "center",
+      alignItems: "center",
+      // paddingTop: 4,
       // outline: "2px solid red"
     },
     chart: {
@@ -96,8 +103,6 @@ const GuageRechart = (props) => {
       textAlign: "center",
       fontWeight: "bold",
       fontSize: "12pt",
-      padding: 0,
-      margin: 0,
       color: c.metricName,
       // outline: '1px solid black',
     }
@@ -134,7 +139,7 @@ GuageRechart.contextTypes = {
 
 GuageRechart.defaultProps = {
   title: "",
-  size: 60,    
+  size: 50,    
   outerRadius: undefined,
   innerRadius: undefined,
 };

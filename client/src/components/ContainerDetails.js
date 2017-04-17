@@ -35,9 +35,9 @@ const ContainerDetails = ({ container, containerDef, style }) => {
   return (
     <MetricGroup title={`Container: ${container.name}`} style={mergedStyles.container}>
 {/*}      <FlowedMetric title="Name" value={container.name} /> {*/}
-      <FlowedMetric title="Command" value={command} width={columnWidth(2)} />
+      <FlowedMetric title="Command" value={command} width={columnWidth(1.75)} />
       <FlowedMetric title="Entry Point" value={entryPoint} valueStyles={mergedStyles.entryPointValue} width={columnWidth(3)} />
-      <FlowedMetric title="Image" value={shortRepoName(containerDef.image)}  width={columnWidth(2.5)} />
+      <FlowedMetric title="Image" value={shortRepoName(containerDef.image)}  width={columnWidth(2.25)} />
       <FlowedMetric title="Essential" value={(containerDef.essential) ? "yes" : "no"} width={columnWidth(1)} />
     </MetricGroup>
   );

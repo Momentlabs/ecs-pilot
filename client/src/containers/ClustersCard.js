@@ -111,7 +111,7 @@ class ClustersCard extends React.Component {
 
   // Delete the cluster and set the current tab to the base.
   closeTab(clusterName){
-    console.log("ClusterCard:tabClose()", "clusterName:", clusterName);
+    // console.log("ClusterCard:tabClose()", "clusterName:", clusterName);
     this.state.clusterTabNames.delete(clusterName);
     this.setState({value: CLUSTER_TAB});
   }
@@ -193,7 +193,7 @@ class ClustersCard extends React.Component {
   }
 
   render() {
-    console.log("ClustersCard:render()", "State:", this.state, "Props:", this.props);
+    // console.log("ClustersCard:render()", "State:", this.state, "Props:", this.props);
     const styles = {
       tab: { // everything: title and content
         paddingLeft: defaultStyles.primaryAbsoluteSpace,

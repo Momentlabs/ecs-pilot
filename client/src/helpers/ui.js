@@ -1,6 +1,6 @@
 import * as defaultStyles from '../styles/default';
-export class KeyGenerator {
 
+export class KeyGenerator {
   constructor(keyString="Key-") {
     this.counter = 0;
     this.keyString=keyString;
@@ -24,7 +24,7 @@ export function mergeStyles(original, mergeIn, keyToMergeTo) {
 
 export function columnWidth(n) {
   const width = (defaultStyles.columnWidthPt * n) + (n-1)*defaultStyles.columnGutterPt;
-  // console.log("helpers#ui#columWidth()", "columns:", n, "width:", width);
+  console.log("helpers#ui#columWidth()", "columns:", n, "width:", width);
   const styleVal = (width === 0) ? "auto" : width;
   return "" + styleVal + "pt";
 }

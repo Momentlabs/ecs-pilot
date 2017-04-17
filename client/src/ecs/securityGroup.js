@@ -10,13 +10,17 @@ export default class SecurityGroup {
 }
 
 // use eg: perms = ipPermsByProto(sg.ipPermissionsEgress);
+// The return object index is the ipProtocol value that
+// is stored in the perms in the array that is passed in.
+// It's not the name of the protocol (in particular the value -1 corresponds to the name "all");
 export function permEntriesByProto(perms) {
 
+  // console.log("permEntriesByProto", "perms:", perms);
   const byProto = perms.reduce( (res, perm) => {
-      console.log("permEntriesByProto", "res:", res, "perm:", perm);
+      // console.log("permEntriesByProto", "res:", res, "perm:", perm);
       const proto = perm.ipProtocol;
-      let entries = res[proto];
       const entry = makeEntry(perm);
+      let entries = res[proto];
       if (entries) {
         entries.push(entry);
       } else {
@@ -24,6 +28,7 @@ export function permEntriesByProto(perms) {
       }
       return res;
   }, {});
+  // console.log("permEntriesByProto", "return:", byProto);
   return byProto;
 }
 

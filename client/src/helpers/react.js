@@ -31,10 +31,11 @@ function lastChild(children) {
 }
 
 // Add/change the margin-right style for each child except the
-// last. The idea is that we seperate each child in a row by the separateWidth.
+// last. The idea is that we separate each child in a row by the separateWidth.
 const SEP_COL = 1;
 const SEP_ROW = 2;
 export function separateChildren(children, separatorWidth, sepDir) {
+  console.log("seperateChildren()", "separatorWidth:", separatorWidth);
   const sepStyle = (sepDir === SEP_ROW) ? {marginRight: separatorWidth} : {marginBottom: separatorWidth};
   const last = lastChild(children);
   let i = 1;
