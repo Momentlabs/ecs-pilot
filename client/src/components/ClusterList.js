@@ -6,7 +6,8 @@ import * as defaultStyles from '../styles/default';
 import { KeyGenerator } from '../helpers/ui';
 
 import Bar from './common/Bar';
-import MetricGroup from './common/MetricGroup';
+import MetricGrid from './common/MetricGrid';
+import GridTitle from './common/GridTitle';
 import FlowedMetric from './common/FlowedMetric';
 
 
@@ -29,19 +30,20 @@ const clusterBar = (c, onClusterSelect, k) => {
       marginBottom: defaultStyles.primaryAbsoluteSpace
     },
     metric: {
-      marginRight: defaultStyles.metricSeparator
+      // marginRight: defaultStyles.metricSeparator
     }
   };
 
   return(
-    <Bar title={c.clusterName} subtitle={c.status} onSelect={makeClickedOn(c, onClusterSelect)} style={styles.container} key={k} >
-      <MetricGroup title={`${c.clusterName}`} >
-        <FlowedMetric title="Instances" value={c.registeredContainerInstancesCount} defaultValue={0} style={styles.metric}/>
-        <FlowedMetric title="Services" value={c.activeServicesCount} defaultValue={0} style={styles.metric}/>
-        <FlowedMetric title="Pending" value={c.pendingTasksCount} defaultValue={0} style={styles.metric}/>
+  <Bar title={c.clusterName} subtitle={c.status} onSelect={makeClickedOn(c, onClusterSelect)} style={styles.container} key={k} >
+      <MetricGrid title={`${c.clusterName}`} columns={6} >
+        <GridTitle title={c.clusterName} subtitle={c.status} columns={2} />
+        <FlowedMetric title="Instances" value={c.registeredContainerInstancesCount} defaultValue={0} />
+        <FlowedMetric title="Services" value={c.activeServicesCount} defaultValue={0} />
+        <FlowedMetric title="Pending" value={c.pendingTasksCount} defaultValue={0} />
         <FlowedMetric title="Running" value={c.runningTasksCount} defaultValue={0}/>
-      </MetricGroup>
-    </Bar>
+      </MetricGrid>
+  </Bar>
   );
 };
 

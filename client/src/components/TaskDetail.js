@@ -21,10 +21,10 @@ const TaskDetail = ({ task, style }) => {
 
   return (
     <MetricGroup title={`Task ${task.taskArn}`} style={mergedStyles.container} >
-      <FlowedMetric title="Started" value={displayTime(task.createdAt)} width={columnWidth(3.5)} />
+      <FlowedMetric title="Started" value={displayTime(task.createdAt)} width={columnWidth(3)} />
       <FlowedMetric title="Uptime" value={uptimeString(task.createdAt)} width={columnWidth(2)} />
-      <FlowedMetric title="Last Status" value={task.lastStatus} width={columnWidth(1.5)} />
-      <FlowedMetric title="Desired Status" value={task.desiredStatus} width={columnWidth(1.5)} />
+      <FlowedMetric title="Last Status" value={task.lastStatus} width={columnWidth(2)} />
+      <FlowedMetric title="Desired Status" value={task.desiredStatus} width={columnWidth(2)} />
 {/*}      <FlowedMetric title="Task Definition" value={shortArn(task.taskDefinitionArn)} width={columnWidth(2)} /> {*/}
     </MetricGroup>
   );

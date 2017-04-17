@@ -20,20 +20,24 @@ function widthFromValue(value) {
 
 const FlowedMetric = (props) => {
   // console.log("FlowedMetric#render()", "props:", props);
-  const { title, value, defaultValue, valueFontSize, valueStyles, titleFontSize, width, style } = props;
+  const { title, value, defaultValue, valueFontSize, valueStyles, 
+          titleFontSize, width, columns, style } = props;
 
   const vfs = (valueFontSize === undefined) ? fontSizeOfValue(value) : valueFontSize;
   const mWidth = (width === undefined) ? widthFromValue(value) : width;
 
+  const columnSpec = (columns !== undefined) ? `span ${columns}` : "";
+
   const styles = {
     metricBox: {
-      width: mWidth,
-      padding: defaultStyles.smallAbsoluteSpace,
+      // width: mWidth,  // GRID EXPERIMENT
+      // padding: defaultStyles.smallAbsoluteSpace,
       backgroundColor: c.metricBackground,
       display: 'inline-flex',
       flexDirection: "column",
       justifyContent: 'space-between',
       alignItems: "center",
+      gridColumn: columnSpec,
       // alignContent: 'space-around',
       // alignSelf: "center",
       // outline: "2px solid black"
@@ -44,11 +48,10 @@ const FlowedMetric = (props) => {
       justifyContent: "center",
       flexGrow: 5,
       // flexShrink: 5,
-      paddingLeft: defaultStyles.smallRelativeSpace,
-      paddingRight: defaultStyles.smallRelativeSpace,
+      // paddingLeft: defaultStyles.smallRelativeSpace,
+      // paddingRight: defaultStyles.smallRelativeSpace,
       marginTop: defaultStyles.xSmallRelativeSpace,
       alignSelf: "center",
-
       fontSize: vfs,
       textAlign: "center",
 
@@ -63,9 +66,8 @@ const FlowedMetric = (props) => {
       paddingTop: 0,
       paddingBottom: 0,
       margin: 0,
-      paddingLeft: defaultStyles.smallRelativeSpace,
-      paddingRight: defaultStyles.smallRelativeSpace,
-
+      // paddingLeft: defaultStyles.smallRelativeSpace,
+      // paddingRight: defaultStyles.smallRelativeSpace,
       fontSize: titleFontSize,
       textAlign: "center",
 
@@ -77,6 +79,7 @@ const FlowedMetric = (props) => {
   mergedStyles = mergeStyles(mergedStyles, valueStyles, "metricValue");
 
   const v = (value !== undefined) ? value : (defaultValue !== undefined) ? defaultValue : undefined;
+  // console.log("FlowedMetric", "title:", title, ", styles:", mergedStyles.metricBox);
   return (
     <div style={mergedStyles.metricBox} >
       { (v !== undefined) ? <div style={mergedStyles.metricValue} >{v}</div> : undefined}
@@ -105,7 +108,7 @@ FlowedMetric.propTypes = {
   defaultValue: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   style: PropTypes.object,
   valueFontSize: PropTypes.string,
-  valueStyles: PropTypes.string,
+  valueStyles: PropTypes.oneOfType([PropTypes.string,PropTypes.object]),
   title: PropTypes.string,
   titleFontSize: PropTypes.string,
   width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),

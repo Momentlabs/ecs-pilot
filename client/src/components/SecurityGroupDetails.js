@@ -5,6 +5,7 @@ import { permEntriesByProto } from '../ecs/securityGroup';
 import * as defaultStyles from '../styles/default';
 import { mergeStyles } from '../helpers/ui';
 
+import FlexContainer from './common/FlexContainer';
 import MetricGroup from './common/MetricGroup';
 import FlowedMetric from './common/FlowedMetric';
 
@@ -17,8 +18,12 @@ function renderPermissions(pp) {
 }
 
 function renderPortPermissions(entries) {
+  // console.log("renderPortPermissions", "entries", entries);
+
+  const portCols = (entries.length > 0) ? 2 : entries.length;
+  const protoName = (entries.length > 0) ? entries[0].proto : undefined;
   return(
-    <MetricGroup title={entries.protoName} >
+    <MetricGroup title={protoName} columns={portCols} >
       {entries.map( (e) => renderPermissions(e))}
     </MetricGroup>
   );
@@ -26,32 +31,37 @@ function renderPortPermissions(entries) {
 
 const SecurityGroupDetails = ({ securityGroup, style }) => {
 
-  const egressByProto = permEntriesByProto(securityGroup.ipPermissionsEgress);
-  const ingressByProto = permEntriesByProto(securityGroup.ipPermissions);
-
   const styles = {
     container: {
-      marginBottom: defaultStyles.primaryAbsoluteSpace,
-      outline: "0px solid black"
+      marginBottom: defaultStyles.rowGutter,
+      // outline: "0px solid black"
+    },
+    innerContainer: {
+      marginTop: defaultStyles.rowGutter,
+      // maxHeight: "20%",
+      // overflow: "auto",
+      // outline: "1px solid black"
     }
   };
   const mergedStyles = mergeStyles(styles, style, "container");
 
-  console.log("SecurityGroupDetails:render()", "egressByProto", egressByProto, "ingressByProto:", ingressByProto);
-
+  const egressByProto = permEntriesByProto(securityGroup.ipPermissionsEgress);
+  const ingressByProto = permEntriesByProto(securityGroup.ipPermissions);
   return (
-    <MetricGroup title="Security Group" style={mergedStyles.container}>
-      <MetricGroup title={securityGroup.groupName}>
-        <FlowedMetric title="Owner" value={securityGroup.ownerId}/>
-        <FlowedMetric title="VPC" value={securityGroup.vpcId}/>
+    <FlexContainer flexDirection="column" style={mergedStyles.conatiner}>
+{/*}    <MetricGroup title="Security Group" style={mergedStyles.container}> {*/}
+      <MetricGroup title={securityGroup.groupName} columns={4} >
+        <FlowedMetric title="Owner" value={securityGroup.ownerId} columns={2}/>
+        <FlowedMetric title="VPC" value={securityGroup.vpcId} columns={2}/>
       </MetricGroup>
-      <MetricGroup title="Ingress">
+      <FlexContainer title="Ingress" style={mergedStyles.innerContainer}>
         {Object.keys(ingressByProto).map( (k) => renderPortPermissions(ingressByProto[k]))}
-      </MetricGroup>
-      <MetricGroup title="Egress">
+      </FlexContainer>
+      <FlexContainer title="Egress" style={mergedStyles.innerContainer}>
         {Object.keys(egressByProto).map( (k) => renderPortPermissions(egressByProto[k]))}
-      </MetricGroup>
-    </MetricGroup>
+      </FlexContainer>
+{/*}    </MetricGroup> {*/}
+    </FlexContainer>
   );
 };
 

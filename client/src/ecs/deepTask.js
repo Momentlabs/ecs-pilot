@@ -72,7 +72,7 @@ export function containerLinksTableData(dt) {
   return {header: header, rows: rows}
 }
 
-function containerResources(dt) {
+export function containerResources(dt) {
   const cds = dt.taskDefinition.containerDefinitions;
   let res = {};
   cds.forEach( (c) => res[c.name] = {containerName: c.name, cpu: c.cpu, memory: c.memory, memoryReservation: c.memoryReservation});
@@ -92,7 +92,7 @@ export function containerResourceTableData(dt) {
   return {header: header , rows: rows};
 }
 
-function containerULimits(dt) {
+export function containerULimits(dt) {
   const cds = dt.taskDefinition.containerDefinitions;
   let uls = {}
   cds.forEach( (c) => {
@@ -102,7 +102,7 @@ function containerULimits(dt) {
         containerName: c.name, 
         limitName: ul.name, 
         softLimit: ul.softLimit, 
-        hardLimit: ul.hadLimit
+        hardLimit: ul.hardLimit
       };
     } else {
       uls[c.name] = undefined;
@@ -138,7 +138,7 @@ export function runningContainers(deepTasks) {
 }
 
 export function containerEnvironment(deepTask) {
-  console.log("containerEnvironment()", "deepTask:", deepTask);
+  // console.log("containerEnvironment()", "deepTask:", deepTask);
   const overrides = deepTask.task.overrides.containerOverrides.reduce( (ors, or) => {
     if (or.environment) {
       or.environment.forEach( (env) => {

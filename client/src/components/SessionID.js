@@ -2,11 +2,10 @@ import React, { PropTypes } from 'react';
 
 import * as defaultStyles from '../styles/default';
 
-import DetailCard from './common/DetailCard';
-import TitleBox from './common/TitleBox';
 import FlexContainer from './common/FlexContainer';
 import FlowedMetric from './common/FlowedMetric';
-import MetricGroup from './common/MetricGroup';
+import MetricGrid from './common/MetricGrid';
+import GridTitle from './common/GridTitle';
 
 import { CardTitle } from 'material-ui/Card';
 
@@ -18,7 +17,7 @@ const SessionId = ({ accountAlias, accountId, userId, region, totalClusters, tot
       // outline: "2px solid red"
     },
     metricGroup: {
-      marginRight: defaultStyles.largerAbsoluteSpace 
+      marginRight: defaultStyles.columnGutter
     },
     accountDetail: {
       alignSelf: "flex-start",
@@ -32,16 +31,18 @@ const SessionId = ({ accountAlias, accountId, userId, region, totalClusters, tot
   };
 
   return (
-    <FlexContainer flexWrap="wrap" justifyContent="flex-start" style={styles.container}>
-      <MetricGroup title="Amazon Web Services" style={styles.metricGroup} >
-        <FlowedMetric title="AWS Account" value={accountId}  width="auto"  />
-        <FlowedMetric title="Region" value={region} width="auto" />
-      </MetricGroup>
-      <MetricGroup title="Clusters">
+    <FlexContainer flexWrap="wrap" justifyContent="space-between" style={styles.container}>
+      <MetricGrid title="Amazon Web Services" style={styles.metricGroup} columns={5}>
+        <GridTitle title="Amazon Web Services" />
+        <FlowedMetric title="AWS Account" value={accountId}  width="auto" columns={2}  />
+        <FlowedMetric title="Region" value={region} width="auto" columns={2} />
+      </MetricGrid>
+      <MetricGrid columns={4} >
+        <GridTitle title="Clusters" />
         <FlowedMetric value={totalClusters} title="Clusters" />
         <FlowedMetric value={totalInstances} title="Instances" />
         <FlowedMetric value={totalRunningTasks} title="Tasks" />
-      </MetricGroup>
+      </MetricGrid>
     </FlexContainer>
   );
 };
