@@ -5,7 +5,7 @@ import moment from 'moment';
 import { shortArn } from '../helpers/aws';
 import { KeyGenerator } from '../helpers/ui';
 import { uptimeString } from '../helpers/time';
-import * as defaultStyles from '../styles/default';
+// import * as defaultStyles from '../styles/default';
 import * as c from '../styles/colors';
 
 import {  usedCpuValue, usedMemoryValue, 
@@ -336,7 +336,7 @@ export default class InstancesCard extends Component {
 // {/*}        {instances.map( (instance) => this.renderInstanceBar(instance, securityGroups) )} {*/}
   return (
     <Paper style={{boxShadow: 'unset'}}>
-        {instances.map( (instance) => <InstanceBar instance={instance} clusterName={clusterName} securityGroups={securityGroups} />)}
+        {instances.map( (instance) => <InstanceBar instance={instance} clusterName={clusterName} securityGroups={securityGroups}key={instance.continaerInstance.containerInstanceArn} />)}
      </Paper>
      );
   }

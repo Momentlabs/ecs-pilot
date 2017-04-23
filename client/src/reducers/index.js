@@ -4,7 +4,7 @@ import { auth } from './auth';
 import { 
   sessionId, clusters, instances, securityGroups, 
   deepTasks, loading, selectedClusters } from './serverData';
-import { error } from './error'
+import { error } from './error';
 
 export default combineReducers({
   auth,

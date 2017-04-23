@@ -1,4 +1,4 @@
-import { createAction } from 'redux-actions'
+import { createAction } from 'redux-actions';
 import * as types from './types';
 
 export const requestSecurityGroups = createAction(types.REQUEST_SECURITY_GROUPS, (groupIds) => groupIds);

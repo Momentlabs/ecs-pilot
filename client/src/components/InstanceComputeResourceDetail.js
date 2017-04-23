@@ -14,7 +14,7 @@ import FlexContainer from './common/FlexContainer';
 import MetricGroup from './common/MetricGroup';
 import FlowedMetric from './common/FlowedMetric';
 
-const InstanceComputeResourceDetail = ({ instance, style }, context) => {
+const InstanceComputeResourceDetail = ({ instance, style }) => {
 
   const ci = instance.containerInstance;
   const styles = {
@@ -45,10 +45,12 @@ const InstanceComputeResourceDetail = ({ instance, style }, context) => {
 
 
 InstanceComputeResourceDetail.propTypes = {
+  style: PropTypes.object,
   instance: PropTypes.object
 };
 
 InstanceComputeResourceDetail.defaultProps = {
+  style: {},
   instance: {}
 };
 

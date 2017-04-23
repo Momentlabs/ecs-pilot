@@ -12,7 +12,7 @@ import { List } from 'material-ui/List';
 import Divider from 'material-ui/Divider';
 
 // Since this component is simple and static, there's no parent component for it.
-const TaskDefinitionCard = ({taskDefinition, noFootLine, width}, context) => {
+const TaskDefinitionCard = ({taskDefinition, noFootLine, width}) => {
   // const styles = {
   //   container: {
   //     outline: "0px solid black"

@@ -4,8 +4,8 @@ import React, {PropTypes} from 'react';
 import { VictoryPie, VictoryTheme, VictoryContainer } from 'victory';
 
 // TOD: Perhaps these magic numbers should be obtained from somehwere else.
-const width = 20;
-const height = 0;
+// const width = 20;
+// const height = 0;
 const padding = {bottom:-20, top: 0};
 
 // Since this component is simple and static, there's no parent container for it.

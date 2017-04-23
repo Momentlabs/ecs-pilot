@@ -5,8 +5,7 @@ import ItemPair from './ItemPair';
 import { ListItem,  } from 'material-ui/List';
 
 
-// Since this component is simple and static, there's no parent component for it.
-const DetailItem = ({listKey, name, value}, context) => {
+const DetailItem = ({name, value}) => {
   // console.log("DetailItem:render()", "listKey:", listKey);
   // const styles = {
   //   container: {

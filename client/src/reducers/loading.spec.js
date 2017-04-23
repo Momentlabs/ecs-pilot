@@ -50,7 +50,7 @@ describe("reducer#loading", () => {
   describe("and an empty initial state", () =>  {
     it("LOADING_STARTED(newData) should return with the queue one record of data from the action", () => {
       const s = reducer(new Queue, startActionNew);
-      expect(s).toEqual(newState, "failed to get the right data from empty quque")
+      expect(s).toEqual(newState, "failed to get the right data from empty quque");
     });
     it('LOADING_COMPLETE should throw an error', () => {
       expect(() => reducer(undefined, completeActionNew)).toThrow();
@@ -69,7 +69,7 @@ describe("reducer#loading", () => {
     });
     it('should not change state for actions other than COMPLETE_LOADING and START_LOADING', () => {
         Object.keys(types).filter((k) => notTypes(k)).forEach( (t) => {
-          expect(reducer(initState, {type: types[t]})).toEqual(initState);
+          expect(reducer(initState, {type: types[t]})).toEqual(initState); // eslint-disable-line import/namespace
       });
     });
   });

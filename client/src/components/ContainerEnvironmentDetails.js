@@ -6,7 +6,6 @@ import { mergeStyles } from '../helpers/ui';
 import { containerEnvironmentTableData } from '../ecs/deepTask';
 
 import MetricGroup from './common/MetricGroup';
-import FlowedMetric from './common/FlowedMetric';
 import SimpleTable from './common/SimpleTable';
 
 function compare(a,b) {

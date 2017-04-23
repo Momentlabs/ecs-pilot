@@ -1,5 +1,5 @@
 import expect from 'expect';
-import Queue from '../helpers/queue';
+// import Queue from '../helpers/queue';
 import * as types from '../actions/types';
 import * as reducers from '../reducers/serverData';
 
@@ -120,7 +120,7 @@ describe('Testing reducers:', () => {
 
       it('should not change state for other actions.', () => {
         Object.keys(types).filter((k) => k !== action.type).forEach( (t) => {
-          expect(reducer(preActionState, {type: types[t]})).toEqual(preActionState);
+          expect(reducer(preActionState, {type: types[t]})).toEqual(preActionState); // eslint-disable-line import/namespace
         });
       });
     });

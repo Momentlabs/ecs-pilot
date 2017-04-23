@@ -17,7 +17,8 @@ import rootSaga from './sagas';
 import reducers from './reducers';
 
 
-console.log("Application:/src/index.js - setup including redux, and sagas.");
+console.log("Application:/src/index.js - setup including redux, and sagas."); // eslint-disable-line no-console
+
 injectTapEventPlugin();
 const sagaMiddleware = createSagaMiddleware();
 const store = createStore(reducers, applyMiddleware(sagaMiddleware));
@@ -27,7 +28,7 @@ sagaMiddleware.run(rootSaga);
 // it would be much better to get this ID in some deployment configurable way.
 store.dispatch(initAuth("S26s5k7KxPPlAc93KPgR2IvL9G1LhCzx", "momentlabs.auth0.com", store.dispatch));
 
-console.log("Applicaiton:/src/index.js calling render.");
+console.log("Applicaiton:/src/index.js calling render."); // eslint-disable-line no-console
 
 
 render(

@@ -52,10 +52,10 @@ class AppContainer extends React.Component {
   }
 
   componentWillMount() {
-    console.log("AppContainer:componentWillMount()", "props:", this.props);
+    // console.log("AppContainer:componentWillMount()", "props:", this.props);
     const { auth } = this.props;
     if (auth && auth.service.loggedIn()) {
-      console.log("AppContainer:componentWillMount() - loggedIn.");
+      // console.log("AppContainer:componentWillMount() - loggedIn.");
       this.props.actions.requestSessionId();
     }
   }
@@ -111,17 +111,17 @@ class AppContainer extends React.Component {
   handleLogoClick(event) {
     event.preventDefault();
     // console.log("Logo click.");
-    this.props.router.push(LOGO_CLICK_BROWSER_PATH);
+    this.props.router.push(LOGO_CLICK_BROWSER_PATH); // eslint-disable-line react/prop-types
   }
 
-  handleLogin(event) {
+  handleLogin() {
     // console.log("Handle Login." , "state:", this.state, "props:", this.props);
     const { auth } = this.props;
     // this.props.actions.showLogin();
     auth.service.login();
   }
 
-  handleLogout(event) {
+  handleLogout() {
     // console.log("AppContainer::handleLogout");
     const { auth } = this.props;
     auth.service.logout();
@@ -164,8 +164,7 @@ class AppContainer extends React.Component {
   }
 }
 
-const mapStateToProps = (state, ownProps) => { 
-  // console.log("AppContainer#mapStateToProps", "state:", state, "ownProps:", ownProps);
+const mapStateToProps = (state) => { 
   const { auth, error, loading, selectedClusters } = state;
 
   const loadingStatus = (loading && (loading.length() > 0)) ? load.LOADING : load.READY;
@@ -179,8 +178,7 @@ const mapStateToProps = (state, ownProps) => {
   }); 
 };
 
-const mapDispatchToProps = (dispatch, ownProps) => { 
-  // console.log("AppContainer#mapDispatchToProps", "ownProps:", ownProps);
+const mapDispatchToProps = (dispatch) => { 
   return ({actions: bindActionCreators(Object.assign({}, authActions, errorActions, serverActions), dispatch)}); 
 };
 

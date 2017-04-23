@@ -13,7 +13,7 @@ import FlexContainer from './common/FlexContainer';
 import MetricGroup from './common/MetricGroup';
 import FlowedMetric from './common/FlowedMetric';
 
-const InstanceNetworkResourceDetail = ({ instance, style }, context) => {
+const InstanceNetworkResourceDetail = ({ instance, style }) => {
 
   const ci = instance.containerInstance;
   const styles = {
@@ -35,10 +35,10 @@ const InstanceNetworkResourceDetail = ({ instance, style }, context) => {
     <FlexContainer style={mergedStyles.container}>
 {/*}    <MetricGroup title="Instance Network Resources" style={mergedStyles.container}> {*/}
       <MetricGroup title="TCP Ports" columns={tcpCols}>
-        {tcp.map( (p) => <FlowedMetric title={p.t} value={p.v} />)} 
+        {tcp.map( (p) => <FlowedMetric title={p.t} value={p.v} key={p.v} />)} 
       </MetricGroup>
       <MetricGroup title="UDP Ports" columns={udpCols}>
-        {udp.map( (p) => <FlowedMetric title={p.t} value={p.v} />)}
+        {udp.map( (p) => <FlowedMetric title={p.t} value={p.v} key={p.v} />)}
       </MetricGroup>
 {/*}    </MetricGroup> {*/}
   </FlexContainer>
@@ -47,10 +47,12 @@ const InstanceNetworkResourceDetail = ({ instance, style }, context) => {
 
 
 InstanceNetworkResourceDetail.propTypes = {
+  style: PropTypes.object,
   instance: PropTypes.object
 };
 
 InstanceNetworkResourceDetail.defaultProps = {
+  style: {},
   instance: {}
 };
 

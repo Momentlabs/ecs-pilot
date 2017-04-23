@@ -1,13 +1,14 @@
 import React, { PropTypes } from 'react';
 
-import * as defaultStyles from '../../styles/default';
-import { mergeStyles, columnWidth } from '../../helpers/ui';
+// import * as defaultStyles from '../../styles/default';
+import { mergeStyles } from '../../helpers/ui';
 
 import FlexContainer from './FlexContainer';
 import TitleBox from './TitleBox';
 import KeyboardArrowUp from 'material-ui/svg-icons/hardware/keyboard-arrow-up';
 import KeyboardArrowDown from 'material-ui/svg-icons/hardware/keyboard-arrow-down';
 
+// TODO: Move this to common
 export default class Bar extends React.Component {
   
   static propTypes = {
@@ -16,7 +17,8 @@ export default class Bar extends React.Component {
     showExpandableButton: PropTypes.bool,
     onExpandChange: PropTypes.func,
     onSelect: PropTypes.func,
-    style: PropTypes.object
+    style: PropTypes.object,
+    children: PropTypes.element,
   };
 
   static defaultProps = {
@@ -25,7 +27,7 @@ export default class Bar extends React.Component {
     showExpandableButton: false,
     onExpandChange: undefined,
     onSelect: undefined,
-    style: {}
+    style: {},
   };
 
   constructor(props, context) {
@@ -44,7 +46,7 @@ export default class Bar extends React.Component {
     this.setState({
       expandIcon: this.expandIcon(this.state.expanded, this.handleExpand)
     });
-  };
+  }
 
   handleExpand(event) {
     // console.log("Bar:handleExpand()", "event:", event);
@@ -114,4 +116,5 @@ export default class Bar extends React.Component {
     );
   }
 }
+
 

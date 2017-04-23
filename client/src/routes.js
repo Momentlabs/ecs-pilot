@@ -4,7 +4,6 @@ import AppContainer from './containers/AppContainer';
 import LandingPage from './components/LandingPage';
 import HomePage from './components/HomePage';
 import AboutPage from './components/AboutPage';
-import TestLayout from './components/TestLayout';
 import NotFoundPage from './components/NotFoundPage';
 
 import * as errorActions from './actions/error';
@@ -27,14 +26,13 @@ function checkAuth(s) {
   };
 }
 
-export default function(store) {
+export default function(store) { // eslint-disable-line react/display-name
   // console.log("Creating routes: ", "store:", store);
   return (
     <Route path="/" component={AppContainer}>
       <IndexRoute component={LandingPage} />
       <Route path="/home" component={HomePage} onEnter={checkAuth(store)}/>
       <Route path="/about" component={AboutPage}/>
-      <Route path="/test" component={TestLayout} />
       <Route path="*" component={NotFoundPage}/>
     </Route>
   );

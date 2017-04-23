@@ -1,9 +1,8 @@
 import React, { PropTypes } from 'react';
 import Cluster from '../ecs/cluster';
 
-import { mergeStyles } from '../helpers/ui';
+import { mergeStyles, KeyGenerator } from '../helpers/ui';
 import * as defaultStyles from '../styles/default';
-import { KeyGenerator } from '../helpers/ui';
 
 import Bar from './common/Bar';
 import MetricGrid from './common/MetricGrid';
@@ -47,7 +46,7 @@ const clusterBar = (c, onClusterSelect, k) => {
   );
 };
 
-const ClusterList = ({clusters, onClusterSelect, style}) => {
+const ClusterList = ({clusters, onClusterSelect, style}) => { // eslint-disable-line react/no-multi-comp
   const styles = {
     container: {
       // outline: "1px solid black"
@@ -65,8 +64,13 @@ const ClusterList = ({clusters, onClusterSelect, style}) => {
 };
 
 ClusterList.propTypes = {
+  style: PropTypes.object,
   clusters: PropTypes.array.isRequired,
   onClusterSelect: PropTypes.func
+};
+
+ClusterList.defaultProps = {
+  style: {},
 };
 
 export default ClusterList;

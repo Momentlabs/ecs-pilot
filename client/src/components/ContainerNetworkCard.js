@@ -1,8 +1,6 @@
 import React, {PropTypes } from 'react';
 import { containerBindingsTableData, containerLinksTableData } from '../ecs/deepTask';
 
-import * as c from '../styles/colors';
-
 import SimpleTable from './common/SimpleTable';
 import DetailCard from './common/DetailCard';
 

@@ -2,7 +2,6 @@ import React, { PropTypes } from 'react';
 
 import * as defaultStyles from '../../styles/default';
 import { mergeStyles } from '../../helpers/ui';
-import { separateChildrenRow } from '../../helpers/react';
 import * as c from '../../styles/colors';
 
 function childColumns(children) {
@@ -13,54 +12,7 @@ function childColumns(children) {
   return total;
 }
 
-// TODO: This doesn't play well with a non-grouped Metric in a metric bar.
-// That's probably a MetricBar problem, but ...
-// TODO: Remove the minWidth?
-const MetricGroup = ({ title, children, columns, minWidth, separateMetricWidth, tabTitle, style }) => {
-
-  // const separatorWidth = defaultStyles.metricSeparator;
-  // const styles = {
-  //   container: {
-  //     height: 'auto',
-  //     display: 'flex',
-  //     // marginRight: separatorWidth,
-  //     flexFlow: "column nowrap",
-  //     justifyContent: "stretch",
-  //     // outline: "1px solid green"
-  //   },
-  //   banner: {
-  //     // marginLeft: 0,
-  //     // marginRight: 0, // TODO: contstants and magic numbers (seperators?)
-  //     marginBottom: separatorWidth,
-  //     background: c.metricBannerBackground,
-  //     color: c.metricBannerColor,
-  //   },
-  //   title: {
-  //     paddingLeft: defaultStyles.smallRelativeSpace
-  //   },
-  //   metrics: {
-  //     minWidth: minWidth,
-  //     height: 'inherit',
-  //     flexGrow: 5,
-  //     display: 'inline-flex', // eslint-disable-line no-dupe-keys
-  //     flexFlow: "row nowrap",
-  //     justifyContent: "stretch",
-  //     alignItems: "stretch",
-  //     // alignContent: alignContent,
-  //     // outline: "2px solid red",
-  //   }
-  // };  
-  // let mergedStyles = mergeStyles(styles, style, "container");
-  // if (tabTitle) mergedStyles = mergeStyles(mergedStyles, {alignSelf: "flexStart"}, "title");
-  // if (React.Children.count(children) === 0) { 
-  //   return <div /> 
-  // }
-  // return (
-  //   <div style={mergedStyles.container}>
-  //     {title ?  <div style={mergedStyles.banner}><div style={mergedStyles.title}>{title}</div></div> : ""}
-  //     <div style={mergedStyles.metrics}>{separateChildrenRow(children, separateMetricWidth)}</div>
-  //   </div>
-  // );
+const MetricGroup = ({ title, children, columns, style }) => {
 
 
   // const childCount = React.Children.count(children);
@@ -129,20 +81,69 @@ const MetricGroup = ({ title, children, columns, minWidth, separateMetricWidth, 
 
 MetricGroup.propTypes = {
   title: PropTypes.string,
-  tabTitle: PropTypes.bool,
   style: PropTypes.object,
+  columns: PropTypes.number,
   minWidth: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-  separateMetricWidth: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  // separateMetricWidth: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   banner: PropTypes.bool,
   children: PropTypes.node
 };
 
 MetricGroup.defaultProps = {
-  tabTitle: false,
   style: {},
-  minWidth: "auto",
-  separateMetricWidth: defaultStyles.smallAbsoluteSpace,
+  columns: undefined,
+  // minWidth: "auto",
+  // separateMetricWidth: defaultStyles.smallAbsoluteSpace,
   title: undefined,
 };
 
 export default MetricGroup;
+
+
+
+
+// const MetricGroup = ({ title, children, columns, minWidth, separateMetricWidth, tabTitle, style }) => {
+
+  // const separatorWidth = defaultStyles.metricSeparator;
+  // const styles = {
+  //   container: {
+  //     height: 'auto',
+  //     display: 'flex',
+  //     // marginRight: separatorWidth,
+  //     flexFlow: "column nowrap",
+  //     justifyContent: "stretch",
+  //     // outline: "1px solid green"
+  //   },
+  //   banner: {
+  //     // marginLeft: 0,
+  //     // marginRight: 0, // TODO: contstants and magic numbers (seperators?)
+  //     marginBottom: separatorWidth,
+  //     background: c.metricBannerBackground,
+  //     color: c.metricBannerColor,
+  //   },
+  //   title: {
+  //     paddingLeft: defaultStyles.smallRelativeSpace
+  //   },
+  //   metrics: {
+  //     minWidth: minWidth,
+  //     height: 'inherit',
+  //     flexGrow: 5,
+  //     display: 'inline-flex', // eslint-disable-line no-dupe-keys
+  //     flexFlow: "row nowrap",
+  //     justifyContent: "stretch",
+  //     alignItems: "stretch",
+  //     // alignContent: alignContent,
+  //     // outline: "2px solid red",
+  //   }
+  // };  
+  // let mergedStyles = mergeStyles(styles, style, "container");
+  // if (tabTitle) mergedStyles = mergeStyles(mergedStyles, {alignSelf: "flexStart"}, "title");
+  // if (React.Children.count(children) === 0) { 
+  //   return <div /> 
+  // }
+  // return (
+  //   <div style={mergedStyles.container}>
+  //     {title ?  <div style={mergedStyles.banner}><div style={mergedStyles.title}>{title}</div></div> : ""}
+  //     <div style={mergedStyles.metrics}>{separateChildrenRow(children, separateMetricWidth)}</div>
+  //   </div>
+  // );

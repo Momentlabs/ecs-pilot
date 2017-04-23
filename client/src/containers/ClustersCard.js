@@ -7,7 +7,6 @@ import { connect } from 'react-redux';
 
 import * as defaultStyles from '../styles/default';
 
-import { Card, CardHeader } from 'material-ui/Card';
 import { Tabs, Tab } from 'material-ui/Tabs';
 import FontIcon from 'material-ui/FontIcon';
 
@@ -82,7 +81,8 @@ class ClustersCard extends React.Component {
 
     const styles = {
       conatiner: {
-        marginRight: defaultStyles.primaryAbsoluteSpace
+        marginRight: defaultStyles.primaryAbsoluteSpace,
+        testTransform: "none",
       },
       title: {
         paddingTop: defaultStyles.primaryAbsoluteSpace,
@@ -94,7 +94,7 @@ class ClustersCard extends React.Component {
     };
 
     return(
-      <Tab style={styles.container}key={"Cluster"} label={"Clusters"} value={CLUSTER_TAB} style={{"textTransform": "none"}}>
+      <Tab style={styles.container}key={"Cluster"} label={"Clusters"} value={CLUSTER_TAB} >
         <TitleBox title="Clusters" subtitle={sub} style={styles.title} />
         {(clusters.length > 0) ? <ClusterList  onClusterSelect={this.displayCluster} clusters={this.props.clusters}/> : <div/>}
       </Tab>
@@ -103,7 +103,7 @@ class ClustersCard extends React.Component {
 
   // need to pass the clustName into close a tab.
   makeCloseTab(clusterName) {
-    return (event) => {
+    return (event) => { // eslint-disable-line no-unused-vars
       this.closeTab(clusterName);
       this.props.actions.deselectCluster(clusterName);
     };
@@ -156,7 +156,7 @@ class ClustersCard extends React.Component {
         // outline: "2px solid red"
       }
     };
-    let icon = <div style={styles.cont}><span style={styles.label}>{name}</span><FontIcon onClick={this.makeCloseTab(cluster.clusterName)} style={styles.icon} className="material-icons">clear</FontIcon></div>
+    let icon = <div style={styles.cont}><span style={styles.label}>{name}</span><FontIcon onClick={this.makeCloseTab(cluster.clusterName)} style={styles.icon} className="material-icons">clear</FontIcon></div>;
     return (
       <Tab
         key={name} 
@@ -235,7 +235,7 @@ const mapStateToProps = (state) => {
   // console.log("ClustersCard#mapStateToProps - state", state);
   return ({clusters: state.clusters}); 
 };
-const mapDispatchToProps = (dispatch, ownProps) => { 
+const mapDispatchToProps = (dispatch) => { 
   // console.log("ClustersCard#mapDispatchToProps - ownProps", ownProps);
   return ({actions: bindActionCreators(serverActions, dispatch)}); 
 };

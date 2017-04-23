@@ -78,6 +78,7 @@ FlexContainer.propTypes = {
   justifyContent: PropTypes.string,
   alignItems: PropTypes.string,
   alignContent: PropTypes.string,
+  title: PropTypes.string,
   children: PropTypes.oneOfType([PropTypes.element, PropTypes.array, PropTypes.string])
 };
 

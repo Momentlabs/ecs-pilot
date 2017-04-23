@@ -8,7 +8,7 @@ import MetricGroup from './common/MetricGroup';
 import FlowedMetric from './common/FlowedMetric';
 
 
-const EC2NetworkDetail = ({ instance, style }, context) => {
+const EC2NetworkDetail = ({ instance, style }) => {
 
   // console.log("EC2NetworkDEtails", "style:", style);
   const { ec2Instance } = instance;
@@ -35,10 +35,12 @@ const EC2NetworkDetail = ({ instance, style }, context) => {
 
 
 EC2NetworkDetail.propTypes = {
+  style: PropTypes.object,
   instance: PropTypes.object.isRequired,
 };
 
 EC2NetworkDetail.defaultProps = {
+  style:{}
 };
 
 export default EC2NetworkDetail;

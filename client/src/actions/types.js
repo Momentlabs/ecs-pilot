@@ -32,7 +32,7 @@
 // It may be a good idea to actually change the protocol
 // to put error in the name.
 export const matchErrorActions = (action) => {
-  const failRE  = /.*FAILURE/
+  const failRE  = /.*FAILURE/;
   return failRE.test(action.type);
 };
 

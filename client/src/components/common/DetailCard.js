@@ -3,7 +3,7 @@ import { Card, CardTitle } from 'material-ui/Card';
 import Divider from 'material-ui/Divider';
 import * as defaultStyles from '../../styles/default';
 import { mergeStyles } from '../../helpers/ui';
-import * as c from '../../styles/colors';
+// import * as c from '../../styles/colors';
 
 // Since this component is simple and static, there's no parent container for it.
 
@@ -87,6 +87,7 @@ DetailCard.propTypes = {
   title: PropTypes.string.isRequired,
   subtitle: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
   noFootLine: PropTypes.bool,
+  noTopLine: PropTypes.bool,
   style: PropTypes.object,
   width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   boxShadow: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),

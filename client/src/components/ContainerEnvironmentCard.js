@@ -20,7 +20,7 @@ const ContainerEnvironmentCard = ({deepTask, width}) => {
     return 0;
   });
 
-  console.log("ContainerEnvironmentCard:render()", "deepTasks:", deepTask, "data:", data);
+  // console.log("ContainerEnvironmentCard:render()", "deepTasks:", deepTask, "data:", data);
 
   // const styles = {
   //   container: {

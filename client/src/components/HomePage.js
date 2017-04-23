@@ -1,8 +1,7 @@
 import React, { PropTypes} from 'react'; 
-import { connect } from 'react-redux'
+import { connect } from 'react-redux';
 import * as c from '../styles/colors';
 
-import {Card, CardHeader } from 'material-ui/Card';
 import ClustersCard from '../containers/ClustersCard';
 import SessionId from './SessionID';
 const HomePage = ({ sessionId, totalClusters, totalRunningTasks, totalInstances }) => {
@@ -21,7 +20,7 @@ const HomePage = ({ sessionId, totalClusters, totalRunningTasks, totalInstances 
       backgroundColor: c.metricBackground,
       outline: "1px solid black",
     }
-  }
+  };
 
   return (
     <div style={styles.container}>
@@ -54,13 +53,13 @@ HomePage.propTypes = {
   sessionId: PropTypes.object
 };
 
-const mapStateToProps = (state, ownProps) => {
+const mapStateToProps = (state) => {
   // console.log("HomePage#mapStateToProps()", "state:", state, "ownProps:", ownProps);
   const { sessionId, clusters } = state;
   return { 
     totalClusters: clusters.length,
-    totalRunningTasks: clusters.reduce( (t,c) => t+c.runningTasksCount, 0),
-    totalInstances: clusters.reduce( (t,c) => t+c.registeredContainerInstancesCount, 0),
+    totalRunningTasks: clusters.reduce( (t,cnt) => t+cnt.runningTasksCount, 0),
+    totalInstances: clusters.reduce( (t,cnt) => t+cnt.registeredContainerInstancesCount, 0),
     sessionId: sessionId
   };
 };

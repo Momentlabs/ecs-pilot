@@ -14,7 +14,7 @@ function percentValue(amount, total) {
 
 // TODO: Figure out a cleaner way to do this.
 // We're passing a lot of noise into the data arary for this.
-function renderLabel(o) {
+function renderLabel(o) { // eslint-disable-line react/no-multi-comp
   const { value, total, index, gaugeSize, labelWidth, fontSize } = o;
   if (index === 0) {
     return(
@@ -50,7 +50,7 @@ function resourceColors(rUsed, rRemain) {
 }
 
 // Since this component is simple and static, there's no parent component for it.
-const GuageRechart = (props) => {
+const GuageRechart = (props) => { // eslint-disable-line  react/no-multi-comp
   const { size, colors, amount, total, outerRadius, innerRadius, title } = props;
 
   const renderColors = colors ? colors : resourceColors(amount, total - amount);

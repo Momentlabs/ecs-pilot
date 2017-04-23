@@ -15,8 +15,8 @@ export class KeyGenerator {
 export function mergeStyles(original, mergeIn, keyToMergeTo) {
 
   let newObject = (original === undefined) ? {} : JSON.parse(JSON.stringify(original)); // this should deep copy fine for style objects.
-  let mergeTo = (keyToMergeTo && (keyToMergeTo != "")) ? newObject[keyToMergeTo] : newObject;
-  for (var k in mergeIn) {
+  let mergeTo = (keyToMergeTo && (keyToMergeTo !== "")) ? newObject[keyToMergeTo] : newObject;
+  for (let k in mergeIn) {
     mergeTo[k] = mergeIn[k];
   }
   return newObject;
@@ -24,7 +24,7 @@ export function mergeStyles(original, mergeIn, keyToMergeTo) {
 
 export function columnWidth(n) {
   const width = (defaultStyles.columnWidthPt * n) + (n-1)*defaultStyles.columnGutterPt;
-  console.log("helpers#ui#columWidth()", "columns:", n, "width:", width);
+  console.log("helpers#ui#columWidth()", "columns:", n, "width:", width); // eslint-disable-line no-console
   const styleVal = (width === 0) ? "auto" : width;
   return "" + styleVal + "pt";
 }

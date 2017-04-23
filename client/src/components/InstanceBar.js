@@ -4,18 +4,15 @@ import moment from 'moment';
 import { registeredCpuValue,registeredMemoryValue,
          remainingCpuValue, remainingMemoryValue,
          usedCpuValue, usedMemoryValue,
-       } from '../ecs/instance';
-
-import { registeredTcpPortsValue, registeredUdpPortsValue,
+         registeredTcpPortsValue, registeredUdpPortsValue,
          remainingTcpPortsValue, remainingUdpPortsValue
        } from '../ecs/instance';
 
 import { permEntriesByProto } from '../ecs/securityGroup';
-import { KeyGenerator } from '../helpers/ui';
+import { KeyGenerator, mergeStyles } from '../helpers/ui';
 
 
 import * as defaultStyles from '../styles/default';
-import { mergeStyles } from '../helpers/ui';
 import { shortArn } from '../helpers/aws';
 import { uptimeString } from '../helpers/time';
 
@@ -32,7 +29,6 @@ export default class InstanceBar extends React.Component {
     style: PropTypes.object,
     instance: PropTypes.object,
     securityGroups: PropTypes.array,
-    clusterName: PropTypes.string.isRequired,
   };
 
   static defaultProps = {
@@ -61,9 +57,9 @@ export default class InstanceBar extends React.Component {
 
   renderPerms(permsByProto) {
     let permElements = [];
-    Object.keys(permsByProto).map( (proto) => {
+    Object.keys(permsByProto).forEach( (proto) => {
       const entries = permsByProto[proto];
-      const protoName = (entries.length > 0) ? entries[0].proto : "undefined"
+      const protoName = (entries.length > 0) ? entries[0].proto : "undefined";
       permElements.push(<GridTitle sub3 title={protoName} />);
       entries.forEach( (entry) => {
         entry.permissions.forEach( (perm) => { 
@@ -93,7 +89,7 @@ export default class InstanceBar extends React.Component {
 
   render() {
     const { expanded } = this.state;
-    const { clusterName, instance, securityGroups, style } = this.props;
+    const { instance, securityGroups, style } = this.props;
 
     // console.log("InstanceBar:render()", "clusterName", clusterName, "instance:", instance, "securityGroups:", securityGroups);
     const ci = instance.containerInstance;
@@ -170,9 +166,9 @@ export default class InstanceBar extends React.Component {
             <FlowedMetric title="Remaining" value={remainingMemoryValue(ci)} />
             <FlowedMetric title="Used" value={usedMemoryValue(ci)} />
             <GridTitle title="TCP Ports" sub1 />
-            {tcp.length > 0 ? (tcp.map( (p) => <FlowedMetric title={p.t} value={p.v} />)) : <GridTitle title="no ports" sub2 />}
+            {tcp.length > 0 ? (tcp.map( (p) => <FlowedMetric title={p.t} value={p.v} key={k.nextKey} />)) : <GridTitle title="no ports" sub2 />}
             <GridTitle title="UDP Ports" sub1 />
-            {(udp.length > 0) ? udp.map( (p) => <FlowedMetric title={p.t} value={p.v} /> ) : <GridTitle title="no ports" sub2 />}
+            {(udp.length > 0) ? udp.map( (p) => <FlowedMetric title={p.t} value={p.v} key={k.nextKey} /> ) : <GridTitle title="no ports" sub2 />}
           </MetricGrid>
 
         </Card>

@@ -18,7 +18,7 @@ const ACCESS_KEY = "access_token"; // eslint-disable-line no-unused-vars
 
 export default class AuthService {
 
-  constructor(clientId, domain, dispatch, redirect=false) {
+  constructor(clientId, domain, dispatch /*, redirect=false */) {
 
     this.receiveToken = this.receiveToken.bind(this);
     this.login = this.login.bind(this);
@@ -51,7 +51,7 @@ export default class AuthService {
   }
 
   receiveToken(authResult) {
-    console.log("AuthService:receiveToken()", "authResult:", authResult);
+    console.log("AuthService:receiveToken()", "authResult:", authResult); // eslint-disable-line no-console
     this.setToken(authResult.idToken);
     this.dispatch(authActions.loggedIn(this, authResult.idToken));
     // browserHistory.replace(REDIRECT_PATH);
@@ -60,16 +60,16 @@ export default class AuthService {
 
   // Retruns a promise that will resolve with the profile.
   loadProfile() {
-    console.log("AuthService:loadProfile()", "this:", this);
+    // console.log("AuthService:loadProfile()", "this:", this);
     const token = this.getToken();
     const lock = this.lock;
     return new Promise( function(resolve, reject) {
       lock.getProfile(token, (error, profile) => {
         if (error) {
-          console.log("AuthService:getProfile failed: ", error);
+          console.log("AuthService:getProfile failed: ", error); // eslint-disable-line no-console
           reject(error);
         } else {
-          console.log("AuthService:getProfile succeded: ", "profile:", profile);
+          // console.log("AuthService:getProfile succeded: ", "profile:", profile);
           resolve(profile);
         }
       });
@@ -87,13 +87,13 @@ export default class AuthService {
 
   // This is getting used in the SAGA.
   setProfile(profile) {
-    console.log("Auth:setProfile()");
+    // console.log("Auth:setProfile()");
     localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
   }
 
   // PUBLIC API
   login() {
-    console.log("Auth:login()");
+    console.log("Auth:login()"); //eslint-disable-line no-console
     this.lock.show();
   }
 
