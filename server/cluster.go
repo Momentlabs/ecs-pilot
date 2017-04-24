@@ -35,12 +35,6 @@ var TestClusters = []ecs.Cluster {
 func ClusterController(w http.ResponseWriter, r *http.Request) {
   f := logrus.Fields{"controller": "ClusterController"}
 
-  // sess, err := sessionFromRequest(r, awsSession)
-  // if err != nil {
-  //   log.Error(f, "Failed to get the appropriate AWS session", err)
-  //   http.Error(w, fmt.Sprintf("Failed to get the appropriate AWS session: %s", err), http.StatusFailedDependency) // OR Failed AUTH?
-  //   return
-  // }
   sess, err := getAWSSession(r)
   if err != nil {
     log.Error(f, "Fail to find appropriate AWS Session", err)

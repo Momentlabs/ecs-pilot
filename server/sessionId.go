@@ -40,6 +40,11 @@ func SessionIdController(w http.ResponseWriter, r *http.Request) {
     accountAliases = []*string{} // TODO: MIGHT BE BETTER TO RETURN EMPTY ARRAY.
   }
   sessionId.AccountAliases = awslib.StringSlice(accountAliases)
+  f["numAliases"] = len(accountAliases)
+  for i, a := range sessionId.AccountAliases {
+    f[fmt.Sprintf("acountAliase[%s]" ,i)] = a
+  }
+  log.Debug(f, "Account Aliasess")
 
   idOutput, err := awslib.GetCurrentAccountIdentity(sess)
   if err == nil {
