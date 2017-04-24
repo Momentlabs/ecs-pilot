@@ -1,5 +1,4 @@
 // This is needed for Object.assign and generator support for sagas.
-import 'babel-polyfill'; 
 import './styles/styles.css';
 import React from 'react';
 import { render } from 'react-dom';
