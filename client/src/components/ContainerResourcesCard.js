@@ -6,7 +6,7 @@ import DetailCard from './common/DetailCard';
 
 
 // Since this component is simple and static, there's no parent component for it.
-const ContainerResourcesCard = ({deepTask, width}, context) => {
+const ContainerResourcesCard = ({deepTask, width}) => {
 
   const styles = {
     container: {

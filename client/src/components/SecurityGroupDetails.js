@@ -13,7 +13,7 @@ import FlowedMetric from './common/FlowedMetric';
 function renderPermissions(pp) {
   return (
       // pp.permissions.map( (perm) => <FlowedMetric title={perm} value={pp.portString} />)
-      pp.permissions.map( (perm) => <FlowedMetric title={pp.portString} value={perm} />)
+      pp.permissions.map( (perm) => <FlowedMetric title={pp.portString} value={perm} key={pp.portString}/>)
   );
 }
 
@@ -29,7 +29,7 @@ function renderPortPermissions(entries) {
   );
 }
 
-const SecurityGroupDetails = ({ securityGroup, style }) => {
+const SecurityGroupDetails = ({ securityGroup, style }) => { // eslint-disable-line react/no-multi-comp
 
   const styles = {
     container: {

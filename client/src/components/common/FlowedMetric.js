@@ -14,17 +14,17 @@ function fontSizeOfValue(value) {
   return longString(value) ? defaultStyles.longMetricFontSize : defaultStyles.metricFontSize;
 }
 
-function widthFromValue(value) {
-  return longString(value) ? "auto" : defaultStyles.metricWidth;
-}
+// function widthFromValue(value) {
+//   return longString(value) ? "auto" : defaultStyles.metricWidth;
+// }
 
 const FlowedMetric = (props) => {
   // console.log("FlowedMetric#render()", "props:", props);
   const { title, value, defaultValue, valueFontSize, valueStyles, 
-          titleFontSize, width, columns, style } = props;
+          titleFontSize, columns, style } = props;
 
   const vfs = (valueFontSize === undefined) ? fontSizeOfValue(value) : valueFontSize;
-  const mWidth = (width === undefined) ? widthFromValue(value) : width;
+  // const mWidth = (width === undefined) ? widthFromValue(value) : width;
 
   const columnSpec = (columns !== undefined) ? `span ${columns}` : "";
 
@@ -94,6 +94,7 @@ const FlowedMetric = (props) => {
 
 FlowedMetric.defaultProps = {
   style: {},
+  columns: 1,
   defaultValue: undefined,
   value: undefined,
   valueFontSize: undefined,
@@ -107,11 +108,12 @@ FlowedMetric.propTypes = {
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   defaultValue: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   style: PropTypes.object,
+  columns: PropTypes.number,
   valueFontSize: PropTypes.string,
   valueStyles: PropTypes.oneOfType([PropTypes.string,PropTypes.object]),
-  title: PropTypes.string,
+  title: PropTypes.oneOfType([PropTypes.string,PropTypes.number]),
   titleFontSize: PropTypes.string,
-  width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  // width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   children: PropTypes.element
 };
 

@@ -35,7 +35,7 @@ function lastChild(children) {
 const SEP_COL = 1;
 const SEP_ROW = 2;
 export function separateChildren(children, separatorWidth, sepDir) {
-  console.log("seperateChildren()", "separatorWidth:", separatorWidth);
+  // console.log("seperateChildren()", "separatorWidth:", separatorWidth);
   const sepStyle = (sepDir === SEP_ROW) ? {marginRight: separatorWidth} : {marginBottom: separatorWidth};
   const last = lastChild(children);
   let i = 1;

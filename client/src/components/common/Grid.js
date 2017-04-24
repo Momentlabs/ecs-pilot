@@ -7,10 +7,10 @@ import { mergeStyles } from '../../helpers/ui';
 // For the columnWidth or rowHeight use "auto" for 0.  TODO: This is probably a mnistake.
 const Grid = ({children, columns, rows, rowHeight, rowGap, columnWidth, columnGap, style}) => {
 
-  const rowSize  = (rowHeight !== undefined) ? rowHeight : ((rowHeight ===0 ) ? "auto" : defaultStyles.gridRowHeight);
-  const columnSize = (columnWidth !== undefined) ? columnWidth : ((columnWidth === 0) ? "auto" : defaultStyles.gridRowHeight);
-  const rg = (rowGap !== undefined) ? rowGap : defaultStyles.gridRowGap;
-  const cg = (columnGap !== undefined) ? columnGap : defaultStyles.gridColumnGap;
+  const rowSize  = (rowHeight !== undefined) ? rowHeight : ((rowHeight ===0 ) ? "auto" : defaultStyles.rowHeight);
+  const columnSize = (columnWidth !== undefined) ? columnWidth : ((columnWidth === 0) ? "auto" : defaultStyles.rowHeight);
+  const rg = (rowGap !== undefined) ? rowGap : defaultStyles.rowGutter;
+  const cg = (columnGap !== undefined) ? columnGap : defaultStyles.columnGutter;
   let styles = {
     container: {
       display: "inline-grid",
@@ -31,14 +31,14 @@ const Grid = ({children, columns, rows, rowHeight, rowGap, columnWidth, columnGa
       gridTemplateRows: `repeat( ${rows}, ${rowSize})`,
       gridAutoFlow: "column dense"
     };
-    styles = mergeStyles(styles, rowSpec, "container")
+    styles = mergeStyles(styles, rowSpec, "container");
   }
   if (columns !== undefined) {
     let colSpec = {
       gridTemplateColumns: `repeat( ${columns}, ${columnSize})`,
       gridAutoFlow: "row dense"
     };
-    styles = mergeStyles(styles, colSpec, "container")
+    styles = mergeStyles(styles, colSpec, "container");
   }
   const mergedStyles = mergeStyles(styles, style, "container");
 

@@ -3,7 +3,7 @@ import React, { PropTypes } from 'react';
 import * as defaultStyles from '../styles/default';
 import { mergeStyles, columnWidth } from '../helpers/ui';
 import { displayTime,  uptimeString } from '../helpers/time';
-import { shortArn } from '../helpers/aws';
+// import { shortArn } from '../helpers/aws';
 
 import MetricGroup from './common/MetricGroup';
 import FlowedMetric from './common/FlowedMetric';

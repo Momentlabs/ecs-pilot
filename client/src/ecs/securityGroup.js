@@ -42,7 +42,7 @@ function makeEntry(perm) {
     proto: protoName,
     portString: ps,
     permissions: perms
-  }
+  };
 }
 
 function portString(perm) {

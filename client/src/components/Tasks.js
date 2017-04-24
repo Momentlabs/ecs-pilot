@@ -1,7 +1,6 @@
 import React, {PropTypes } from 'react';
-// import {Link} from 'react-router';
 
-import * as c from '../styles/colors';
+// import * as c from '../styles/colors';
 import * as defaultStyles from '../styles/default';
 import TitleBox from './common/TitleBox';
 import Task from './Task';

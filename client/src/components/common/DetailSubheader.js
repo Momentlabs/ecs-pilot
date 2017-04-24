@@ -4,8 +4,7 @@ import * as c from '../../styles/colors';
 import Subheader from 'material-ui/Subheader';
 
 
-// Since this component is simple and static, there's no parent component for it.
-const DetailSubheader = ({listKey, children}, context) => {
+const DetailSubheader = ({listKey, children}) => {
   const k = listKey ? listKey : "key-0";
   const styles = {
     container: {
@@ -14,7 +13,7 @@ const DetailSubheader = ({listKey, children}, context) => {
       paddingTop: "1em",
       outline: "0px solid black"
     }
-  }
+  };
 
   return (<Subheader key={k} style={styles.container}>{children}</Subheader>
   );

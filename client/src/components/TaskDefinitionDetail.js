@@ -2,7 +2,7 @@ import React, { PropTypes } from 'react';
 
 import * as defaultStyles from '../styles/default';
 import { mergeStyles, columnWidth  } from '../helpers/ui';
-import { shortArn, shortRepoName } from '../helpers/aws';
+import { shortArn } from '../helpers/aws';
 
 import MetricGroup from './common/MetricGroup';
 import FlowedMetric from './common/FlowedMetric';
@@ -31,7 +31,7 @@ const TaskDefinitionDetail = ({ taskDefinition, style }) => {
       </MetricGroup>{*/}
     </MetricGroup>
   );
-}
+};
 
 TaskDefinitionDetail.propTypes = {
   taskDefinition: PropTypes.object.isRequired,

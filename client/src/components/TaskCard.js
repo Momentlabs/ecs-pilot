@@ -31,7 +31,7 @@ const TaskCard = ({ task, width }) => {
 
 TaskCard.defaultProps = {
   width: "40em",
-}
+};
 
 TaskCard.propTypes = {
   width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),

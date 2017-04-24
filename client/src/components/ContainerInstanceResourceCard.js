@@ -10,7 +10,7 @@ import DetailCard from './common/DetailCard';
 
 
 // Since this component is simple and static, there's no parent component for it.
-const ContainerInstanceResourceCard = ({ instance, width }, context) => {
+const ContainerInstanceResourceCard = ({ instance, width }) => {
   const ci = instance.containerInstance;
   // const styles = {
   //   container: {
@@ -28,10 +28,10 @@ const ContainerInstanceResourceCard = ({ instance, width }, context) => {
       ["Memory", memReg, memRem, memReg - memRem]
     ],
   };
-  const tcpPorts = remainingTcpPortsValue(ci).map( (p) => {return {value: p, remain: registeredTcpPortsValue(ci).includes(p)}} );
+  const tcpPorts = remainingTcpPortsValue(ci).map( (p) => ({value: p, remain: registeredTcpPortsValue(ci).includes(p)}));
   const tcpData = tcpPorts.map( (p) => ["tcp-port", p.value, (p.remaining) ? p.value : "-", (p.remaining) ? "-" : p.value]);
   resourceData.rows = resourceData.rows.concat(tcpData);
-  const udpPorts = remainingUdpPortsValue(ci).map( (p) => {return {value: p, remain: registeredUdpPortsValue(ci).includes(p)}} );
+  const udpPorts = remainingUdpPortsValue(ci).map( (p) => ({value: p, remain: registeredUdpPortsValue(ci).includes(p)}));
   let udpData = udpPorts.map( (p) => ["udp-port", p.value, (p.remaining) ? p.value : "-", (p.remaining) ? "-" : p.value]);
   if (udpData.length <= 0) { udpData = [["<no-udp>"]];}
   resourceData.rows = resourceData.rows.concat(udpData);

@@ -71,7 +71,7 @@ describe("Testing createACtinUUID with 2 valued arguments for payload.", () => {
   const values = [
     [1,2], ['a', 'b'], [{k1: 1, k2: 2}, {k1:3, k3: 4}]
   ];
-  const creator = createActionUUID("ACTION_TEST", (v1, v2) => {return {av1: v1, av2: v2}});
+  const creator = createActionUUID("ACTION_TEST", (v1, v2) => ({av1: v1, av2: v2}));
 
   it("should create an action filled with the multiple values in the payload", () => {
     values.forEach( (v) => {

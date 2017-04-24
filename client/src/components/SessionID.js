@@ -7,9 +7,7 @@ import FlowedMetric from './common/FlowedMetric';
 import MetricGrid from './common/MetricGrid';
 import GridTitle from './common/GridTitle';
 
-import { CardTitle } from 'material-ui/Card';
-
-const SessionId = ({ accountAlias, accountId, userId, region, totalClusters, totalRunningTasks, totalInstances }) => {
+const SessionId = ({ accountId, region, totalClusters, totalRunningTasks, totalInstances }) => {
 
   const styles = {
     container: {
@@ -48,9 +46,9 @@ const SessionId = ({ accountAlias, accountId, userId, region, totalClusters, tot
 };
 
 SessionId.propTypes = {
-  accountAlias: PropTypes.string.isRequired,
+  accountAlias: PropTypes.string,
   accountId: PropTypes.string.isRequired,
-  userId: PropTypes.string.isRequired,
+  userId: PropTypes.string,
   region: PropTypes.string.isRequired,
   totalClusters: PropTypes.number.isRequired,
   totalRunningTasks: PropTypes.number.isRequired,

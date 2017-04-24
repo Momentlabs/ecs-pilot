@@ -7,7 +7,7 @@ const TitleBox = ({title, subtitle, style, altColor}) => {
 
   const titleBoxStyle = (altColor) ? (defaultStyles.altColorTitleBox) : defaultStyles.titleBox;
   const titleStyle = (altColor) ? (defaultStyles.altColorTitle) : defaultStyles.title;
-  const subtitleStyle = (altColor) ? (defaultStyles.altColorSubtitle) : defaultStyles.subTitle;
+  const subtitleStyle = (altColor) ? (defaultStyles.altColorSubtitle) : defaultStyles.subtitle;
 
   const styles = {
     container: titleBoxStyle,

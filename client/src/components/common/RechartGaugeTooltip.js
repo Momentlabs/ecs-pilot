@@ -8,7 +8,7 @@ export default class RechartGaugeTooltip extends React.Component {
   }
 
   render() {
-    console.log("RechartGaugeTooltip:Render() - props", this.props);
+    // console.log("RechartGaugeTooltip:Render() - props", this.props);
     return (
       <div>Hello</div>
     );

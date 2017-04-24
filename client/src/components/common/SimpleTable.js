@@ -1,13 +1,12 @@
 import React, {PropTypes } from 'react';
-import { KeyGenerator } from '../../helpers/ui';
+import { mergeStyles, KeyGenerator } from '../../helpers/ui';
 import * as c from '../../styles/colors';
 
 import * as defaultStyles from '../../styles/default';
-import { mergeStyles } from '../../helpers/ui';
 
 let kg = new KeyGenerator();
 
-const renderCell = (e, style, span) => {
+const renderCell = (e, style) => { 
   return (<td style={style} key={kg.nextKey()}>{e}</td>);
   // if (span === undefined) {
   //   return (<td style={style} key={kg.nextKey()}>{e}</td>);
@@ -33,11 +32,11 @@ const valueToCell = (e, style) => {
 
 // {data.rows.map( (r) => <tr key={kg.nextKey()} style={styles.tableRow}>{r.map( (e) => valueToCell(e))}</tr>)}
 
-function renderRow(row, styles) {
-  return  <tr key={kg.nextKey()} style={styles.tableRow}>{row.map( (e) => valueToCell(e, styles.tableCell) )}</tr>
+function renderRow(row, styles) { // eslint-disable-line react/no-multi-comp
+  return  <tr key={kg.nextKey()} style={styles.tableRow}>{row.map( (e) => valueToCell(e, styles.tableCell) )}</tr>;
 }
 
-function renderNoData(message, span) {
+function renderNoData(message) { // eslint-disable-line react/no-multi-comp
   return (
     <div
     style={{fontSize: "large", textAlign: "right", paddingTop: '1em'}} >
@@ -46,7 +45,7 @@ function renderNoData(message, span) {
   );
 }
 
-const SimpleTable = ({ data, caption, missingDataMessage, style }) => {
+const SimpleTable = ({ data, caption, missingDataMessage, style }) => { // eslint-disable-line react/no-multi-comp
   // console.log("SimpleTable:render()", "data:", data, "caption:", caption);
 
   // const tablePadLeft = 16;
@@ -112,9 +111,6 @@ const SimpleTable = ({ data, caption, missingDataMessage, style }) => {
     }
   };
   const mergedStyles = mergeStyles(styles, style, "table");
-
-
-  console.log("SimpleTable:render()", "mergedStyles:", mergedStyles);
 
   return (
       <table style={mergedStyles.table}>

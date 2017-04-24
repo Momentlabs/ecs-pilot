@@ -34,13 +34,13 @@ describe('mergeStyles', () => {
   const newSimpleMergedItem = {
     width: "5em",
     height: 100
-  }
+  };
 
   const newSimpleAddMergedItem  = {
     width: "10em",
     height: 100,
     paddingLeft: "10px"
-  }
+  };
 
   const newMergedItem = {
     container: {
@@ -55,7 +55,7 @@ describe('mergeStyles', () => {
       height: 100,
       paddingLeft: "10px"
     }
-  }
+  };
 
   describe('with undefined original', () => {
 

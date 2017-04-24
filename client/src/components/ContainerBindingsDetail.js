@@ -20,7 +20,7 @@ function renderBinding(bind) {
   );
 }
 
-const ContainerBindingsDetail = ({ bindings, name, style }) => {
+const ContainerBindingsDetail = ({ bindings, name, style }) => { // eslint-disable-line react/no-multi-comp
 
   const styles = {
     container: {

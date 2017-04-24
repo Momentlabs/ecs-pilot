@@ -1,12 +1,11 @@
 import React, {PropTypes } from 'react';
-import * as c from '../styles/colors';
+// import * as c from '../styles/colors';
 import * as defaultStyles from '../styles/default';
-import { mergeStyles, columnWidth  } from '../helpers/ui';
+import { mergeStyles, KeyGenerator  } from '../helpers/ui';
 
 import { displayTime,  uptimeString } from '../helpers/time';
 import { shortArn, shortRepoName } from '../helpers/aws';
 import moment from 'moment';
-import { KeyGenerator } from '../helpers/ui';
 import { containerBindings, containerLinks, containerResources, containerULimits, containerEnvironment } from '../ecs/deepTask';
 
 import { Card } from 'material-ui/Card';
@@ -54,7 +53,7 @@ export default class Task extends React.Component {
   // the I think I want to lead with container not IP.
   // TODO: This functions need a little more FP please.
   renderBindings(bindings, containerName) {
-    let result = [<GridTitle title={containerName} sub1 />];
+    let result = [<GridTitle title={containerName} sub1 key={containerName} />];
     if (bindings.length >0) {
       bindings.forEach( (b) => {
         result.push(<GridTitle subtitle="IP" title={b.bindIP} sub2 />);
@@ -69,7 +68,7 @@ export default class Task extends React.Component {
   }
 
   renderLinks(links, cn) {
-    let result = [<GridTitle title={cn} sub1 />];
+    let result = [<GridTitle title={cn} sub1 key={cn}/>];
     if (links.length > 0) {
       links.forEach( (l) => {
         result.push(<FlowedMetric title="Link" value={l} />);
@@ -81,7 +80,7 @@ export default class Task extends React.Component {
   }
 
   renderResources(r, cn) {
-    let result = [<GridTitle title={cn} sub1 />];
+    let result = [<GridTitle title={cn} sub1 key={cn} />];
     result.push(<FlowedMetric title="CPU" value={r.cpu} />);
     result.push(<FlowedMetric title="Memory" value={r.memory} />);
     result.push(<FlowedMetric title="Memory Reserved" value={r.memoryReservation} />);
@@ -89,13 +88,13 @@ export default class Task extends React.Component {
   }
 
   renderULimits(u, cn) {
-    let result = [<GridTitle title={cn} sub1 />];
+    let result = [<GridTitle title={cn} sub1 key={cn} />];
     if (u) {
       result.push(<FlowedMetric title="ULimit" value={u.limitName} />);
       result.push(<FlowedMetric title="Soft" value={u.softLimit} />);
       result.push(<FlowedMetric title="Hard" value={u.hardLimit} />);
     } else {
-      result.push(<GridTitle title="No ULimits" sub2 />)
+      result.push(<GridTitle title="No ULimits" sub2 />);
     }
     return result;
   }
@@ -112,7 +111,7 @@ export default class Task extends React.Component {
     }
     // const entryPoint = (cd.entryPoint) ? cd.entryPoint.join(" ") : "<empty>";
 
-    let result=[<GridTitle title={ct.name} sub1 />];
+    let result=[<GridTitle title={ct.name} sub1 key={ct.name}/>];
     result.push(<FlowedMetric title="Essential" value={cd.essential ? "yes" : "no"} />);
     result.push(<FlowedMetric title="Image" value={shortRepoName(cd.image)} columns={3} />);
     result.push(<FlowedMetric title="Command" value={command} columns={2} />);
@@ -139,23 +138,14 @@ export default class Task extends React.Component {
     return results;
   }
 
-  // Since this component is simple and static, there's no parent component for it.
   render() {
     const {deepTask, style} = this.props;
     const {expanded} = this.state;
     // console.log("Task:render()", "deepTask:", deepTask);
 
-    // TODO: Change the outline color based on health.
-    const outlineColor = c.expandableOutlineColor;
-    // const outlineColor = colors.red500;
     const styles = {
       container: {
         boxShadow: "unset"
-        // boxShadow: defaultStyles.shadow,
-        // paddingTop: defaultStyles.smallAbsoluteSpace,
-        // paddingLeft: defaultStyles.smallAbsoluteSpace,
-        // paddingRight: defaultStyles.smallAbsoluteSpace,
-        // padding: defaultStyles.smallAbsoluteSpace,
         // outline: `2px solid ${outlineColor}`
       },
       bar: {
@@ -169,23 +159,6 @@ export default class Task extends React.Component {
         marginBottom: defaultStyles.primaryAbsoluteSpace,
         boxShadow: 'unset'
       },
-      tableContainer: {
-        alignSelf: "stretch",
-        marginBottom: defaultStyles.primaryAbsoluteSpace,
-        backgroundColor: defaultStyles.metricBackgroundColor,
-      },
-      table3Col: {
-        width: columnWidth(4.25),
-        backgroundColor: defaultStyles.metricBackgroundColor,
-      },
-      table4Col: {
-        width: columnWidth(4.25),
-        backgroundColor: defaultStyles.metricBackgroundColor,
-      },
-      envStyle: {
-        height: "1000px",
-        selfAlign: "stretch"
-      }
     };
     const mergedStyles = mergeStyles(styles, style, "container");
 
@@ -262,12 +235,43 @@ export default class Task extends React.Component {
   }
 }
 
-{/*}
-          <FlexContainer flexDirection="row" flexWrap="nowrap" alignItems="stretch" justifyContent="space-between">
-            <FlexContainer flexDirection="row" flexWrap="wrap" alignItems="flex-start" justifyContent="felx-start">
-              <TaskDetail task={task} />
-              <TaskDefinitionDetail taskDefinition={td} />
-              <MetricGroup title="Container Port Bindings" style={mergedStyles.tableContainer}>
+
+/*
+    // TODO: Change the outline color based on health.
+    // const outlineColor = c.expandableOutlineColor;
+    // const outlineColor = colors.red500;
+
+      container: {
+        boxShadow: "unset"
+        // boxShadow: defaultStyles.shadow,
+        // paddingTop: defaultStyles.smallAbsoluteSpace,
+        // paddingLeft: defaultStyles.smallAbsoluteSpace,
+        // paddingRight: defaultStyles.smallAbsoluteSpace,
+        // padding: defaultStyles.smallAbsoluteSpace,
+        // outline: `2px solid ${outlineColor}`
+      },
+
+      tableContainer: {
+        alignSelf: "stretch",
+        marginBottom: defaultStyles.primaryAbsoluteSpace,
+        backgroundColor: defaultStyles.metricBackgroundColor,
+      },
+      table3Col: {
+        width: columnWidth(4.25),
+        backgroundColor: defaultStyles.metricBackgroundColor,
+      },
+      table4Col: {
+        width: columnWidth(4.25),
+        backgroundColor: defaultStyles.metricBackgroundColor,
+      },
+      envStyle: {
+        height: "1000px",
+        selfAlign: "stretch"
+      }
+
+*/
+
+/*              <MetricGroup title="Container Port Bindings" style={mergedStyles.tableContainer}>
                 <SimpleTable data={containerBindingsTableData(deepTask)} style={mergedStyles.table4Col} />
               </MetricGroup>
               <MetricGroup title="Container Links" style={mergedStyles.tableContainer}>
@@ -280,13 +284,20 @@ export default class Task extends React.Component {
                 <SimpleTable data={containerULimitsTableData(deepTask)} style={mergedStyles.table4Col} />
               </MetricGroup>
               {task.containers.map( (c) => <ContainerDetails container={c} containerDef={td.containerDefinitions.find((cd) => cd.name === c.name)}/>)}
+
+
+{/*}
+          <FlexContainer flexDirection="row" flexWrap="nowrap" alignItems="stretch" justifyContent="space-between">
+            <FlexContainer flexDirection="row" flexWrap="wrap" alignItems="flex-start" justifyContent="felx-start">
+              <TaskDetail task={task} />
+              <TaskDefinitionDetail taskDefinition={td} />
               </FlexContainer>
             <ContainerEnvironmentDetails deepTask={deepTask} style={mergedStyles.envStyle}/>
           </FlexContainer>
 {/*}
 
 {/*}            <ContainerNetworkDetail deepTask={deepTask} /> 
-            <ContainerResourcesDetail deepTask={deepTask} /> {*/}
+            <ContainerResourcesDetail deepTask={deepTask} /> */
 /*            <TaskCard task={task} /> 
             {task.containers.map( (c) => <ContainerCard width={"40em"} key={kg.nextKey()} ecsContainer={c} containerDefinition={td.containerDefinitions.find((cd) => cd.name === c.name)}/>)}
               <TaskDefinitionCard taskDefinition={td} />

@@ -14,7 +14,7 @@ import {
 import { watchAuth } from '../sagas/auth';
 
 function*  startUp() {  
-  yield console.log("Applicatiion: saga startup.");
+  yield console.log("Applicatiion: saga startup."); // eslint-disable-line no-console
 }
 
 export default function* rootSaga() {

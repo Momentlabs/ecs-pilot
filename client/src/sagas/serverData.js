@@ -4,7 +4,7 @@ import * as types from '../actions/types';
 import * as serverActions from '../actions/serverData';
 import * as errorActions from '../actions/error';
 
-import SessionId from '../ecs/sessionId'
+import SessionId from '../ecs/sessionId';
 import Clusters from '../ecs/cluster';
 import Instances, { securityGroupIds }from '../ecs/instance';
 import SecurityGroup from '../ecs/securityGroup';
@@ -61,14 +61,14 @@ export function* watchRequestAll() {
 //
 // Obviously I need to read-up on generator details.
 
-export function* requestSessionId(action) {
+export function* requestSessionId(action) { // eslint-disable-line no-unused-vars
   // console.log("saga:requestSessionId - start", "action:", action);
   const loadAction = serverActions.startLoading("serverId");
   const id = loadAction.uuid;
   try {
     yield put(loadAction);
     const response = yield SessionId.getSessionId();
-    yield put(serverActions.completeLoading(id))
+    yield put(serverActions.completeLoading(id));
     yield put(serverActions.loadedSessionId(response.data));
   } catch(error) {
     error.displayMessage = "Failed to load session id: " + error.message;
@@ -82,7 +82,8 @@ export function* watchRequestSessionId() {
   yield takeEvery(types.REQUEST_SESSION_ID, requestSessionId);
 }
 
-export function* requestClusters(action) {
+export function* requestClusters(action) { // eslint-disable-line no-unused-vars
+  // console.log("saga:requestSessionId - start", "action:", action);
   // console.log("saga:requestCluster - start", "action:", action);
   const loadAction = serverActions.startLoading("clusters");
   const id = loadAction.uuid;
@@ -237,7 +238,7 @@ function* errorHandler(action) {
   if (action.type === types.REPORT_ERROR) {
     return;
   } else if (action.error) {
-    console.log("saga:errorHandler() - firing error.", "action:", action);
+    console.log("saga:errorHandler() - firing error.", "action:", action); // eslint-disable-line no-console
     yield put(errorActions.reportError(action.payload));
   }
 }

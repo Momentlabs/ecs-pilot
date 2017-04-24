@@ -94,7 +94,7 @@ describe('Queue', () => {
         a.forEach((e) => q.add(e));
         let q2 = q.copy();
         q.reset();
-        expect(q2.length()).toNotEqual(0)
+        expect(q2.length()).toNotEqual(0);
       });
     });
 

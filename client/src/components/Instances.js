@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 
 import * as defaultStyles from '../styles/default';
-import { mergeStyles } from '../helpers/ui';
+import { mergeStyles, KeyGenerator } from '../helpers/ui';
 
 import TitleBox from './common/TitleBox';
 import InstanceBar from './InstanceBar';
@@ -29,6 +29,7 @@ const Instances = ({ instances, securityGroups, clusterName, style }) => {
     noOfInstances + ((noOfInstances > 1) ? " instances in " : " instance in ") +
     noOfZones + ((noOfZones > 1) ? " availability zones" : " availability zone");
 
+  let k = new KeyGenerator();
   return (
     <div style={mergedStyles.container} >
       <TitleBox
@@ -37,7 +38,7 @@ const Instances = ({ instances, securityGroups, clusterName, style }) => {
         altColor
         style={styles.title}
       />
-      {instances.map( (i) => <InstanceBar instance={i} securityGroups={securityGroups} cluserName={clusterName} />)}
+      {instances.map( (i) => <InstanceBar instance={i} securityGroups={securityGroups} cluserName={clusterName} key={k.nextKey()} />)}
     </div>
   );
 };

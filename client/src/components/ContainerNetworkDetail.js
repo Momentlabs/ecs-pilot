@@ -3,10 +3,8 @@ import React, { PropTypes } from 'react';
 import * as defaultStyles from '../styles/default';
 import { mergeStyles } from '../helpers/ui';
 import { containerBindingsTableData, containerLinksTableData } from '../ecs/deepTask';
-import { containerResourceTableData, containerULimitsTableData } from '../ecs/deepTask';
 
 import MetricGroup from './common/MetricGroup';
-import FlowedMetric from './common/FlowedMetric';
 import SimpleTable from './common/SimpleTable';
 // import ContainerBindingsDetail from './ContainerBindingsDetail';
 

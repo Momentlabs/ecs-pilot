@@ -69,7 +69,7 @@ export function containerLinksTableData(dt) {
   const links = linksToArray(containerLinks(dt));
   const rows = links.map( (l) => [l.containerName, l.link]);
   const header = ["Container", "Link"];
-  return {header: header, rows: rows}
+  return {header: header, rows: rows};
 }
 
 export function containerResources(dt) {
@@ -86,7 +86,7 @@ export function containerResourceTableData(dt) {
   const rows = cNames.map( (n) => [resources[n].containerName, resources[n].cpu, resources[n].memory, resources[n].memoryReservation]);
   // Now add a total
   const totals = rows.reduce( (t, r) => { 
-    return ["total", {value: t[1].value + r[1]}, {value: t[2].value + r[2]}, {value: t[3].value + r[3]}]
+    return ["total", {value: t[1].value + r[1]}, {value: t[2].value + r[2]}, {value: t[3].value + r[3]}];
   }, ["total", {value: 0}, {value: 0}, {value: 0}]);
   rows.push(totals);
   return {header: header , rows: rows};
@@ -94,7 +94,7 @@ export function containerResourceTableData(dt) {
 
 export function containerULimits(dt) {
   const cds = dt.taskDefinition.containerDefinitions;
-  let uls = {}
+  let uls = {};
   cds.forEach( (c) => {
     const ul = c.ulimit;
     if (ul !== undefined) {

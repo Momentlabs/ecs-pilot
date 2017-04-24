@@ -65,7 +65,7 @@ export default class MetricBar extends React.Component {
   }
 
   handleClick(event) {
-    console.log("MetricBar:handleClick()", "event:", event);
+    // console.log("MetricBar:handleClick()", "event:", event);
     event.preventDefault();
     const {expanded } = this.state;
     const {onExpandChange} = this.props;

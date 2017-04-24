@@ -16,7 +16,7 @@ export const loading = (state = new Queue(), action) => {
         newState = state.copy();
         newState.remove((e) => e.id !== action.payload);
       } else {
-        throw(new Error(`trying to reduce LOADING_COMPLETE  with an empty loadingQueue. action: ${action}`))
+        throw(new Error(`trying to reduce LOADING_COMPLETE  with an empty loadingQueue. action: ${action}`));
       } // TODO: It's a logic error if we find we're trying to remove from an empty queue.
       break;
     default:
@@ -83,9 +83,9 @@ export function selectedClusters( state=[], action) {
       newState = Object.assign([], state);
       newState.push(action.payload);
       break;
-    case types.DESELECT_CLUSTER:
+    case types.DESELECT_CLUSTER: // eslint-disable-line no-case-declarations
       newState = Object.assign([], state);
-      let i = newState.indexOf(action.payload);
+      let i = newState.indexOf(action.payload); 
       newState.splice(i,1);
       break;
     default:
@@ -99,7 +99,8 @@ export const instances = (state = {}, action) => {
   // console.log("Reducer#instances() - entry", "state", state, "action", action);
   let newState = state;
   switch (action.type) {
-    case types.LOADED_INSTANCES:
+    case types.LOADED_INSTANCES: // eslint-disable-line no-case-declarations
+      newState = Object.assign([], state);
       let newInstances = Object.assign({}, state);
       newInstances[action.payload.clusterName] = action.payload.instances;
       newState = Object.assign({}, newInstances);
@@ -115,7 +116,8 @@ export const securityGroups = (state = {}, action) => {
   // console.log("Reducer#securityGroups - entry", "state", state, "action", action);
   let newState = state;
   switch (action.type)  {
-    case types.LOADED_SECURITY_GROUPS:
+    case types.LOADED_SECURITY_GROUPS: // eslint-disable-line no-case-declarations
+      newState = Object.assign([], state);
       let newSgs = Object.assign({}, state);
       action.payload.forEach( (sg) => {
         newSgs[sg.groupId] = sg;

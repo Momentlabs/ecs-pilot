@@ -12,7 +12,7 @@ const renderColor = (entry, index, colors) => {
 
 // TODO: Need to clean up tooltips. Probably want to pass done a on hover function that
 // can render in the level above.
-const RechartInlineGauge = ({data, colors}) => {
+const RechartInlineGauge = ({data, colors}) => { // eslint-disable-line react/no-multi-comp
   return (
     <div style={{padding: '0px 0px 0px 0px', margin: '20px 0px 20px 0px', border: '0px solid red', overflow: 'hidden'}}>
       <PieChart width={40} height={40} style={{padding: "0px 0px 0px 0px", margin: "0px 0px -22px 0px", border: "0px solid black"}}>

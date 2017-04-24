@@ -13,7 +13,7 @@ import FlowedMetric from './common/FlowedMetric';
 
 const ContainerInstanceDetail = ({ instance, style }) => {
 
-  const { ec2Instance, containerInstance } = instance;
+  const { ec2Instance } = instance;
   const styles = {
     container: {
       marginBottom: defaultStyles.rowGutter,
@@ -44,11 +44,11 @@ const ContainerInstanceDetail = ({ instance, style }) => {
 
 ContainerInstanceDetail.propTypes = {
   instance: PropTypes.object.isRequired,
-
+  style: PropTypes.object,
 };
 
 ContainerInstanceDetail.defaultProps = {
-  aProp: "Remove me"
+  style: {},
 };
 
 export default ContainerInstanceDetail;

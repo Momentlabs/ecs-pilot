@@ -12,7 +12,7 @@ function setBearerToken(token) {
 }
 
 export function* auth(action) {
-  console.log("saga:auth()", "action:", action );
+  // console.log("saga:auth()", "action:", action );
   let service = undefined;
   let token = undefined;
   try {
@@ -26,7 +26,7 @@ export function* auth(action) {
         }
         break;
 
-      case types.AUTH_LOGGED_IN:
+      case types.AUTH_LOGGED_IN: // eslint-disable-line no-case-declarations
         // TODO: Probably should remove the TOKEN setting to local state from Auth object to here.
         service = action.payload.service;
         token = service.getToken();
