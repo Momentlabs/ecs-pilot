@@ -18,7 +18,7 @@ export default class Bar extends React.Component {
     onExpandChange: PropTypes.func,
     onSelect: PropTypes.func,
     style: PropTypes.object,
-    children: PropTypes.element,
+    children: PropTypes.oneOfType([PropTypes.element, PropTypes.array])
   };
 
   static defaultProps = {
