@@ -166,9 +166,9 @@ export default class InstanceBar extends React.Component {
             <FlowedMetric title="Remaining" value={remainingMemoryValue(ci)} />
             <FlowedMetric title="Used" value={usedMemoryValue(ci)} />
             <GridTitle title="TCP Ports" sub1 />
-            {tcp.length > 0 ? (tcp.map( (p) => <FlowedMetric title={p.t} value={p.v} key={k.nextKey} />)) : <GridTitle title="no ports" sub2 />}
+            {tcp.length > 0 ? (tcp.map( (p) => <FlowedMetric title={p.t} value={p.v} key={k.nextKey()} />)) : <GridTitle title="no ports" sub2 />}
             <GridTitle title="UDP Ports" sub1 />
-            {(udp.length > 0) ? udp.map( (p) => <FlowedMetric title={p.t} value={p.v} key={k.nextKey} /> ) : <GridTitle title="no ports" sub2 />}
+            {(udp.length > 0) ? udp.map( (p) => <FlowedMetric title={p.t} value={p.v} key={k.nextKey()} /> ) : <GridTitle title="no ports" sub2 />}
           </MetricGrid>
 
         </Card>

@@ -128,12 +128,13 @@ export default class Task extends React.Component {
 
     const env = containerEnvironment(deepTask).sort( (a,b) => compare(a.name, b.name));
     let results = [];
+    let k = new KeyGenerator();
     env.forEach( (ev) => {
       const value = (ev.value) ? ev.value : "<empty>";
-      results.push(<GridTitle title={ev.container} sub1 />);
-      results.push(<FlowedMetric title="Variable" value={ev.name} columns={2} />);
-      results.push(<FlowedMetric title="Value" value={value} columns={2} />);
-      results.push(<FlowedMetric title="Override" value={ev.override} columns={2} />);
+      results.push(<GridTitle title={ev.container} sub1 key={k.nextKey()} />);
+      results.push(<FlowedMetric title="Variable" value={ev.name} columns={2} key={k.nextKey()} />);
+      results.push(<FlowedMetric title="Value" value={value} columns={2} key={k.nextKey()} />);
+      results.push(<FlowedMetric title="Override" value={ev.override} columns={2} key={k.nextKey()} />);
     });
     return results;
   }
