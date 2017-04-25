@@ -8,7 +8,7 @@ const LandingPage = () => {
       <CardMedia
         overlay={<CardTitle title="ECS Pilot" subtitle="Visualize and Control Your Clusters" />} 
       >
-        <img src="ContainerPilot.jpg" alt="Container ship pulled by pilot boat" />
+        <img src="/static/images/ContainerPilot.jpg" alt="Container ship pulled by pilot boat" />
       </CardMedia>
     </Card>
   );

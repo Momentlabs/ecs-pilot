@@ -60,33 +60,50 @@ func serve(address string) (err error) {
   // Routes
   r := mux.NewRouter().StrictSlash(true)
 
-  // TODO: Let's remove this ..... 
-  // Single Page app
-  r.HandleFunc("/", IndexController)
-  r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
+  // API
+  r.Handle("/sessionId", ApiAccess(SessionIdController, baseSession, true))
+  r.Handle("/clusters", ApiAccess(ClusterController, baseSession, true))
+  r.Handle(fmt.Sprintf("/deepTasks/{%s}", CLUSTER_NAME_VAR), ApiAccess(DeepTaskController, baseSession, true));
+  r.Handle(fmt.Sprintf("/instances/{%s}", CLUSTER_NAME_VAR), ApiAccess(InstancesController, baseSession, true));
+  r.Handle(fmt.Sprintf("/tasks/{%s}", CLUSTER_NAME_VAR), ApiAccess(TasksController, baseSession, true));
+  r.Handle("/security_groups", ApiAccess(SecurityGroupsController, baseSession, true));
 
-  // REST API
-  r.HandleFunc("/clusters", ClusterController)
-  r.HandleFunc(fmt.Sprintf("/deepTasks/{%s}", CLUSTER_NAME_VAR), DeepTaskController)
-  r.HandleFunc(fmt.Sprintf("/instances/{%s}", CLUSTER_NAME_VAR), InstancesController)
-  r.HandleFunc(fmt.Sprintf("/tasks/{%s}", CLUSTER_NAME_VAR), TasksController)
-  r.HandleFunc(fmt.Sprintf("/security_groups"), SecurityGroupsController)
-  r.HandleFunc("/sessionId", SessionIdController)
+  // r.HandleFunc("/sessionId", ApiAccess(SessionIdController, baseSession, true));
+  // r.HandleFunc("/clusters", ApiAccess(ClusterController, baseSession, true));
+  // r.HandleFunc(fmt.Sprintf("/deepTasks/{%s}", CLUSTER_NAME_VAR), ApiAccess(DeepTaskController, baseSession, true));
+  // r.HandleFunc(fmt.Sprintf("/instances/{%s}", CLUSTER_NAME_VAR), ApiAccess(InstancesController, baseSession, true));
+  // r.HandleFunc(fmt.Sprintf("/tasks/{%s}", CLUSTER_NAME_VAR), ApiAccess(TasksController, baseSession, true));
+  // r.HandleFunc("/security_groups", ApiAccess(SecurityGroupsController, baseSession, true));
+
+  // Look for static files otherwise.
+  r.PathPrefix("/").Handler(http.FileServer(http.Dir("./public")));
 
   // General Middleware
-  handlerChain := context.ClearHandler(LogHandler(CorsHandler(JWTHandler(AwsSessionHandler(r, baseSession, true)))))
+  // handlerChain := 
+  //   context.ClearHandler(LogHandler(CorsHandler(JWTHandler(AwsSessionHandler(r, baseSession, true)))))
+  handlerChain := context.ClearHandler(LogHandler(r))
 
-  // Server it up.
+  // Serve it up.
   err = http.ListenAndServe(address, handlerChain)
   log.Error(fields, "Shutting down.", err)
   return err
 }
 
 func IndexController(w http.ResponseWriter, r *http.Request) {
-  http.ServeFile(w, r, "./static/index.html")
+  f := logrus.Fields{
+    "host": r.Host, 
+    "hostAddr": r.RemoteAddr, 
+    "method": r.Method, 
+    "url":  r.URL.String(),
+    "requestTime": 0,
+  }
+  log.Info(f, "Serving index.html.");
+  http.ServeFile(w, r, "./public/index.html")
 }
 
-
+func ApiAccess(handler http.HandlerFunc, baseSession *session.Session, delegateWithJWT bool) http.Handler {
+  return CorsHandler(JWTHandler(AwsSessionHandler(handler, baseSession, delegateWithJWT)));
+}
 // TODO: For the moment I'm really only using this for DEV to seperate development on client and server.
 // I don't expect that I'll necessarily want to actually enable this
 // so some solution for proper production use needs to be determined once I decide how this will really be 
