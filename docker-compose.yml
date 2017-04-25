@@ -1,4 +1,4 @@
-version: '2'
+version: '3'
 services: 
   ecs-pilot-builder:
     build:
@@ -7,9 +7,18 @@ services:
     volumes:
       - ${GOPATH}/src:/go/src
 
-    image:  ecs-pilot
-    container_name: ecs-pilot-builder
+    image:  ecs-pilot-builder
+    container_name: ecs_pilot_builder
     environment:
       - GOOS=linux
       - GOARCH=amd64
 
+  ecs-pilot-build-client:
+      build: 
+        context: .
+        dockerfile: dockerfile
+      volumes:
+        - ${GOPATH}/src:/go/src
+      image: ecs-pilot-builder
+      container_name: ecs_pilot_client_builder
+      entrypoint: "make server_client_integrate"
