@@ -1,7 +1,6 @@
 .env
 node_modules
 release
-public
 compose-files
 .instance_credentials
 npm-debug.log
