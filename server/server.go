@@ -5,10 +5,11 @@ import (
   "time"
   "net/http"
   "github.com/aws/aws-sdk-go/aws/session"
+  "github.com/GeertJohan/go.rice"
   "github.com/gorilla/context"
-  "github.com/joho/godotenv"
   "github.com/gorilla/mux"
   "github.com/jdrivas/sl"
+  "github.com/joho/godotenv"
   "github.com/Sirupsen/logrus"
 )
 
@@ -76,7 +77,8 @@ func serve(address string) (err error) {
   // r.HandleFunc("/security_groups", ApiAccess(SecurityGroupsController, baseSession, true));
 
   // Look for static files otherwise.
-  r.PathPrefix("/").Handler(http.FileServer(http.Dir("./public")));
+  // r.PathPrefix("/").Handler(http.FileServer(http.Dir("./public")));
+  r.PathPrefix("/").Handler(http.FileServer(rice.MustFindBox("public").HTTPBox()))
 
   // General Middleware
   // handlerChain := 
@@ -101,6 +103,9 @@ func IndexController(w http.ResponseWriter, r *http.Request) {
   http.ServeFile(w, r, "./public/index.html")
 }
 
+// Configure the pipeline or local or non-local use. 
+// TODO: Actually implement this. Probably the local case
+// is to use the session passed in (delegateWtithJWT := false) an dremove the JWTHandler.
 func ApiAccess(handler http.HandlerFunc, baseSession *session.Session, delegateWithJWT bool) http.Handler {
   return CorsHandler(JWTHandler(AwsSessionHandler(handler, baseSession, delegateWithJWT)));
 }

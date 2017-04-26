@@ -3,13 +3,15 @@ aws_profile = momentlabs
 
 prog := ecs-pilot
 release_dir := release
-builds := darwin_build linux_build
+server_builds := darwin_build linux_build
 darwin_target := $(release_dir)/$(prog)_darwin_amd64
 linux_target := $(release_dir)/$(prog)_linux_amd64 
 
 help:
 	@echo make check \# Looks for imports in source files for the local version of mclib, awslib.
-	@echo make release-build \# Creates the binaries: $(binaries)
+	@echo make client \# Just build the client. Useful to incorporate a new client into server work.
+	@echo make server \# Just build the server with whatever client is already there.
+	@echo make release-build \# Creates the full binaries including the combined server & client: $(binaries)
 	@echo make new-release version=v0.0.2 description="This is an early release." \# creates a release on github.
 	@echo make release-publish version=v0.0.2 \# pushes the binaries to the github release.
 
@@ -41,28 +43,38 @@ $(darwin_target) $(linux_target) : envflag := -X $(prog)/version.environ=$(env)
 $(darwin_target) $(linux_target) : ld_args := $(envflag) $(hashflag) $(timeflag)
 
 # GO build command for each architecture/os
-$(darwin_target) :
+$(darwin_target) : 
 	GOOS=darwin GOARC=amd64 go build "-ldflags=$(ld_args)" -o $(release_dir)/$(prog)_darwin_amd64
+
 
 $(linux_target) :
 	GOOS=linux GOARC=amd64 go build "-ldflags=$(ld_args)" -o $(release_dir)/$(prog)_linux_amd64 
 
 
-# Client only builds:
+##
+# Client build
+#
+
 # TODO: There is probably a better way tom manage directories to build in the client directory.
 # client : client_dir := client_dir
-
 build_client : FORCE
 	cd client && npm install
 	cd client && npm run build
 
+# this gets the client and creates the file for go to embed.
 server_client_integrate: build_client
-	rm -rf public
-	mkdir public
-	cp -r client/build/* public
+	rm -rf server/public
+	mkdir server/public
+	cp -r client/build/* server/public
+	cd server && rice -v embed-go
 
 client: FORCE
 	docker-compose up --build --force-recreate ecs-pilot-build-client
+
+
+##
+# Server Build
+# 
 
 ##
 # At the moment we have dependiences that
@@ -74,8 +86,11 @@ darwin_build : $(darwin_target)
 linux_build :
 	docker-compose up --build --force-recreate ecs-pilot-builder
 
-# Build everythihng.
-release-build: $(builds)
+server: $(server_builds)
+
+## 
+# Build all for release.
+release-build: clean client server
 
 # TODO: Consider doing some git tagging and building in a file for description.
 new-release: clean release-build

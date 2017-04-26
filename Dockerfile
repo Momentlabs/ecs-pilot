@@ -24,14 +24,15 @@ ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
 
 RUN mkdir -p "$GOPATH/src" "$GOPATH/bin" && chmod -R 777 "$GOPATH"
 
+# this is a go based tool used to package files into the go binary.
+RUN go get github.com/GeertJohan/go.rice/rice
 
 # Our specifics.
 ENV app ecs-pilot
 # TODO Better to clone the repo for use in non-local 
 # environments.
 VOLUME ["/go/src/"]
-ENV target=release/${app}_linux_amd64
-CMD ${target}
 
 WORKDIR /go/src/${app}
+ENV target=release/${app}_linux_amd64
 ENTRYPOINT make ${target}

@@ -1,6 +1,8 @@
 .env
 node_modules
 release
+server/public
+server/rice-box.go
 compose-files
 .instance_credentials
 npm-debug.log
