@@ -1,4 +1,4 @@
- {
+{
   "name": "ecs-pilot-client",
   "version": "0.1.0",
   "description": "Front end for managing Amazon ECS clusters.",
@@ -32,6 +32,7 @@
     "uuid": "3.0.1"
   },
   "devDependencies": {
+    "expect": "1.20.2",
     "react-scripts": "0.9.3"
   },
   "keywords": [],

@@ -16,7 +16,7 @@ export function mergeStyles(original, mergeIn, keyToMergeTo) {
 
   let newObject = (original === undefined) ? {} : JSON.parse(JSON.stringify(original)); // this should deep copy fine for style objects.
   let mergeTo = (keyToMergeTo && (keyToMergeTo !== "")) ? newObject[keyToMergeTo] : newObject;
-  for (let k in mergeIn) {
+  for (let k in mergeIn) { // eslint-disable-line guard-for-in
     mergeTo[k] = mergeIn[k];
   }
   return newObject;
